@@ -22,7 +22,7 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 |---|---|---|
 | `programa` | string | `poa-em-dobro`, `tour-grande-poa`, `canoas-em-dobro` |
 | `nome` | string | nome do estabelecimento |
-| `categoria` | string | estimada por mim a partir do cupom: Pizzaria, Hamburgueria, Restaurante, Lanches, Cafeteria, Doces e sorvetes, Bar, Japonês |
+| `categoria` | string | estimada a partir do item do cupom: Restaurante, Carnes e parrilla, Pizzaria, Hamburgueria, Lanches, Mexicano e latino, Japonês e asiático, Cafeteria, Doces e sorvetes, Bar |
 | `item` | string \| null | trecho em negrito do app ("Na compra de **…**") |
 | `ganhe` | `igual` \| `igual_ou_menor` | "ganhe outro igual" ou "outro igual ou de menor valor" |
 | `verRegras` | bool | o app mostra "(ver regras)" no cupom |
@@ -42,6 +42,10 @@ python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 
 ## Pendências da fase 1 (Poa em Dobro)
 
-- **Di Toni:** a oferta ficou cortada no último print.
-- Nomes cortados no app e completados a partir do logo: Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
+São 91 cupons, vindos de 32 prints enviados em dois lotes (ordem 1–46 e 47–91).
+
+- **Di Toni:** a oferta ficou cortada no print.
+- **Possíveis lacunas:** em quatro pontos, o print seguinte começa com um cupom cortado logo depois de um anúncio, então pode ter ficado algum cupom de fora. São eles: depois do Luigi Pastéis, depois do Saori, depois do Chic Brigadeiro e depois do Di Toni (fim da lista). Também pode haver cupons acima da Mima Focacceria (início da lista).
+- **Nomes cortados no app e completados a partir do logo:** Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
+- **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer" → "burger", "amendoas" → "amêndoas", "cheeseou" → "cheese ou".
 - O status "Aberto agora / Fechado" do app não foi importado, porque valia só para a hora do print.

@@ -33,6 +33,8 @@
   --c-doce-bg: #F3CEDF; --c-doce: #781E49;
   --c-bar-bg: #DBD5F1; --c-bar: #392B7E;
   --c-jap-bg: #C9E7E2; --c-jap: #13504A;
+  --c-carne-bg: #EBC6C2; --c-carne: #6B1A1C;
+  --c-mex-bg: #CCDFF3; --c-mex: #173F69;
   --c-outro-bg: #E0E3DD; --c-outro: #3C433E;
 
   --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
@@ -56,6 +58,8 @@
     --c-doce-bg: #491E32; --c-doce: #FFB8D6;
     --c-bar-bg: #2B254F; --c-bar: #CAC1FF;
     --c-jap-bg: #153A36; --c-jap: #A5E3DA;
+  --c-carne-bg: #461A1C; --c-carne: #FFB4B2;
+  --c-mex-bg: #172F49; --c-mex: #A8CBF1;
     --c-outro-bg: #2A2F2B; --c-outro: #C9CFC8;
     color-scheme: dark;
   }
@@ -73,6 +77,8 @@
   --c-doce-bg: #491E32; --c-doce: #FFB8D6;
   --c-bar-bg: #2B254F; --c-bar: #CAC1FF;
   --c-jap-bg: #153A36; --c-jap: #A5E3DA;
+  --c-carne-bg: #461A1C; --c-carne: #FFB4B2;
+  --c-mex-bg: #172F49; --c-mex: #A8CBF1;
   --c-outro-bg: #2A2F2B; --c-outro: #C9CFC8;
   color-scheme: dark;
 }
@@ -305,6 +311,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .cat-doce { --cb: var(--c-doce-bg); --ci: var(--c-doce); }
 .cat-bar { --cb: var(--c-bar-bg); --ci: var(--c-bar); }
 .cat-jap { --cb: var(--c-jap-bg); --ci: var(--c-jap); }
+.cat-carne { --cb: var(--c-carne-bg); --ci: var(--c-carne); }
+.cat-mex { --cb: var(--c-mex-bg); --ci: var(--c-mex); }
 
 /* ---------- estados vazios ---------- */
 .empty {
@@ -439,7 +447,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const PROG = Object.fromEntries(PROGRAMAS.map((p, i) => [p.id, { ...p, i }]));
   const CAT_CLS = {
     "Pizzaria": "cat-pizza", "Hamburgueria": "cat-burger", "Restaurante": "cat-rest", "Lanches": "cat-lanche",
-    "Cafeteria": "cat-cafe", "Doces e sorvetes": "cat-doce", "Bar": "cat-bar", "Japonês": "cat-jap",
+    "Cafeteria": "cat-cafe", "Doces e sorvetes": "cat-doce", "Bar": "cat-bar", "Japonês e asiático": "cat-jap",
+    "Carnes e parrilla": "cat-carne", "Mexicano e latino": "cat-mex",
   };
   const GANHE_TXT = { igual_ou_menor: "outro igual ou de menor valor", igual: "outro igual" };
   const PREFS_KEY = "cupons-em-dobro:prefs:v1";
@@ -476,7 +485,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   /* ---------- utilidades ---------- */
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const norm = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  // sem acento, minúsculas; "burguer" e "burger" contam como a mesma palavra
+  const norm = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/burguer/g, "burger");
   const collator = new Intl.Collator("pt-BR", { sensitivity: "base", numeric: true });
   const fmtDate = (iso) => { try { const [y, m, d] = iso.slice(0, 10).split("-"); return `${d}/${m}/${y.slice(2)}`; } catch (_) { return ""; } };
   const today = () => { const d = new Date(); const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
