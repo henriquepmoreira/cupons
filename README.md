@@ -42,10 +42,25 @@ python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 
 ## Pendências da fase 1 (Poa em Dobro)
 
-São 136 cupons, vindos de 48 prints enviados em três lotes. Como cada lote vinha antes do anterior na lista do app, as posições ficaram: lote 3 = 1–45, lote 2 = 46–91, lote 1 = 92–136.
+São 182 cupons, vindos de 64 prints enviados em quatro lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 4 = 1–46, lote 3 = 47–91, lote 2 = 92–137, lote 1 = 138–182.
 
 - **Di Toni:** a oferta ficou cortada no print.
-- **Possíveis lacunas:** em oito pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora. São eles: Johnny & Julie → Mima, O'Sullivans → Tú Bar, Cantina do Ian → Ursa, 336 Hamburgueria → Café da Catedral, Banca 43 → Squisito, Luigi Pastéis → Ruta, Saori → Kampeki e Chic Brigadeiro → Fornellone. O início (Açaí das Maravilhas aparece cortado) e o fim (depois do Di Toni) também não estão confirmados.
-- **Nomes cortados no app e completados a partir do logo:** Mimô Brownie & Bistrô, Garibaldi Bar e Assado, Med Gastro Giardino, Quincho Parrilla y Bar, Du Nordeste Bom Fim, Johnny & Julie Doceria, Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
-- **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer" → "burger" (exceto no nome Real Fucking Burguer), "amendoas" → "amêndoas", "cheeseou" → "cheese ou", "um experiência" → "uma experiência".
+- **Possíveis lacunas:** em doze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
+  - Confeitaria Princesa → Cheirin Bão
+  - Ponto Zero Bar → Encouraçado Butikin
+  - Gianluca Zaffari → Bar Spoiler
+  - Usina de Massas Pocket → Açaí das Maravilhas
+  - Johnny & Julie → Mima Focacceria
+  - O'Sullivans → Tú Bar
+  - Cantina do Ian → Ursa
+  - 336 Hamburgueria → Café da Catedral
+  - Banca 43 → Squisito
+  - Luigi Pastéis → Ruta
+  - Saori → Kampeki
+  - Chic Brigadeiro → Fornellone
+
+  O início (antes da Pradie Bakery) e o fim (depois do Di Toni) também não estão confirmados.
+- **Nomes cortados no app e ainda incompletos:** "Machry Armazém e…" e "Ponto Zero Bar e C…" (o logo não mostra o resto). Estão registrados como Machry Armazém e Ponto Zero Bar.
+- **Nomes cortados no app e completados a partir do logo:** Biergarten Cervejaria, Usina de Massas Pocket, Famiglia Facin Casa Nápoles, Restaurante Figueiras, Rooster Crispy Kitchen, Edu_ Terrário Urbano, Primeiro Reino Burger, Mimô Brownie & Bistrô, Garibaldi Bar e Assado, Med Gastro Giardino, Quincho Parrilla y Bar, Du Nordeste Bom Fim, Johnny & Julie Doceria, Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
+- **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer"/"hamburguer" → "burger"/"hambúrguer" (exceto em nomes de estabelecimento), "amendoas" → "amêndoas", "cheeseou" → "cheese ou", "um experiência" → "uma experiência", "uma arepas" → "uma arepa", "Zaituna Arabe" → "Zaituna Árabe".
 - O status "Aberto agora / Fechado" do app não foi importado, porque valia só para a hora do print.
