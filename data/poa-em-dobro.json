@@ -282,6 +282,6 @@
     { "slug": "fornellone", "ordem": 277, "nome": "Fornellone Ristorante", "categoria": "Restaurante", "item": "um filé individual", "ganhe": "igual_ou_menor", "verRegras": false, "favorito": true },
     { "slug": "ferro-xiseria", "ordem": 278, "nome": "Ferro Xiseria", "categoria": "Lanches", "item": "um xis", "ganhe": "igual_ou_menor", "verRegras": true, "favorito": false },
     { "slug": "ferradura", "ordem": 279, "nome": "Ferradura", "categoria": "Pizzaria", "item": "uma pizza", "ganhe": "igual_ou_menor", "verRegras": true, "favorito": false },
-    { "slug": "di-toni", "ordem": 280, "nome": "Di Toni", "categoria": "Restaurante", "item": null, "ganhe": null, "verRegras": false, "favorito": true, "pendente": "A oferta ficou cortada no último print. Mande um print do cupom para completar." }
+    { "slug": "di-toni", "ordem": 280, "nome": "Di Toni", "categoria": "Restaurante", "item": null, "ganhe": null, "verRegras": false, "favorito": true, "pendente": "Cupom usado antes de entrar na carteira. A oferta não foi registrada.", "usado": true, "usadoEm": null }
   ]
 }

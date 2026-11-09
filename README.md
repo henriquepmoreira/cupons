@@ -44,7 +44,7 @@ python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 
 São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
 
-- **Di Toni:** a oferta ficou cortada no print.
+- **Di Toni:** já foi usado (marcado como usado na carteira, sem data). A oferta não foi registrada.
 - **Possíveis lacunas:** em quinze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
   - Lucho Burger → Bistrô do Mercado
   - Joe Hamburgueria → D'Juca Confeitaria
