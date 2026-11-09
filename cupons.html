@@ -440,9 +440,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   /* ---------- configuração fixa ---------- */
   const PROGRAMAS = [
-    { id: "poa-em-dobro", nome: "Poa em Dobro", cls: "prog-poa" },
-    { id: "tour-grande-poa", nome: "Tour Grande Poa", cls: "prog-tour" },
-    { id: "canoas-em-dobro", nome: "Canoas em Dobro", cls: "prog-canoas" },
+    { id: "poa-em-dobro", nome: "Poa em Dobro", cls: "prog-poa", cidade: "Porto Alegre" },
+    { id: "tour-grande-poa", nome: "Tour Grande Poa", cls: "prog-tour", cidade: "RS" },
+    { id: "canoas-em-dobro", nome: "Canoas em Dobro", cls: "prog-canoas", cidade: "Canoas" },
   ];
   const PROG = Object.fromEntries(PROGRAMAS.map((p, i) => [p.id, { ...p, i }]));
   const CAT_CLS = {
@@ -550,7 +550,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (c.verRegras) tags.push('<span class="tag rules">Ver regras no app</span>');
     if (c.ganhe === "igual") tags.push('<span class="tag">Só item igual</span>');
     if (!c.item) tags.push('<span class="tag pend">Oferta pendente</span>');
-    const q = encodeURIComponent(`${c.nome} Porto Alegre`);
+    const q = encodeURIComponent(`${String(c.nome).replace(/…/g, "")} ${prog?.cidade || "RS"}`);
     return `<article class="ticket ${catCls}${c.usado ? " is-used" : ""}" data-id="${esc(c.id)}">
   <div class="stub" aria-hidden="true">
     <span class="mono">${esc(initials(c.nome))}</span>

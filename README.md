@@ -40,6 +40,26 @@ Para importar um programa novo, crie `data/<programa>.json` e gere os documentos
 python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 ```
 
+## Tour Grande Poa
+
+São 203 cupons, vindos de 108 prints da aba Vouchers (os dois zips enviados eram idênticos). O app agrupa a lista por tipo de estabelecimento, em ordem alfabética dentro de cada grupo, e a carteira mantém essa ordem. O início (Ah! Casa) e o fim (Vino! Novo Hamburgo) aparecem nos prints.
+
+- **Asterisco = ver regras:** no Tour, um asterisco no texto do cupom indica condições que só aparecem no detalhe. Esses 57 cupons estão marcados como "Ver regras no app".
+- **Mesmo restaurante, cupons diferentes:** Gran Forneria (massa/risoto e pizza), Saúde no Copo (wrap, salada e açaí), Chá das Três (café colonial e chá), Banca do Açaí (açaí e crepe) e várias unidades de redes (Spoleto, El Guerrero, Oaks, Menu Poke, Woking, Chiquinho, Cremolatto, Go Coffee, Tortas Doquinha, OCA Pizza…) são cupons separados.
+- **Possíveis lacunas:** em nove pontos o print termina num anúncio e o seguinte já começa no cupom de baixo, então não dá para confirmar que nenhum ficou escondido: Espaço Eminente → Gran Armazém, Chavin → Chica Maria, El Guerrero Gravataí → El Guerrero Pontal, Menu Poke Moinhos → Menu Poke ParkShopping, Usina de Massas Granvia → Saúde no Copo, ViVa Padaria → Buonissima Canoas, Montecchio → Morango & Alecrim, Inner → Janela Bar e Poeta Bar → Rancho Boiadeiros. (Xuvisko Rodízio → Bomba Burguer está confirmada.)
+- **Nomes completados por dedução:** Coco Bambu - Porto Alegre, Menu Poke - BarraShoppingSul e ParkShopping, Woking - Mercado Público, Spoleto Bourbon Ipiranga e Iguatemi Porto Alegre, Cheirin Bão - ParkShopping e Praia de Belas, Chiquinho Canoas Shopping / Novo Hamburgo / ParkShopping, Go Coffee Cachoeirinha e São Leopoldo, Mais 1 Café - Independência, Prazer Donuts Canoas, Startt & Brothers Café, Tortas Doquinha Porto Alegre, Troppo Buono Moinhos, ViVa Padaria e Cafeteria, Buonissima Canoas e Sapucaia, Domino's Pizza Canoas, OCA Pizza - Ocarrinho Cais Embarcadero, Mark - Auxiliadora, Bom Fim e Cidade Baixa, Buteco Comedy Bar - Novo Hamburgo, Cervejaria Artesanal Horst & Biermann, Caramello Bolos Caseiros, Cremolatto Dr. Barcelos, Ah! Casa - café, bistrô e confeitaria.
+- **Nomes que continuam cortados (com "…"):** Empório 22 Wine &…, El Guerrero - Barra… e Vila R…, Oaks Burritos - Park…, Quiero Café - Barra…, Portofino - Rodízio de Massas e…, Spoleto Park Bourb…, Café Con Acento by…, Pallina Di Latte - Sh…, PopCorn Gourmet - …, The Waffle King Gr… e - S…, Tortas Doquinha Sa…, OCA Pizza - Ocarri… e Oca Pizza - Ocarrin… (duas unidades), Janela Bar POA - Zo…, Mark - Harmonia, R….
+
+## Canoas em Dobro
+
+São 101 cupons, vindos de 34 prints da aba Cupons. A lista começa no Kampeki Sushi (topo confirmado) e **não termina** no último print: abaixo do Grano Forneria aparece o topo do card "Guido Café & Cia", registrado como pendente, e pode haver mais cupons depois dele.
+
+- Não há pontos de anúncio sem emenda: em todos os prints o cupom seguinte aparece no rodapé do anterior.
+- **Dois cupons do Urban 1736** e **dois do Comidas de Boteco**, com ofertas diferentes, são registrados como cupons separados.
+- **Nomes completados por dedução:** Bocasanta Pub e Pizza, Churras in Box Canoas e Novo Hamburgo, Darna Cozinha Mediterrânea, Cremolatto Dr. Barcelos, Domino's Pizza Canoas, Família Kabana Pizzaria, Mas Bah Tchê!, Oak's Burritos y Bowls, Churrascaria Passoquinha, Nonno Eugênio Pizzeria, Manjericão Toscano.
+- **Nomes que continuam cortados:** Empório 22 Wine &…, Rodrigues Estação….
+- **Banca do Açaí:** a oferta muda por dia (terça e quinta, rodízio de crepes com reserva; sexta a domingo, um crepe à la carte) e está registrada inteira no texto do cupom.
+
 ## Pendências da fase 1 (Poa em Dobro)
 
 São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
