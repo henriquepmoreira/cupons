@@ -42,10 +42,10 @@ python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 
 ## Pendências da fase 1 (Poa em Dobro)
 
-São 91 cupons, vindos de 32 prints enviados em dois lotes (ordem 1–46 e 47–91).
+São 136 cupons, vindos de 48 prints enviados em três lotes. Como cada lote vinha antes do anterior na lista do app, as posições ficaram: lote 3 = 1–45, lote 2 = 46–91, lote 1 = 92–136.
 
 - **Di Toni:** a oferta ficou cortada no print.
-- **Possíveis lacunas:** em quatro pontos, o print seguinte começa com um cupom cortado logo depois de um anúncio, então pode ter ficado algum cupom de fora. São eles: depois do Luigi Pastéis, depois do Saori, depois do Chic Brigadeiro e depois do Di Toni (fim da lista). Também pode haver cupons acima da Mima Focacceria (início da lista).
-- **Nomes cortados no app e completados a partir do logo:** Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
-- **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer" → "burger", "amendoas" → "amêndoas", "cheeseou" → "cheese ou".
+- **Possíveis lacunas:** em oito pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora. São eles: Johnny & Julie → Mima, O'Sullivans → Tú Bar, Cantina do Ian → Ursa, 336 Hamburgueria → Café da Catedral, Banca 43 → Squisito, Luigi Pastéis → Ruta, Saori → Kampeki e Chic Brigadeiro → Fornellone. O início (Açaí das Maravilhas aparece cortado) e o fim (depois do Di Toni) também não estão confirmados.
+- **Nomes cortados no app e completados a partir do logo:** Mimô Brownie & Bistrô, Garibaldi Bar e Assado, Med Gastro Giardino, Quincho Parrilla y Bar, Du Nordeste Bom Fim, Johnny & Julie Doceria, Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
+- **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer" → "burger" (exceto no nome Real Fucking Burguer), "amendoas" → "amêndoas", "cheeseou" → "cheese ou", "um experiência" → "uma experiência".
 - O status "Aberto agora / Fechado" do app não foi importado, porque valia só para a hora do print.
