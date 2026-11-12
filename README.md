@@ -30,6 +30,12 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 | `favorito` | bool | coração preenchido |
 | `usado` / `usadoEm` | bool / `AAAA-MM-DD` | marcado na página |
 | `pendente` | string \| null | aviso quando falta informação |
+| `unidade` | objeto \| null | `{bairro, endereco, cidade}` da unidade onde o cupom vale (Tour) |
+| `horarios` | objeto | dias em que o cupom vale (`dom`…`sab`) e faixas de horário; dia ausente = não vale |
+| `feriados` / `datasComemorativas` | bool | se o cupom vale em feriados e datas comemorativas |
+| `regras` | string \| null | texto de "Regras e avisos do estabelecimento" |
+| `comodidades` | lista | etiquetas do app (Acessibilidade, Pet Friendly, Opções veganas…) |
+| `maisUnidades` | bool | o app mostra um seletor de unidade; os dados são da unidade que aparece primeiro |
 
 Só a pessoa dona do artifact pode gravar no banco (regra `write: owner`).
 
@@ -46,9 +52,20 @@ São 203 cupons, vindos de 108 prints da aba Vouchers (os dois zips enviados era
 
 - **Asterisco = ver regras:** no Tour, um asterisco no texto do cupom indica condições que só aparecem no detalhe. Esses 57 cupons estão marcados como "Ver regras no app".
 - **Mesmo restaurante, cupons diferentes:** Gran Forneria (massa/risoto e pizza), Saúde no Copo (wrap, salada e açaí), Chá das Três (café colonial e chá), Banca do Açaí (açaí e crepe) e várias unidades de redes (Spoleto, El Guerrero, Oaks, Menu Poke, Woking, Chiquinho, Cremolatto, Go Coffee, Tortas Doquinha, OCA Pizza…) são cupons separados.
-- **Possíveis lacunas:** em nove pontos o print termina num anúncio e o seguinte já começa no cupom de baixo, então não dá para confirmar que nenhum ficou escondido: Espaço Eminente → Gran Armazém, Chavin → Chica Maria, El Guerrero Gravataí → El Guerrero Pontal, Menu Poke Moinhos → Menu Poke ParkShopping, Usina de Massas Granvia → Saúde no Copo, ViVa Padaria → Buonissima Canoas, Montecchio → Morango & Alecrim, Inner → Janela Bar e Poeta Bar → Rancho Boiadeiros. (Xuvisko Rodízio → Bomba Burguer está confirmada.)
+- **Possíveis lacunas:** dos nove pontos com anúncio entre dois prints, cinco foram confirmados pelo vídeo (ver abaixo). Continuam em aberto: ViVa Padaria → Buonissima Canoas, Montecchio → Morango & Alecrim, Inner → Janela Bar e Poeta Bar → Rancho Boiadeiros.
 - **Nomes completados por dedução:** Coco Bambu - Porto Alegre, Menu Poke - BarraShoppingSul e ParkShopping, Woking - Mercado Público, Spoleto Bourbon Ipiranga e Iguatemi Porto Alegre, Cheirin Bão - ParkShopping e Praia de Belas, Chiquinho Canoas Shopping / Novo Hamburgo / ParkShopping, Go Coffee Cachoeirinha e São Leopoldo, Mais 1 Café - Independência, Prazer Donuts Canoas, Startt & Brothers Café, Tortas Doquinha Porto Alegre, Troppo Buono Moinhos, ViVa Padaria e Cafeteria, Buonissima Canoas e Sapucaia, Domino's Pizza Canoas, OCA Pizza - Ocarrinho Cais Embarcadero, Mark - Auxiliadora, Bom Fim e Cidade Baixa, Buteco Comedy Bar - Novo Hamburgo, Cervejaria Artesanal Horst & Biermann, Caramello Bolos Caseiros, Cremolatto Dr. Barcelos, Ah! Casa - café, bistrô e confeitaria.
 - **Nomes que continuam cortados (com "…"):** Empório 22 Wine &…, El Guerrero - Barra… e Vila R…, Oaks Burritos - Park…, Quiero Café - Barra…, Portofino - Rodízio de Massas e…, Spoleto Park Bourb…, Café Con Acento by…, Pallina Di Latte - Sh…, PopCorn Gourmet - …, The Waffle King Gr… e - S…, Tortas Doquinha Sa…, OCA Pizza - Ocarri… e Oca Pizza - Ocarrin… (duas unidades), Janela Bar POA - Zo…, Mark - Harmonia, R….
+
+### Detalhes do Tour (vídeo de 12/11/2026)
+
+Uma gravação de tela (5 partes de 90 s, 720 px, 6 quadros/s) mostrou a tela de detalhe de 88 cupons, da Applebee's até Chá das Três - Chá. O Ah! Casa não foi aberto no vídeo. Os quadros foram lidos com OCR (tesseract, português) e conferidos visualmente nos casos duvidosos: dias ausentes, unidades e regras longas.
+
+- **Dias e horários:** todo dia que falta na lista do app foi conferido em imagem. Ele está mesmo ausente, ou seja, o cupom não vale nesse dia.
+- **Feriados e datas comemorativas:** lidos pela cor do ícone (✓ verde / ✗ vermelho).
+- **Nomes completos:** o título da tela de detalhe completou 12 nomes que a lista corta (ex.: Empório 22 Wine & Bar, Spoleto Park Bourbon Novo Hamburgo, Café Con Acento by Felix).
+- **Lacunas resolvidas:** o vídeo percorre a lista sem pular, então as emendas Espaço Eminente → Gran Armazém, Chavin → Chica Maria, El Guerrero Gravataí → Pontal, Menu Poke Moinhos → ParkShopping e Usina de Massas → Saúde no Copo estão confirmadas. Continuam em aberto: ViVa Padaria → Buonissima Canoas, Montecchio → Morango & Alecrim, Inner → Janela Bar e Poeta Bar → Rancho Boiadeiros.
+- **Ainda sem detalhes:** Ah! Casa e os 114 cupons depois de Chá das Três - Chá (da Chá das Três em diante na lista do app).
+- **Dados do app que parecem errados, transcritos como estão:** Spoleto Bourbon Ipiranga mostra "Bourbon Shopping Novo Hamburgo" no endereço da Av. Ipiranga 5200; Poke Delícia - São Leo mostra a unidade Hamburgo Velho.
 
 ## Canoas em Dobro
 
