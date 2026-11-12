@@ -76,27 +76,31 @@ Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a te
 
 ## Canoas em Dobro
 
-São 101 cupons, vindos de 34 prints da aba Cupons. A lista começa no Kampeki Sushi (topo confirmado) e **não termina** no último print: abaixo do Grano Forneria aparece o topo do card "Guido Café & Cia", registrado como pendente, e pode haver mais cupons depois dele.
+São 103 cupons: 101 de 34 prints da aba Cupons e 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger). A lista começa no Kampeki Sushi (topo confirmado) e **ainda não termina**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
 
 - Não há pontos de anúncio sem emenda: em todos os prints o cupom seguinte aparece no rodapé do anterior.
 - **Dois cupons do Urban 1736** e **dois do Comidas de Boteco**, com ofertas diferentes, são registrados como cupons separados.
 - **Nomes completados por dedução:** Bocasanta Pub e Pizza, Churras in Box Canoas e Novo Hamburgo, Darna Cozinha Mediterrânea, Cremolatto Dr. Barcelos, Domino's Pizza Canoas, Família Kabana Pizzaria, Mas Bah Tchê!, Oak's Burritos y Bowls, Churrascaria Passoquinha, Nonno Eugênio Pizzeria, Manjericão Toscano.
-- **Nomes que continuam cortados:** Rodrigues Estação…. (Empório 22 Wine & Bar foi completado pela tela de detalhe.)
+- **Nomes que continuam cortados:** nenhum. Empório 22 Wine & Bar e Rodrigues Estação Gourmet foram completados pela tela de detalhe.
 - **Banca do Açaí:** a oferta muda por dia (terça e quinta, rodízio de crepes com reserva; sexta a domingo, um crepe à la carte) e está registrada inteira no texto do cupom.
 
 ### Detalhes do Canoas (vídeo de 12/11/2026)
 
-Uma gravação de tela (10 partes de 90 s, enviadas em dois lotes: 00–04 e 05–09) abriu os cupons 1 a 71 da lista, do Kampeki Sushi ao OCA Café & Brunch. São 70 cupons com detalhes, todos conferidos em imagem.
+Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05–09 e 10–14) abriu os cupons 1 a 100 da lista, do Kampeki Sushi ao Grano Forneria. São 98 cupons com detalhes, todos conferidos em imagem.
+
+- **Sem detalhes:** Família Kabana (sumiu da lista), o segundo Urban 1736 (aparece na lista, entre The Big Mamma e O Artesão, mas não foi aberto) e os cupons depois do Grano Forneria (Paradouro Café, Guido Café & Cia, The West Burger e o que vier depois).
+- **Mudanças vistas no vídeo:** o Shrek Lanches agora oferece um cachorro-quente salsicha (antes, um xis salada); o Guido Café & Cia ganhou oferta (qualquer doce do cardápio + um café com leite, igual ou de menor valor).
+- **A barra de categorias do app**, rolada até o fim, mostra as mesmas categorias de `categoriasApp`: Hamburgueria, Italiano, Restaurante, Oriental, Bar, Culinária Internacional, Culinária Regional… Saudável, Carnes, ParkShopping Canoas, Stop Food Park e Garden Containers.
+- **Aviso momentâneo não importado:** o Grano Forneria mostrava "O estabelecimento não está atendendo ao tour hoje".
 
 - **Família Kabana Pizzaria não aparece mais na lista do app:** o Numa Bar vai direto para o Balanceado. Ela não estava marcada como usada. Continua na carteira, sem detalhes, até alguém confirmar se saiu do programa.
 - **Tela de detalhe do Canoas:** nome, categorias do app (`categoriasApp`), unidade, tabela com Manhã/Tarde e Noite, ícone de feriados, etiquetas (só aparecem "Espaço Kids" e "Aceita Pet") e "Regras do estabelecimento". As "Regras de utilização" são iguais em todos os cupons e não foram copiadas.
 - **Feriados:** os 34 mostram "Não Aceita". **Datas comemorativas:** o app não mostra ícone; as regras gerais dizem que nenhum cupom vale em datas comemorativas (Carnaval, Páscoa, Dia das Mães, Dia dos Namorados, Dia dos Pais, Natal e Ano Novo), então ficou `false` em todos.
 - **Horários:** as duas colunas viram faixas no mesmo formato do Tour (`"11:30 - 15:00; 17:00 - 22:00"`). Dia com "-" nas duas colunas não vale.
-- **Cidades fora de Canoas:** El Guerrero (Gravataí); 51 Bar e Cozinha e Sweet Life (São Leopoldo); Numa Bar, Café da Lila e Banca do Açaí (Esteio); Rancho Fat Bull (Ivoti); Bomburguer e La Giovanas (Sapucaia do Sul); Don Zarichta e Churras in Box Novo Hamburgo (Novo Hamburgo); Mas Bah Tchê! e O Velho Burguer (Nova Santa Rita); Trempe Parrilla (Viamão).
+- **Cidades fora de Canoas:** El Guerrero (Gravataí); 51 Bar e Cozinha e Sweet Life (São Leopoldo); Numa Bar, Café da Lila e Banca do Açaí (Esteio); Rancho Fat Bull (Ivoti); Bomburguer e La Giovanas (Sapucaia do Sul); Don Zarichta e Churras in Box Novo Hamburgo (Novo Hamburgo); Mas Bah Tchê! e O Velho Burguer (Nova Santa Rita); Trempe Parrilla (Viamão); Porto Burger e Nonno Eugênio (Guaíba); Okawa Sushi Bar (Cachoeirinha); Confraria 110 (Esteio); The Big Mamma e Manjericão Toscano (Novo Hamburgo); Shrek Lanches (Nova Santa Rita).
 - **Ordem e nomes atualizados pelo vídeo:** Café Normal agora vem antes do segundo Comidas de Boteco (posições 54 e 55 trocadas). O segundo Comidas de Boteco é a unidade "Comidas de Boteco Garden" (Avenida Açucena), e Empório 22 virou "Empório 22 Wine & Bar".
 - **Regras com aviso:** o Kampeki é o único cupom que exige reserva antecipada, com sinal de R$ 100 por pessoa; o Darna atende mediante reserva; o Sushiaki só aceita consumo no local; o Buteco Comedy só funciona em dia de show (ver o Instagram @butecocomedy); a Trempe Parrilla pede reserva de sexta a domingo; o OCA Café & Brunch só vale no almoço, das 11h às 15h.
 - **Pequenas correções de grafia nas regras:** "sequencia" → "sequência", "burguer" → "burger", "Rodizio" → "Rodízio", "segundo pizza" → "segunda pizza", "segunda saladas" → "segunda salada", "igual ou menor valor" → "igual ou de menor valor", "a segundo pizza" → "a segunda pizza", "o segundo costelinha" → "a segunda costelinha", "o segundo um cesto" → "o segundo cesto", "fatia bolo" → "fatia de bolo", "waffer de igual" → "waffle igual", "Wook" → "wok".
-- **Ainda sem detalhes:** do cupom 72 (Confraria 110) até o fim da lista (Grano Forneria e o pendente Guido Café & Cia).
 
 ## Pendências da fase 1 (Poa em Dobro)
 

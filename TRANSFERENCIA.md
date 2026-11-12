@@ -14,13 +14,13 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
 | Leitura de vídeos | `scripts/video/` (instruções em `scripts/video/README.md`) |
 
-**Estado verificado em 12/11/2026:** o banco tem os 584 documentos (280 + 203 + 101). Comparei campo a campo com os três `data/*.json`: nenhuma divergência. Depois disso, os detalhes de 70 cupons do Canoas foram gravados no arquivo e no banco (`update`, versão 1 → 2, em dois lotes de 34 e 36), com os mesmos valores. Antes do segundo lote, banco e arquivo foram comparados de novo: nenhuma divergência.
+**Estado verificado em 12/11/2026:** o banco tem os 584 documentos (280 + 203 + 101). Comparei campo a campo com os três `data/*.json`: nenhuma divergência. Depois disso, os detalhes de 98 cupons do Canoas foram gravados no arquivo e no banco (`update`, versão 1 → 2, em três lotes de 34, 36 e 28), com os mesmos valores. Antes de cada lote, banco e arquivo foram comparados de novo: nenhuma divergência. O banco agora tem 586 documentos (Canoas: 103, com Paradouro Café e The West Burger criados por `set`).
 
 ## 2. Regras que evitam estragos
 
 1. **Favorito e usado valem o que está no banco.** A página grava `favorito`, `usado` e `usadoEm` direto no banco. Os arquivos só ficam iguais quando alguém sincroniza. Antes de editar `data/*.json` ou de gravar no banco, leia o banco (`ArtifactData` com `action: list` ou `query` e `out_dir`) e compare. Se a pessoa marcou algo na página, leve isso para o arquivo, e não o contrário.
 2. **Não use `set` em documento que já existe.** O `set` troca o documento inteiro e apaga favorito ou usado marcados na página. O `gerar-seed.py` gera `set`, então só serve para cupons novos. Para mudar campos, use `update` só com os campos alterados. Para gravar muitos, use `batch` (até 50 escritas por vez, aplicadas juntas).
-3. **Toda escrita precisa de `if_version`** igual à versão da última leitura. Hoje as versões variam: Poa de 1 a 8 conforme o cupom, Tour 2 ou 3, Canoas 2 (os 70 com detalhes) ou 1 (o resto). Não adivinhe, leia antes. Se a versão não bater, o batch inteiro é recusado e nada é gravado.
+3. **Toda escrita precisa de `if_version`** igual à versão da última leitura. Hoje as versões variam: Poa de 1 a 8 conforme o cupom, Tour 2 ou 3, Canoas 2 (os 98 com detalhes e o Guido) ou 1 (Família Kabana, segundo Urban 1736, Paradouro Café e The West Burger). Não adivinhe, leia antes. Se a versão não bater, o batch inteiro é recusado e nada é gravado.
 4. **Para republicar a página numa sessão nova:** primeiro `Artifact` com `action: read` e a URL. Depois publique com `file_path: /home/user/cupons/cupons.html` **e** `url`. Sem `url`, nasce um artifact novo, com outro link. Não passe `capabilities`: as atuais são mantidas sozinhas (`db` com regra na raiz `read: view`, `write: owner`, e `user`). Passar `{}` apaga essas permissões.
 5. **Mudar o banco não exige republicar; mudar o `cupons.html` exige.**
 6. **Cupons usados somem da lista do app** (aconteceu com o Don Carlone). Ao casar prints ou vídeos com a lista pela ordem, pule os usados.
@@ -53,7 +53,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;
   - painel recolhível "Regras, horários e endereço";
   - "Quando" tem três opções: Vale hoje, Vale agora e Aceita em feriados.
-- **Quem tem detalhes:** o Tour inteiro e os cupons 1–71 do Canoas (até o OCA Café & Brunch, menos a Família Kabana). O Poa e o resto do Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando", comodidades e cidade.
+- **Quem tem detalhes:** o Tour inteiro e os cupons 1–100 do Canoas (até o Grano Forneria, menos a Família Kabana e o segundo Urban 1736). O Poa e o resto do Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando", comodidades e cidade.
 - **Regras com várias linhas:** as do Canoas guardam `\n` entre os itens; a página mostra as quebras (`white-space: pre-line`).
 - **Comparação de horários:** é feita como texto `HH:MM`, por isso o zero à esquerda é obrigatório. Desde a versão 5, `valeAgora` entende faixas que passam da meia-noite: Estaleiro 2 Irmãos, 18:00–04:00, conta até 04:00 do dia seguinte.
 - **Partes parciais são escondidas:** `horarios: {}` não mostra tabela, e `feriados: null` não mostra os ícones (é o caso do PopCorn Gourmet).
@@ -74,17 +74,17 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 |---|---|---|---|---|
 | Poa em Dobro | 280 | 176 | Di Toni (sem data) | Di Toni sem oferta registrada; 15 possíveis lacunas; fim da lista e topo não confirmados; 3 nomes cortados |
 | Tour Grande Poa | 203 | 126 | Don Carlone (11/11/2026) | detalhes completos, exceto o Don Carlone (usado); poucas pendências menores (abaixo) |
-| Canoas em Dobro | 101 | 67 | nenhum | **lista incompleta**: termina no Grano Forneria, e Guido Café & Cia está pendente, sem oferta. Detalhes dos cupons 1–71 (menos a Família Kabana, que sumiu da lista do app) |
+| Canoas em Dobro | 103 | 69 | nenhum | **lista incompleta**: depois do The West Burger há pelo menos mais um cupom. Detalhes dos cupons 1–100 (menos a Família Kabana, que sumiu da lista do app, e o segundo Urban 1736) |
 
 ## 6. O que falta fazer (por prioridade)
 
-1. **Canoas em Dobro:** mandar prints, ou um vídeo, da lista depois do Grano Forneria. O Guido Café & Cia só aparece pelo topo do card e pode haver mais cupons depois dele.
+1. **Canoas em Dobro:** mandar prints, ou um vídeo, da lista **depois do The West Burger** (a lista carrega mais cupons ao chegar no fim; role até parar de carregar) e abrir a tela de detalhe de Paradouro Café, Guido Café & Cia, The West Burger, do segundo Urban 1736 e dos que vierem depois.
 2. **Poa em Dobro:**
    - confirmar as 15 emendas com anúncio no meio (lista no README);
    - confirmar o fim, depois do Di Toni, e o topo (o card do Sabor de Luna está levemente cortado).
    - Um vídeo rolando a lista inteira resolve tudo de uma vez, como resolveu no Tour.
 3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
-4. **Detalhes de Poa e do resto do Canoas:** regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar na Confraria 110 (cupom 72) e ir até o fim da lista, que também mostra o que vem depois do Grano Forneria. Os documentos já existem, então use `update`.
+4. **Detalhes de Poa e do resto do Canoas:** regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
    - **Família Kabana Pizzaria:** não aparece mais na lista do app (12/11/2026) e não estava usada. Confirmar com o usuário se saiu do programa antes de apagar ou marcar.
    - **Painel "Filtros" dos apps:** nunca apareceu aberto nos vídeos. Um print dele mostraria se há filtros que a carteira ainda não tem.
 5. **Tour, pendências menores:**
@@ -159,4 +159,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 7. `42c5c3e` detalhes do Ah! Casa (dois prints)
 8. `9aec061` `TRANSFERENCIA.md`, scripts de vídeo em `scripts/video/`, README atualizado
 9. `0dbf2af` detalhes de 34 cupons do Canoas, `scripts/video/canoas/`, filtros de categoria no app e comodidades, botão "Vale agora"
-10. (este commit) detalhes de mais 36 cupons do Canoas (Fornito a OCA Café & Brunch)
+10. `329a6e1` detalhes de mais 36 cupons do Canoas (Fornito a OCA Café & Brunch)
+11. (este commit) detalhes de mais 28 cupons do Canoas (Confraria 110 a Grano Forneria), Paradouro Café e The West Burger, oferta do Guido e do Shrek Lanches
