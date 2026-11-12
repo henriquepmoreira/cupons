@@ -175,6 +175,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
   font-size: 11.5px; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
 }
+.chipbtn .badge[hidden] { display: none; }
 .sort { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 13px; color: var(--muted); }
 .sort select {
   height: 36px; border-radius: var(--r-ctl); border: 1px solid var(--line); background: var(--surface);
@@ -301,6 +302,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .det-body { display: grid; gap: 10px; padding: 6px 0 4px; font-size: 13.5px; }
 .det-body h4 { margin: 0 0 3px; font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .det-body p { margin: 0; line-height: 1.45; }
+.det-body p.rg { white-space: pre-line; }
 .hor { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
 .hor td { padding: 2px 0; vertical-align: top; }
 .hor td:last-child { text-align: right; padding-left: 10px; }
@@ -401,6 +403,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3.1 1.7-1.9 3.1-3.1 5.3-3.1 3.7 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21Z" fill="currentColor"/></svg>
         Favoritos
       </button>
+      <button type="button" class="chipbtn" id="agora-toggle" aria-pressed="false" title="Cupons que valem neste horário (como o “Aberto agora” do app)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+        Vale agora
+      </button>
       <button type="button" class="chipbtn" id="filters-toggle" aria-expanded="false" aria-controls="filters">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
         Filtros <span class="badge" id="filters-badge" hidden>0</span>
@@ -425,6 +431,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     <div class="fchips" id="f-cat"></div>
   </div>
   <div class="fgroup">
+    <h2>Categoria no app</h2>
+    <div class="fchips" id="f-tipo"></div>
+    <p class="fnote">Como o app mostra na tela do cupom (ex.: Culinária Internacional, Saudável, ParkShopping Canoas). Por enquanto só no Canoas em Dobro.</p>
+  </div>
+  <div class="fgroup">
     <h2>O que você ganha</h2>
     <div class="fchips" id="f-ganhe">
       <button type="button" class="fchip" data-ganhe="igual_ou_menor">Outro igual ou de menor valor <span class="n"></span></button>
@@ -446,6 +457,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       <button type="button" class="fchip" data-quando="feriados">Aceita em feriados <span class="n"></span></button>
     </div>
     <p class="fnote">Considera só os cupons com dias e horários cadastrados.</p>
+  </div>
+  <div class="fgroup">
+    <h2>Comodidades</h2>
+    <div class="fchips" id="f-comod"></div>
+    <p class="fnote">Mostra os cupons que têm todas as marcadas. Só conta os cupons com detalhes cadastrados.</p>
   </div>
   <div class="fgroup">
     <h2>Cidade</h2>
@@ -483,6 +499,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     "Cafeteria": "cat-cafe", "Doces e sorvetes": "cat-doce", "Bar": "cat-bar", "Japonês e asiático": "cat-jap",
     "Carnes e parrilla": "cat-carne", "Mexicano e latino": "cat-mex",
   };
+  // ordem em que o app lista as comodidades; "Aceita Pet" (Canoas) e "Pet Friendly" (Tour) são a mesma coisa
+  const COMOD_ORDEM = ["Acessibilidade", "Estacionamento conveniado", "Estacionamento gratuito", "Opções veganas", "Opções vegetarianas",
+    "Opções sem glúten", "Consumo no local", "Pet Friendly / Aceita Pet", "Aceita Take Away", "Exclusivo Takeaway", "Espaço Kids"];
+  const comodKey = (t) => (t === "Pet Friendly" || t === "Aceita Pet" ? "Pet Friendly / Aceita Pet" : t);
+  const comodSet = (c) => new Set((c.comodidades || []).map(comodKey));
   const GANHE_TXT = { igual_ou_menor: "outro igual ou de menor valor", igual: "outro igual" };
   const PREFS_KEY = "cupons-em-dobro:prefs:v1";
 
@@ -492,7 +513,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     slow: false, readOnly: false,
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
-    quando: null, cidades: new Set(), abertos: new Set(),
+    quando: null, cidades: new Set(), tipos: new Set(), comods: new Set(), abertos: new Set(),
     filtersOpen: false,
   };
   try {
@@ -507,6 +528,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       state.regras = p.regras || null;
       state.quando = ["hoje", "agora", "feriados"].includes(p.quando) ? p.quando : null;
       state.cidades = new Set(p.cidades || []);
+      state.tipos = new Set(p.tipos || []);
+      state.comods = new Set(p.comods || []);
     }
   } catch (_) {}
   function savePrefs() {
@@ -514,7 +537,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        quando: state.quando, cidades: [...state.cidades],
+        quando: state.quando, cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods],
       }));
     } catch (_) {}
   }
@@ -558,7 +581,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (!words.length) return true;
     const u = c.unidade || {};
     const hay = norm([c.nome, c.item, c.categoria, PROG[c.programa]?.nome, c.ganhe ? GANHE_TXT[c.ganhe] : "",
-      u.bairro, u.cidade, u.endereco, c.regras, (c.comodidades || []).join(" ")].join(" "));
+      u.bairro, u.cidade, u.endereco, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" ")].join(" "));
     return words.every((w) => hay.includes(w));
   }
   function passes(c, skip) {
@@ -580,6 +603,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (state.quando === "feriados" && c.feriados !== true) return false;
     }
     if (skip !== "cidade" && state.cidades.size && !state.cidades.has(c.unidade?.cidade)) return false;
+    if (skip !== "tipo" && state.tipos.size && !(c.categoriasApp || []).some((t) => state.tipos.has(t))) return false;
+    if (skip !== "comod" && state.comods.size) { const cs = comodSet(c); for (const t of state.comods) if (!cs.has(t)) return false; }
     return true;
   }
   function visible() {
@@ -596,7 +621,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }[state.sort] || byApp;
     return list.sort(cmp);
   }
-  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + state.cidades.size;
+  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + state.cidades.size + state.tipos.size + state.comods.size;
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
@@ -622,17 +647,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       ? [u.endereco.replace(/\s*\(.*?\)/g, ""), u.bairro, u.cidade, "RS"].filter(Boolean).join(", ")
       : `${String(c.nome).replace(/…/g, "")} ${prog?.cidade || "RS"}`);
     let det = "";
-    if (temHorario(c) || c.regras || u) {
+    if (temHorario(c) || c.regras || u || (c.categoriasApp || []).length) {
       const hk = hojeKey();
       const linhas = DIAS.map((d) => `<tr class="${c.horarios?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><td>${DIAS_NOME[d]}${d === hk ? " (hoje)" : ""}</td><td>${c.horarios?.[d] ? esc(fmtFaixas(c.horarios[d])) : "não vale"}</td></tr>`).join("");
       const flag = (v, nome) => v === true ? `<span class="sim">✓ ${nome}</span>` : v === false ? `<span class="nao">✗ ${nome}</span>` : "";
       det = `<details class="det"${state.abertos.has(c.id) ? " open" : ""}>
       <summary>Regras, horários e endereço</summary>
       <div class="det-body">
-        ${c.regras ? `<div><h4>Regras do estabelecimento</h4><p>${esc(c.regras)}</p></div>` : ""}
+        ${c.regras ? `<div><h4>Regras do estabelecimento</h4><p class="rg">${esc(c.regras)}</p></div>` : ""}
         ${temHorario(c) ? `<div><h4>Dias e horários</h4><table class="hor"><tbody>${linhas}</tbody></table></div>` : ""}
         ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
         ${u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
+        ${(c.categoriasApp || []).length ? `<div><h4>Categoria no app</h4><p>${esc(c.categoriasApp.join(" · "))}</p></div>` : ""}
         ${(c.comodidades || []).length ? `<div class="tags">${c.comodidades.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
       </div>
     </details>`;
@@ -690,6 +716,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   function renderControls() {
     $("status").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.status === state.status)));
     $("fav-toggle").setAttribute("aria-pressed", String(state.fav));
+    $("agora-toggle").setAttribute("aria-pressed", String(state.quando === "agora"));
     $("sort").value = state.sort;
     $("filters").hidden = !state.filtersOpen;
     $("filters-toggle").setAttribute("aria-expanded", String(state.filtersOpen));
@@ -726,6 +753,19 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("f-cidade").innerHTML = cidades.length
       ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${cidCount[cid] || 0}</span></button>`).join("")
       : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
+    const tipoCount = {};
+    for (const c of state.cupons) if (passes(c, "tipo") && matchesSearch(c, words)) for (const t of c.categoriasApp || []) tipoCount[t] = (tipoCount[t] || 0) + 1;
+    const tipos = [...new Set(state.cupons.flatMap((c) => c.categoriasApp || []))].sort(collator.compare);
+    $("f-tipo").innerHTML = tipos.length
+      ? tipos.map((t) => `<button type="button" class="fchip" data-tipo="${esc(t)}" aria-pressed="${state.tipos.has(t)}">${esc(t)} <span class="n">${tipoCount[t] || 0}</span></button>`).join("")
+      : '<span class="fnote">Nenhuma categoria do app cadastrada ainda.</span>';
+    const comodCount = {};
+    for (const c of state.cupons) if (passes(c, "comod") && matchesSearch(c, words)) for (const t of comodSet(c)) comodCount[t] = (comodCount[t] || 0) + 1;
+    const pos = (t) => { const i = COMOD_ORDEM.indexOf(t); return i < 0 ? 99 : i; };
+    const comods = [...new Set(state.cupons.flatMap((c) => [...comodSet(c)]))].sort((a, b) => pos(a) - pos(b) || collator.compare(a, b));
+    $("f-comod").innerHTML = comods.length
+      ? comods.map((t) => `<button type="button" class="fchip" data-comod="${esc(t)}" aria-pressed="${state.comods.has(t)}">${esc(t)} <span class="n">${comodCount[t] || 0}</span></button>`).join("")
+      : '<span class="fnote">Nenhuma comodidade cadastrada ainda.</span>';
   }
 
   function renderNotice() {
@@ -923,12 +963,22 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     state.cidades.has(cid) ? state.cidades.delete(cid) : state.cidades.add(cid);
     savePrefs(); render();
   });
+  $("agora-toggle").addEventListener("click", () => { state.quando = state.quando === "agora" ? null : "agora"; savePrefs(); render(); });
+  const toggleSet = (set, v) => (set.has(v) ? set.delete(v) : set.add(v));
+  $("f-tipo").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-tipo]"); if (!b) return;
+    toggleSet(state.tipos, b.dataset.tipo); savePrefs(); render();
+  });
+  $("f-comod").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-comod]"); if (!b) return;
+    toggleSet(state.comods, b.dataset.comod); savePrefs(); render();
+  });
   $("grid").addEventListener("toggle", (e) => {
     const d = e.target; if (!(d instanceof HTMLDetailsElement)) return;
     const id = d.closest(".ticket")?.dataset.id; if (!id) return;
     d.open ? state.abertos.add(id) : state.abertos.delete(id);
   }, true);
-  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.cidades.clear(); }
+  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); }
   function clearAll() { clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; savePrefs(); render(); }
   $("filters-clear").addEventListener("click", () => { clearFilters(); savePrefs(); render(); });
   $("result-clear").addEventListener("click", clearAll);

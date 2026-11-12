@@ -9,7 +9,8 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 ## O que a página faz
 
 - Busca por estabelecimento, prato, categoria ou programa (ignora acentos)
-- Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, tipo de benefício (outro igual × igual ou de menor valor) e cupons que pedem para ver regras
+- Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale hoje, vale agora, aceita em feriados), comodidades e cidade
+- Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps
 - Ordenação: ordem do app, nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
 - Link de mapa para cada estabelecimento
@@ -36,6 +37,7 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 | `regras` | string \| null | texto de "Regras e avisos do estabelecimento" |
 | `comodidades` | lista | etiquetas do app (Acessibilidade, Pet Friendly, Opções veganas…) |
 | `maisUnidades` | bool | o app mostra um seletor de unidade; os dados são da unidade que aparece primeiro |
+| `categoriasApp` | lista | categorias que o app mostra abaixo do nome na tela do cupom (Canoas), como "Culinária Internacional" ou "Saudável, ParkShopping Canoas" |
 
 Só a pessoa dona do artifact pode gravar no banco (regra `write: owner`).
 
@@ -81,6 +83,19 @@ São 101 cupons, vindos de 34 prints da aba Cupons. A lista começa no Kampeki S
 - **Nomes completados por dedução:** Bocasanta Pub e Pizza, Churras in Box Canoas e Novo Hamburgo, Darna Cozinha Mediterrânea, Cremolatto Dr. Barcelos, Domino's Pizza Canoas, Família Kabana Pizzaria, Mas Bah Tchê!, Oak's Burritos y Bowls, Churrascaria Passoquinha, Nonno Eugênio Pizzeria, Manjericão Toscano.
 - **Nomes que continuam cortados:** Empório 22 Wine &…, Rodrigues Estação….
 - **Banca do Açaí:** a oferta muda por dia (terça e quinta, rodízio de crepes com reserva; sexta a domingo, um crepe à la carte) e está registrada inteira no texto do cupom.
+
+### Detalhes do Canoas (vídeo de 12/11/2026)
+
+Uma gravação de tela (5 partes de 90 s) abriu os cupons 1 a 35 da lista, do Kampeki Sushi ao Don Zarichta. São 34 cupons com detalhes, todos conferidos em imagem.
+
+- **Família Kabana Pizzaria não aparece mais na lista do app:** o Numa Bar vai direto para o Balanceado. Ela não estava marcada como usada. Continua na carteira, sem detalhes, até alguém confirmar se saiu do programa.
+- **Tela de detalhe do Canoas:** nome, categorias do app (`categoriasApp`), unidade, tabela com Manhã/Tarde e Noite, ícone de feriados, etiquetas (só aparecem "Espaço Kids" e "Aceita Pet") e "Regras do estabelecimento". As "Regras de utilização" são iguais em todos os cupons e não foram copiadas.
+- **Feriados:** os 34 mostram "Não Aceita". **Datas comemorativas:** o app não mostra ícone; as regras gerais dizem que nenhum cupom vale em datas comemorativas (Carnaval, Páscoa, Dia das Mães, Dia dos Namorados, Dia dos Pais, Natal e Ano Novo), então ficou `false` em todos.
+- **Horários:** as duas colunas viram faixas no mesmo formato do Tour (`"11:30 - 15:00; 17:00 - 22:00"`). Dia com "-" nas duas colunas não vale.
+- **Cidades fora de Canoas:** El Guerrero (Gravataí), 51 Bar e Cozinha (São Leopoldo), Numa Bar e Café da Lila (Esteio), Rancho Fat Bull (Ivoti), Bomburguer (Sapucaia do Sul) e Don Zarichta (Novo Hamburgo).
+- **Regras com aviso:** o Kampeki é o único cupom que exige reserva antecipada, com sinal de R$ 100 por pessoa; o Darna atende mediante reserva; o Sushiaki só aceita consumo no local.
+- **Pequenas correções de grafia nas regras:** "sequencia" → "sequência", "burguer" → "burger", "Rodizio" → "Rodízio", "segundo pizza" → "segunda pizza", "segunda saladas" → "segunda salada", "igual ou menor valor" → "igual ou de menor valor".
+- **Ainda sem detalhes:** do cupom 36 (Fornito) em diante.
 
 ## Pendências da fase 1 (Poa em Dobro)
 

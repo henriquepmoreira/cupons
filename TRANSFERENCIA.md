@@ -8,19 +8,19 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 5, ícone `ticket`) |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 6, ícone `ticket`) |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
 | Leitura de vídeos | `scripts/video/` (instruções em `scripts/video/README.md`) |
 
-**Estado verificado em 12/11/2026:** o banco tem os 584 documentos (280 + 203 + 101). Comparei campo a campo com os três `data/*.json`: nenhuma divergência.
+**Estado verificado em 12/11/2026:** o banco tem os 584 documentos (280 + 203 + 101). Comparei campo a campo com os três `data/*.json`: nenhuma divergência. Depois disso, os detalhes de 34 cupons do Canoas foram gravados no arquivo e no banco (`update`, versão 1 → 2), com os mesmos valores.
 
 ## 2. Regras que evitam estragos
 
 1. **Favorito e usado valem o que está no banco.** A página grava `favorito`, `usado` e `usadoEm` direto no banco. Os arquivos só ficam iguais quando alguém sincroniza. Antes de editar `data/*.json` ou de gravar no banco, leia o banco (`ArtifactData` com `action: list` ou `query` e `out_dir`) e compare. Se a pessoa marcou algo na página, leve isso para o arquivo, e não o contrário.
 2. **Não use `set` em documento que já existe.** O `set` troca o documento inteiro e apaga favorito ou usado marcados na página. O `gerar-seed.py` gera `set`, então só serve para cupons novos. Para mudar campos, use `update` só com os campos alterados. Para gravar muitos, use `batch` (até 50 escritas por vez, aplicadas juntas).
-3. **Toda escrita precisa de `if_version`** igual à versão da última leitura. Hoje as versões variam: Poa de 1 a 8 conforme o cupom, Tour 2 ou 3, Canoas 1. Não adivinhe, leia antes. Se a versão não bater, o batch inteiro é recusado e nada é gravado.
+3. **Toda escrita precisa de `if_version`** igual à versão da última leitura. Hoje as versões variam: Poa de 1 a 8 conforme o cupom, Tour 2 ou 3, Canoas 2 (os 34 com detalhes) ou 1 (o resto). Não adivinhe, leia antes. Se a versão não bater, o batch inteiro é recusado e nada é gravado.
 4. **Para republicar a página numa sessão nova:** primeiro `Artifact` com `action: read` e a URL. Depois publique com `file_path: /home/user/cupons/cupons.html` **e** `url`. Sem `url`, nasce um artifact novo, com outro link. Não passe `capabilities`: as atuais são mantidas sozinhas (`db` com regra na raiz `read: view`, `write: owner`, e `user`). Passar `{}` apaga essas permissões.
 5. **Mudar o banco não exige republicar; mudar o `cupons.html` exige.**
 6. **Cupons usados somem da lista do app** (aconteceu com o Don Carlone). Ao casar prints ou vídeos com a lista pela ordem, pule os usados.
@@ -41,7 +41,9 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 - **Recursos:**
   - busca sem acentos, que também procura em bairro, cidade, endereço, regras e comodidades;
   - situação (Disponíveis / Usados / Todos) e favoritos;
-  - filtros de programa, categoria, tipo de benefício (`igual` ou `igual_ou_menor`), regras, "Quando" e cidade;
+  - filtros de programa, categoria, categoria no app (`categoriasApp`, só Canoas), tipo de benefício (`igual` ou `igual_ou_menor`), regras, "Quando", comodidades e cidade;
+  - botão "Vale agora" na barra (o mesmo filtro de "Quando"), imitando o "Aberto agora" dos apps;
+  - comodidades: o filtro exige todas as marcadas, e "Aceita Pet" (Canoas) e "Pet Friendly" (Tour) contam como uma só;
   - seis ordenações: app, A–Z, favoritos, categoria, programa e usados por último;
   - marcar como usado, com botão Desfazer por 6 s;
   - link "Mapa ↗", que usa o endereço da unidade quando existe;
@@ -51,7 +53,8 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;
   - painel recolhível "Regras, horários e endereço";
   - "Quando" tem três opções: Vale hoje, Vale agora e Aceita em feriados.
-- **Só o Tour tem detalhes.** Poa e Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando" e do filtro de cidade. O filtro "Quando" avisa isso na tela; o de cidade, não.
+- **Quem tem detalhes:** o Tour inteiro e os 34 primeiros cupons do Canoas (até o Don Zarichta). O Poa e o resto do Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando", comodidades e cidade.
+- **Regras com várias linhas:** as do Canoas guardam `\n` entre os itens; a página mostra as quebras (`white-space: pre-line`).
 - **Comparação de horários:** é feita como texto `HH:MM`, por isso o zero à esquerda é obrigatório. Desde a versão 5, `valeAgora` entende faixas que passam da meia-noite: Estaleiro 2 Irmãos, 18:00–04:00, conta até 04:00 do dia seguinte.
 - **Partes parciais são escondidas:** `horarios: {}` não mostra tabela, e `feriados: null` não mostra os ícones (é o caso do PopCorn Gourmet).
 
@@ -71,7 +74,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 |---|---|---|---|---|
 | Poa em Dobro | 280 | 176 | Di Toni (sem data) | Di Toni sem oferta registrada; 15 possíveis lacunas; fim da lista e topo não confirmados; 3 nomes cortados |
 | Tour Grande Poa | 203 | 126 | Don Carlone (11/11/2026) | detalhes completos, exceto o Don Carlone (usado); poucas pendências menores (abaixo) |
-| Canoas em Dobro | 101 | 67 | nenhum | **lista incompleta**: termina no Grano Forneria, e Guido Café & Cia está pendente, sem oferta |
+| Canoas em Dobro | 101 | 67 | nenhum | **lista incompleta**: termina no Grano Forneria, e Guido Café & Cia está pendente, sem oferta. Detalhes dos cupons 1–35 (menos a Família Kabana, que sumiu da lista do app) |
 
 ## 6. O que falta fazer (por prioridade)
 
@@ -81,7 +84,9 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
    - confirmar o fim, depois do Di Toni, e o topo (o card do Sabor de Luna está levemente cortado).
    - Um vídeo rolando a lista inteira resolve tudo de uma vez, como resolveu no Tour.
 3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
-4. **Detalhes de Poa e Canoas:** regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe, com o mesmo pipeline do Tour. Os documentos já existem, então use `update`.
+4. **Detalhes de Poa e do resto do Canoas:** regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Fornito (cupom 36). Os documentos já existem, então use `update`.
+   - **Família Kabana Pizzaria:** não aparece mais na lista do app (12/11/2026) e não estava usada. Confirmar com o usuário se saiu do programa antes de apagar ou marcar.
+   - **Painel "Filtros" dos apps:** nunca apareceu aberto nos vídeos. Um print dele mostraria se há filtros que a carteira ainda não tem.
 5. **Tour, pendências menores:**
    - "Mark - Harmonia, R…" continua cortado, porque a tela de detalhe mostra só "Mark Hamburgueria";
    - PopCorn Gourmet - Praia de Belas só tem as regras;
@@ -126,7 +131,8 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 
 ## 9. Ambiente
 
-- **Ferramentas disponíveis na nuvem:** `ffmpeg`, `tesseract` com `por`, Pillow, `node` e Chromium com Playwright.
+- **Ferramentas disponíveis na nuvem:** `ffmpeg`, Pillow, `node` e Chromium com Playwright. O `tesseract` **não** veio instalado na sessão de 12/11 à noite: `apt-get install -y tesseract-ocr tesseract-ocr-por` (se falhar, rode `apt-get update` antes). Sem ele, o `preparar.sh` gera os quadros mas o OCR sai vazio, sem erro.
+- **Teste local da página:** o `window.claude` falso precisa de `use("user")` com `isOwner()` e `can()`, e o snapshot precisa de `metadata: { fromCache: false }`.
 - **A pasta temporária (scratchpad) é apagada entre sessões.** Por isso os scripts foram para o repositório.
 - **Testar a página localmente:** carregue `cupons.html` no Playwright com um `window.claude.use` falso, que devolva um objeto `collection(...)` com `onSnapshot` entregando os cupons de `data/*.json` (com `id = <programa>--<slug>` e `programa`). Esse arquivo de teste não ficou no repositório. Antes de publicar, rode `node --check` no script extraído do HTML.
 - **Organização dos arquivos de trabalho:** use uma pasta por lote (por exemplo `t2/` e `t3/` na sessão anterior). Os vídeos ficam numa pasta própria, e os scripts recebem a pasta como argumento.
@@ -151,4 +157,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 5. `afece63` detalhes de 88 cupons do Tour (primeiro vídeo), painel de detalhes, filtros Quando e cidade
 6. `9d1f202` detalhes de mais 113 cupons do Tour (segundo vídeo), "Exclusivo Takeaway", Vale agora depois da meia-noite
 7. `42c5c3e` detalhes do Ah! Casa (dois prints)
-8. (este commit) `TRANSFERENCIA.md`, scripts de vídeo em `scripts/video/`, README atualizado
+8. `9aec061` `TRANSFERENCIA.md`, scripts de vídeo em `scripts/video/`, README atualizado
+9. (este commit) detalhes de 34 cupons do Canoas, `scripts/video/canoas/`, filtros de categoria no app e comodidades, botão "Vale agora"
