@@ -46,6 +46,8 @@ Para importar um programa novo, crie `data/<programa>.json` e gere os documentos
 python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 ```
 
+Os scripts que leem gravações de tela (detalhes dos cupons) estão em `scripts/video/`, com instruções no README de lá. O passo a passo para continuar o trabalho numa sessão nova está em `TRANSFERENCIA.md`.
+
 ## Tour Grande Poa
 
 São 203 cupons, vindos de 108 prints da aba Vouchers (os dois zips enviados eram idênticos). O app agrupa a lista por tipo de estabelecimento, em ordem alfabética dentro de cada grupo, e a carteira mantém essa ordem. O início (Ah! Casa) e o fim (Vino! Novo Hamburgo) aparecem nos prints.
@@ -54,7 +56,7 @@ São 203 cupons, vindos de 108 prints da aba Vouchers (os dois zips enviados era
 - **Mesmo restaurante, cupons diferentes:** Gran Forneria (massa/risoto e pizza), Saúde no Copo (wrap, salada e açaí), Chá das Três (café colonial e chá), Banca do Açaí (açaí e crepe) e várias unidades de redes (Spoleto, El Guerrero, Oaks, Menu Poke, Woking, Chiquinho, Cremolatto, Go Coffee, Tortas Doquinha, OCA Pizza…) são cupons separados.
 - **Possíveis lacunas:** os nove pontos com anúncio entre dois prints foram todos confirmados pelos vídeos (ver abaixo); a lista do Tour está completa.
 - **Nomes completados por dedução:** Coco Bambu - Porto Alegre, Menu Poke - BarraShoppingSul e ParkShopping, Woking - Mercado Público, Spoleto Bourbon Ipiranga e Iguatemi Porto Alegre, Cheirin Bão - ParkShopping e Praia de Belas, Chiquinho Canoas Shopping / Novo Hamburgo / ParkShopping, Go Coffee Cachoeirinha e São Leopoldo, Mais 1 Café - Independência, Prazer Donuts Canoas, Startt & Brothers Café, Tortas Doquinha Porto Alegre, Troppo Buono Moinhos, ViVa Padaria e Cafeteria, Buonissima Canoas e Sapucaia, Domino's Pizza Canoas, OCA Pizza - Ocarrinho Cais Embarcadero, Mark - Auxiliadora, Bom Fim e Cidade Baixa, Buteco Comedy Bar - Novo Hamburgo, Cervejaria Artesanal Horst & Biermann, Caramello Bolos Caseiros, Cremolatto Dr. Barcelos, Ah! Casa - café, bistrô e confeitaria.
-- **Nomes que continuam cortados (com "…"):** Empório 22 Wine &…, El Guerrero - Barra… e Vila R…, Oaks Burritos - Park…, Quiero Café - Barra…, Portofino - Rodízio de Massas e…, Spoleto Park Bourb…, Café Con Acento by…, Pallina Di Latte - Sh…, PopCorn Gourmet - …, The Waffle King Gr… e - S…, Tortas Doquinha Sa…, OCA Pizza - Ocarri… e Oca Pizza - Ocarrin… (duas unidades), Janela Bar POA - Zo…, Mark - Harmonia, R….
+- **Nomes que continuam cortados:** só "Mark - Harmonia, R…". Os outros nomes cortados na lista foram completados pela tela de detalhe (ver abaixo).
 
 ### Detalhes do Tour (vídeos de 12/11/2026)
 
