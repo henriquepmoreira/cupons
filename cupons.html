@@ -99,6 +99,10 @@ body::before {
 button, input, select { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* texto só para leitores de tela (TalkBack, VoiceOver, NVDA) */
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.ticket .tname:focus { outline: none; }
+.ticket .tname:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 
 .wrap {
   max-width: 1180px; margin: 0 auto;
@@ -217,11 +221,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 }
 .grid.grouped { display: block; }
 .group { display: grid; gap: 14px; margin-bottom: 26px; }
-.group > h3 {
+.group > .group-title {
   margin: 0; display: flex; align-items: baseline; gap: 10px;
   font-family: var(--f-display); font-stretch: 75%; font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: .01em;
 }
-.group > h3 span { font-family: var(--f-mono); font-size: 12px; font-weight: 500; color: var(--muted); }
+.group > .group-title span { font-family: var(--f-mono); font-size: 12px; font-weight: 500; color: var(--muted); }
 .group-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr)); }
 
 /* ---------- ticket ---------- */
@@ -255,11 +259,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .tbody { padding: 13px 14px 12px 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .thead { display: flex; align-items: flex-start; gap: 8px; }
 .thead-text { flex: 1; min-width: 0; display: grid; gap: 3px; }
+/* o nome vem antes no código (o leitor de tela lê o título primeiro), mas a linha programa · categoria continua em cima */
+.thead-text .meta { order: -1; }
 .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; color: var(--muted); }
 .meta .prog { --pc: var(--muted); display: inline-flex; align-items: center; gap: 5px; font-weight: 600; color: var(--pc); }
 .meta .prog::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pc); }
 .meta .sep { opacity: .5; }
-.ticket h3 {
+.ticket .tname {
   margin: 0; font-family: var(--f-display); font-stretch: 82%; font-weight: 800; font-size: 21px; line-height: 1.08;
   letter-spacing: -.005em; text-wrap: balance; overflow-wrap: anywhere;
 }
@@ -304,10 +310,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .det-body p { margin: 0; line-height: 1.45; }
 .det-body p.rg { white-space: pre-line; }
 .hor { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
-.hor td { padding: 2px 0; vertical-align: top; }
+.hor td, .hor th { padding: 2px 0; vertical-align: top; }
+.hor th { text-align: left; font-weight: inherit; }
 .hor td:last-child { text-align: right; padding-left: 10px; }
-.hor tr.off td { color: var(--muted); }
-.hor tr.today td { font-weight: 700; }
+.hor tr.off td, .hor tr.off th { color: var(--muted); }
+.hor tr.today td, .hor tr.today th { font-weight: 700; }
 .flags { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; }
 .flags .sim { color: var(--ok); }
 .flags .nao { color: var(--fav); }
@@ -317,7 +324,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .usedate { margin-left: auto; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
 
 .ticket.is-used .stub { filter: grayscale(1); opacity: .7; }
-.ticket.is-used h3, .ticket.is-used .offer { opacity: .6; }
+.ticket.is-used .tname, .ticket.is-used .offer { opacity: .6; }
 .stamp {
   position: absolute; right: 18px; top: 46%; z-index: 2; pointer-events: none;
   font-family: var(--f-display); font-stretch: 70%; font-weight: 850; font-size: 22px; letter-spacing: .12em;
@@ -377,7 +384,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <p class="eyebrow">Carteira pessoal · 2 por 1 em Porto Alegre e região</p>
   <div class="title-row">
     <h1>Cupons<span class="x">×</span>em Dobro</h1>
-    <div class="stats" id="stats" aria-live="polite">
+    <div class="stats" id="stats">
       <div class="stat"><b id="st-disp">–</b><span>disponíveis</span></div>
       <div class="stat fav"><b id="st-fav">–</b><span>favoritos</span></div>
       <div class="stat"><b id="st-used">–</b><span>usados</span></div>
@@ -386,9 +393,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="programs" id="programs" role="group" aria-label="Filtrar por programa"></div>
 </header>
 
-<div class="toolbar">
+<div class="toolbar" role="region" aria-label="Busca e opções da lista">
   <div class="wrap">
-    <div class="search">
+    <div class="search" role="search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Busque restaurante, prato ou categoria" autocomplete="off" aria-label="Buscar cupons">
       <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden>×</button>
@@ -409,7 +416,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       </button>
       <button type="button" class="chipbtn" id="filters-toggle" aria-expanded="false" aria-controls="filters">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-        Filtros <span class="badge" id="filters-badge" hidden>0</span>
+        Filtros <span class="badge" id="filters-badge" hidden></span>
       </button>
       <label class="sort" for="sort"><span class="sort-lbl">Ordenar</span>
         <select id="sort">
@@ -427,31 +434,31 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
 <section class="wrap filters" id="filters" hidden aria-label="Filtros">
   <div class="fgroup">
-    <h2>Categoria</h2>
-    <div class="fchips" id="f-cat"></div>
+    <h2 id="f-cat-h">Categoria</h2>
+    <div class="fchips" id="f-cat" role="group" aria-labelledby="f-cat-h"></div>
   </div>
   <div class="fgroup">
-    <h2>Categoria no app</h2>
-    <div class="fchips" id="f-tipo"></div>
+    <h2 id="f-tipo-h">Categoria no app</h2>
+    <div class="fchips" id="f-tipo" role="group" aria-labelledby="f-tipo-h"></div>
     <p class="fnote">Como o app mostra na tela do cupom (ex.: Culinária Internacional, Saudável, ParkShopping Canoas). Por enquanto só no Canoas em Dobro.</p>
   </div>
   <div class="fgroup">
-    <h2>O que você ganha</h2>
-    <div class="fchips" id="f-ganhe">
+    <h2 id="f-ganhe-h">O que você ganha</h2>
+    <div class="fchips" id="f-ganhe" role="group" aria-labelledby="f-ganhe-h">
       <button type="button" class="fchip" data-ganhe="igual_ou_menor">Outro igual ou de menor valor <span class="n"></span></button>
       <button type="button" class="fchip" data-ganhe="igual">Outro igual <span class="n"></span></button>
     </div>
   </div>
   <div class="fgroup">
-    <h2>Regras</h2>
-    <div class="fchips" id="f-regras">
+    <h2 id="f-regras-h">Regras</h2>
+    <div class="fchips" id="f-regras" role="group" aria-labelledby="f-regras-h">
       <button type="button" class="fchip" data-regras="simples">Sem regras extras <span class="n"></span></button>
       <button type="button" class="fchip" data-regras="ver">Pede para ver regras <span class="n"></span></button>
     </div>
   </div>
   <div class="fgroup">
-    <h2>Quando usar</h2>
-    <div class="fchips" id="f-quando">
+    <h2 id="f-quando-h">Quando usar</h2>
+    <div class="fchips" id="f-quando" role="group" aria-labelledby="f-quando-h">
       <button type="button" class="fchip" data-quando="hoje">Vale hoje <span class="n"></span></button>
       <button type="button" class="fchip" data-quando="agora">Vale agora <span class="n"></span></button>
       <button type="button" class="fchip" data-quando="feriados">Aceita em feriados <span class="n"></span></button>
@@ -459,13 +466,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     <p class="fnote">Considera só os cupons com dias e horários cadastrados.</p>
   </div>
   <div class="fgroup">
-    <h2>Comodidades</h2>
-    <div class="fchips" id="f-comod"></div>
+    <h2 id="f-comod-h">Comodidades</h2>
+    <div class="fchips" id="f-comod" role="group" aria-labelledby="f-comod-h"></div>
     <p class="fnote">Mostra os cupons que têm todas as marcadas. Só conta os cupons com detalhes cadastrados.</p>
   </div>
   <div class="fgroup">
-    <h2>Cidade</h2>
-    <div class="fchips" id="f-cidade"></div>
+    <h2 id="f-cidade-h">Cidade</h2>
+    <div class="fchips" id="f-cidade" role="group" aria-labelledby="f-cidade-h"></div>
   </div>
   <div class="filters-foot"><button type="button" class="linkbtn" id="filters-clear">Limpar filtros</button></div>
 </section>
@@ -475,17 +482,21 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     <p id="result-count">Carregando cupons…</p>
     <button type="button" class="linkbtn" id="result-clear" hidden>Limpar busca e filtros</button>
   </div>
-  <p class="notice" id="notice" hidden></p>
-  <div class="grid" id="grid" aria-live="polite">
+  <p class="notice" id="notice" role="status" hidden></p>
+  <h2 class="sr-only" id="lista-h">Cupons</h2>
+  <div class="grid" id="grid" aria-labelledby="lista-h" aria-busy="true">
     <div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
   </div>
+  <p class="sr-only" id="sr-status" role="status" aria-live="polite" aria-atomic="true"></p>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-msg"></span><button type="button" id="toast-undo" hidden>Desfazer</button></div>
 </main>
 
-<div class="toast" id="toast" role="status" hidden><span id="toast-msg"></span><button type="button" id="toast-undo" hidden>Desfazer</button></div>
 
 <script>
 (() => {
   "use strict";
+  // o invólucro do artifact não declara idioma; sem isso o TalkBack pode ler em inglês
+  document.documentElement.lang = "pt-BR";
 
   /* ---------- configuração fixa ---------- */
   const PROGRAMAS = [
@@ -566,6 +577,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const temHorario = (c) => !!c.horarios && Object.keys(c.horarios).length > 0;
   const faixas = (h) => String(h || "").split(";").map((x) => x.trim().split(/\s*-\s*/)).filter((p) => p.length === 2);
   const fmtFaixas = (h) => faixas(h).map(([a, b]) => `${a}–${b}`).join(", ");
+  // versão falada: "das 11:30 às 14:30 e das 18:00 às 22:00" (o traço "–" é lido de forma confusa)
+  const falaFaixas = (h) => faixas(h).map(([a, b]) => `das ${a} às ${b}`).join(" e ");
+  // mostra o texto visual e entrega outro ao leitor de tela
+  const duplo = (visual, falado) => `<span aria-hidden="true">${esc(visual)}</span><span class="sr-only">${esc(falado)}</span>`;
+  const nCupons = (n) => `${n}<span class="sr-only"> ${n === 1 ? "cupom" : "cupons"}</span>`;
   function valeAgora(c) {
     if (!c.horarios) return false;
     const d = new Date(); const p = (n) => String(n).padStart(2, "0");
@@ -625,7 +641,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
-  function ticketHtml(c) {
+  function ticketHtml(c, hl = 3) {
     const prog = PROG[c.programa];
     const catCls = CAT_CLS[c.categoria] || "";
     const ro = state.readOnly ? " disabled" : "";
@@ -639,7 +655,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const u = c.unidade;
     if (temHorario(c) && !c.usado) {
       const h = c.horarios[hojeKey()];
-      tags.unshift(h ? `<span class="tag hoje">Hoje ${esc(fmtFaixas(h))}</span>` : '<span class="tag off">Não vale hoje</span>');
+      tags.unshift(h ? `<span class="tag hoje">${duplo(`Hoje ${fmtFaixas(h)}`, `Vale hoje, ${falaFaixas(h)}.`)}</span>` : '<span class="tag off">Não vale hoje</span>');
     }
     const loc = u && (u.bairro || u.cidade)
       ? `<p class="loc">${esc([u.bairro, u.cidade].filter(Boolean).join(" · "))}${c.maisUnidades ? " · tem outras unidades no app" : ""}</p>` : "";
@@ -649,21 +665,24 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     let det = "";
     if (temHorario(c) || c.regras || u || (c.categoriasApp || []).length) {
       const hk = hojeKey();
-      const linhas = DIAS.map((d) => `<tr class="${c.horarios?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><td>${DIAS_NOME[d]}${d === hk ? " (hoje)" : ""}</td><td>${c.horarios?.[d] ? esc(fmtFaixas(c.horarios[d])) : "não vale"}</td></tr>`).join("");
-      const flag = (v, nome) => v === true ? `<span class="sim">✓ ${nome}</span>` : v === false ? `<span class="nao">✗ ${nome}</span>` : "";
+      const linhas = DIAS.map((d) => `<tr class="${c.horarios?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th scope="row">${DIAS_NOME[d]}${d === hk ? " (hoje)" : ""}</th><td>${c.horarios?.[d] ? duplo(fmtFaixas(c.horarios[d]), falaFaixas(c.horarios[d])) : "não vale"}</td></tr>`).join("");
+      // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
+      const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`
+        : v === false ? `<span class="nao"><span aria-hidden="true">✗ </span><span class="sr-only">Não vale em </span>${nome}</span>` : "";
       det = `<details class="det"${state.abertos.has(c.id) ? " open" : ""}>
-      <summary>Regras, horários e endereço</summary>
+      <summary>Regras, horários e endereço<span class="sr-only"> de ${esc(c.nome)}</span></summary>
       <div class="det-body">
         ${c.regras ? `<div><h4>Regras do estabelecimento</h4><p class="rg">${esc(c.regras)}</p></div>` : ""}
-        ${temHorario(c) ? `<div><h4>Dias e horários</h4><table class="hor"><tbody>${linhas}</tbody></table></div>` : ""}
+        ${temHorario(c) ? `<div><h4>Dias e horários</h4><table class="hor"><caption class="sr-only">Dias e horários em que o cupom vale</caption><tbody>${linhas}</tbody></table></div>` : ""}
         ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
         ${u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
         ${(c.categoriasApp || []).length ? `<div><h4>Categoria no app</h4><p>${esc(c.categoriasApp.join(" · "))}</p></div>` : ""}
-        ${(c.comodidades || []).length ? `<div class="tags">${c.comodidades.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>` : ""}
+        ${(c.comodidades || []).length ? `<div><h4 class="sr-only">Comodidades</h4><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
       </div>
     </details>`;
     }
-    return `<article class="ticket ${catCls}${c.usado ? " is-used" : ""}" data-id="${esc(c.id)}">
+    const hid = `t-${String(c.id).replace(/[^\w-]/g, "")}`;
+    return `<article class="ticket ${catCls}${c.usado ? " is-used" : ""}" data-id="${esc(c.id)}" aria-labelledby="${hid}">
   <div class="stub" aria-hidden="true">
     <span class="mono">${esc(initials(c.nome))}</span>
     <span class="twofor">2 por 1</span>
@@ -672,10 +691,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="tbody">
     <div class="thead">
       <div class="thead-text">
-        <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep">·</span><span>${esc(c.categoria || "Sem categoria")}</span></div>
-        <h3>${esc(c.nome)}</h3>
+        <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
+        <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
-      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="${c.favorito ? "Tirar dos favoritos" : "Favoritar"}: ${esc(c.nome)}"${ro}>${heartSvg}</button>
+      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}>${heartSvg}</button>
     </div>
     ${offer}
     ${loc}
@@ -683,9 +702,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     ${det}
     <div class="tfoot">
       ${c.usado
-        ? `<button type="button" class="usebtn" data-act="unuse"${ro}>Voltar para disponíveis</button>`
-        : `<button type="button" class="usebtn" data-act="use"${ro}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Marcar como usado</button>`}
-      <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Mapa ↗</a>
+        ? `<button type="button" class="usebtn" data-act="unuse" aria-label="Voltar para disponíveis: ${esc(c.nome)}"${ro}>Voltar para disponíveis</button>`
+        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Marcar como usado</button>`}
+      <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" aria-label="Ver ${esc(c.nome)} no mapa (abre em outra aba)">Mapa <span aria-hidden="true">↗</span></a>
       ${c.usado && c.usadoEm ? `<span class="usedate">usado ${esc(fmtDate(c.usadoEm))}</span>` : ""}
     </div>
   </div>
@@ -708,7 +727,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     for (const c of all) totals[c.programa] = (totals[c.programa] || 0) + 1;
     $("programs").innerHTML = PROGRAMAS.map((p) => {
       const has = (totals[p.id] || 0) > 0;
-      const n = has ? (counts[p.id] || 0) : "em breve";
+      const n = has ? nCupons(counts[p.id] || 0) : "em breve";
       return `<button type="button" class="prog-pill ${p.cls}" data-prog="${p.id}" aria-pressed="${state.programas.has(p.id)}"${has ? "" : " disabled"}>${esc(p.nome)} <span class="n">${n}</span></button>`;
     }).join("");
   }
@@ -722,7 +741,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("filters-toggle").setAttribute("aria-expanded", String(state.filtersOpen));
     const n = activeFilterCount();
     $("filters-badge").hidden = n === 0;
-    $("filters-badge").textContent = n;
+    $("filters-badge").innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
     $("q-clear").hidden = !state.q;
 
     // categorias, com contagem respeitando os demais filtros
@@ -731,40 +750,40 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     for (const c of state.cupons) if (passes(c, "categoria") && matchesSearch(c, words)) catCount[c.categoria] = (catCount[c.categoria] || 0) + 1;
     const cats = [...new Set(state.cupons.map((c) => c.categoria).filter(Boolean))].sort(collator.compare);
     $("f-cat").innerHTML = cats.length
-      ? cats.map((cat) => `<button type="button" class="fchip cat ${CAT_CLS[cat] || ""}" data-cat="${esc(cat)}" aria-pressed="${state.categorias.has(cat)}">${esc(cat)} <span class="n">${catCount[cat] || 0}</span></button>`).join("")
+      ? cats.map((cat) => `<button type="button" class="fchip cat ${CAT_CLS[cat] || ""}" data-cat="${esc(cat)}" aria-pressed="${state.categorias.has(cat)}">${esc(cat)} <span class="n">${nCupons(catCount[cat] || 0)}</span></button>`).join("")
       : '<span class="n">Nenhuma categoria ainda.</span>';
     const count = (skip, pred) => state.cupons.filter((c) => passes(c, skip) && matchesSearch(c, words) && pred(c)).length;
     $("f-ganhe").querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(state.ganhe === b.dataset.ganhe));
-      b.querySelector(".n").textContent = count("ganhe", (c) => c.ganhe === b.dataset.ganhe);
+      b.querySelector(".n").innerHTML = nCupons(count("ganhe", (c) => c.ganhe === b.dataset.ganhe));
     });
     $("f-regras").querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(state.regras === b.dataset.regras));
-      b.querySelector(".n").textContent = count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras));
+      b.querySelector(".n").innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
     });
     const quandoPred = { hoje: (c) => temHorario(c) && !!c.horarios[hojeKey()], agora: valeAgora, feriados: (c) => c.feriados === true };
     $("f-quando").querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(state.quando === b.dataset.quando));
-      b.querySelector(".n").textContent = count("quando", quandoPred[b.dataset.quando]);
+      b.querySelector(".n").innerHTML = nCupons(count("quando", quandoPred[b.dataset.quando]));
     });
     const cidCount = {};
     for (const c of state.cupons) { const cid = c.unidade?.cidade; if (cid && passes(c, "cidade") && matchesSearch(c, words)) cidCount[cid] = (cidCount[cid] || 0) + 1; }
     const cidades = [...new Set(state.cupons.map((c) => c.unidade?.cidade).filter(Boolean))].sort(collator.compare);
     $("f-cidade").innerHTML = cidades.length
-      ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${cidCount[cid] || 0}</span></button>`).join("")
+      ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${nCupons(cidCount[cid] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
     const tipoCount = {};
     for (const c of state.cupons) if (passes(c, "tipo") && matchesSearch(c, words)) for (const t of c.categoriasApp || []) tipoCount[t] = (tipoCount[t] || 0) + 1;
     const tipos = [...new Set(state.cupons.flatMap((c) => c.categoriasApp || []))].sort(collator.compare);
     $("f-tipo").innerHTML = tipos.length
-      ? tipos.map((t) => `<button type="button" class="fchip" data-tipo="${esc(t)}" aria-pressed="${state.tipos.has(t)}">${esc(t)} <span class="n">${tipoCount[t] || 0}</span></button>`).join("")
+      ? tipos.map((t) => `<button type="button" class="fchip" data-tipo="${esc(t)}" aria-pressed="${state.tipos.has(t)}">${esc(t)} <span class="n">${nCupons(tipoCount[t] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhuma categoria do app cadastrada ainda.</span>';
     const comodCount = {};
     for (const c of state.cupons) if (passes(c, "comod") && matchesSearch(c, words)) for (const t of comodSet(c)) comodCount[t] = (comodCount[t] || 0) + 1;
     const pos = (t) => { const i = COMOD_ORDEM.indexOf(t); return i < 0 ? 99 : i; };
     const comods = [...new Set(state.cupons.flatMap((c) => [...comodSet(c)]))].sort((a, b) => pos(a) - pos(b) || collator.compare(a, b));
     $("f-comod").innerHTML = comods.length
-      ? comods.map((t) => `<button type="button" class="fchip" data-comod="${esc(t)}" aria-pressed="${state.comods.has(t)}">${esc(t)} <span class="n">${comodCount[t] || 0}</span></button>`).join("")
+      ? comods.map((t) => `<button type="button" class="fchip" data-comod="${esc(t)}" aria-pressed="${state.comods.has(t)}">${esc(t)} <span class="n">${nCupons(comodCount[t] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhuma comodidade cadastrada ainda.</span>';
   }
 
@@ -782,12 +801,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const rc = $("result-count");
     $("result-clear").hidden = !(state.phase === "ready" && anyNarrowing());
 
+    grid.setAttribute("aria-busy", String(state.phase === "loading"));
     if (state.phase === "loading") {
       rc.textContent = state.slow ? "Os cupons ainda não chegaram. Verifique a conexão." : "Carregando cupons…";
       grid.className = "grid";
       grid.innerHTML = state.slow
         ? `<div class="empty"><h3>Ainda carregando</h3><p>Os cupons ficam guardados na sua conta do claude.ai. Se a conexão estiver lenta, eles aparecem aqui assim que o servidor responder.</p></div>`
-        : '<div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>';
+        : '<div class="ghost" aria-hidden="true"></div><div class="ghost" aria-hidden="true"></div><div class="ghost" aria-hidden="true"></div>';
       return;
     }
     if (state.phase === "nodb" || state.phase === "error") {
@@ -809,6 +829,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     rc.innerHTML = anyNarrowing()
       ? `<b>${list.length}</b> de ${base} cupons ${statusTxt}`
       : `<b>${list.length}</b> cupons ${statusTxt}`;
+    announce(rc.textContent);
 
     if (!list.length) {
       grid.className = "grid";
@@ -825,19 +846,60 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       for (const c of list) { const k = key(c); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); }
       grid.className = "grid grouped";
       grid.innerHTML = [...groups].map(([k, items]) =>
-        `<section class="group"><h3>${esc(k)} <span>${items.length}</span></h3><div class="group-grid">${items.map(ticketHtml).join("")}</div></section>`
+        `<section class="group" aria-label="${esc(k)}"><h3 class="group-title">${esc(k)} <span>${nCupons(items.length)}</span></h3><div class="group-grid">${items.map((c) => ticketHtml(c, 4)).join("")}</div></section>`
       ).join("");
     } else {
       grid.className = "grid";
-      grid.innerHTML = list.map(ticketHtml).join("");
+      grid.innerHTML = list.map((c) => ticketHtml(c)).join("");
     }
   }
 
+  /* ---------- foco e anúncios (leitores de tela) ----------
+     Cada render recria botões com innerHTML. Sem isto, o foco do TalkBack cai no topo da página
+     depois de cada filtro, favorito ou "usado". Guardamos uma descrição do elemento focado e
+     devolvemos o foco ao equivalente recriado. */
+  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
+  let focoPendente = null; // lista de seletores; o primeiro que existir recebe o foco
+  function descreveFoco() {
+    const el = document.activeElement;
+    if (!el || el === document.body) return null;
+    const card = el.closest(".ticket");
+    const pre = card ? `.ticket[data-id="${CSS.escape(card.dataset.id)}"] ` : "";
+    if (el.id && !card) return [`#${CSS.escape(el.id)}`];
+    for (const a of FOCO_ATTRS) if (el.hasAttribute(a)) return [`${pre}[${a}="${CSS.escape(el.getAttribute(a))}"]`];
+    if (card && el.matches("summary")) return [`${pre}summary`];
+    if (card && el.matches(".tname")) return [`${pre}.tname`];
+    return null;
+  }
+  function restauraFoco(sels) {
+    if (!sels) return;
+    const ativo = document.activeElement;
+    if (ativo && ativo !== document.body && document.contains(ativo) && !focoPendente) return;
+    for (const sel of sels) {
+      const alvo = document.querySelector(sel);
+      if (alvo && !alvo.closest("[hidden]")) { alvo.focus({ preventScroll: false }); return; }
+    }
+  }
+  // anuncia o total depois que a pessoa para de digitar ou tocar, e só quando ele muda
+  let anuncioTimer = null, ultimoAnuncio = "", silenciarAnuncio = false;
+  function announce(msg) {
+    clearTimeout(anuncioTimer);
+    if (silenciarAnuncio) { ultimoAnuncio = msg; return; }
+    anuncioTimer = setTimeout(() => {
+      if (msg === ultimoAnuncio) return;
+      ultimoAnuncio = msg;
+      $("sr-status").textContent = msg;
+    }, 700);
+  }
+
   function render() {
+    const sels = focoPendente || descreveFoco();
     renderHeader();
     renderControls();
     renderNotice();
     renderGrid();
+    restauraFoco(sels);
+    focoPendente = null;
   }
 
   /* ---------- toast ---------- */
@@ -848,7 +910,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("toast-undo").hidden = !undo;
     $("toast").hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { $("toast").hidden = true; toastUndo = null; }, undo ? 6000 : 4000);
+    toastTimer = setTimeout(fechaToast, undo ? 10000 : 5000);
+  }
+  function fechaToast() {
+    if ($("toast").contains(document.activeElement)) { toastTimer = setTimeout(fechaToast, 3000); return; }
+    $("toast").hidden = true; toastUndo = null;
   }
   $("toast-undo").addEventListener("click", () => {
     const fn = toastUndo;
@@ -983,6 +1049,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   $("filters-clear").addEventListener("click", () => { clearFilters(); savePrefs(); render(); });
   $("result-clear").addEventListener("click", clearAll);
 
+  function vizinhos(card) {
+    const todos = [...document.querySelectorAll("#grid .ticket")];
+    const i = todos.indexOf(card);
+    return [todos[i + 1], todos[i - 1]].filter(Boolean).map((t) => `.ticket[data-id="${CSS.escape(t.dataset.id)}"] .tname`);
+  }
   $("grid").addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     if (b.dataset.act === "clear-all") { clearAll(); return; }
@@ -992,11 +1063,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (b.dataset.act === "fav") {
       write(id, { favorito: !c.favorito });
     } else if (b.dataset.act === "use") {
+      // na lista de disponíveis o cartão some: o foco vai para o nome do próximo cupom
+      focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="unuse"]`, ...vizinhos(card), "#result-count"];
+      silenciarAnuncio = true;
       write(id, { usado: true, usadoEm: today() });
+      silenciarAnuncio = false;
       toast(`${c.nome}: marcado como usado.`, () => write(id, { usado: false, usadoEm: null }));
     } else if (b.dataset.act === "unuse") {
       const prev = c.usadoEm || null;
+      focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, ...vizinhos(card), "#result-count"];
+      silenciarAnuncio = true;
       write(id, { usado: false, usadoEm: null });
+      silenciarAnuncio = false;
       toast(`${c.nome} voltou para os disponíveis.`, () => write(id, { usado: true, usadoEm: prev || today() }));
     }
   });

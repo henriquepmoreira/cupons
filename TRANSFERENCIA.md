@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 6, ícone `ticket`) |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 7, ícone `ticket`) |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -48,6 +48,14 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - marcar como usado, com botão Desfazer por 6 s;
   - link "Mapa ↗", que usa o endereço da unidade quando existe;
   - tema claro e escuro.
+- **Acessibilidade (leitores de tela, como TalkBack), desde a versão 7:**
+  - `lang="pt-BR"` é posto por script, porque o invólucro do artifact não declara idioma;
+  - **o foco é preservado a cada render** (`descreveFoco`/`restauraFoco`): os botões são recriados com `innerHTML`, e sem isso o TalkBack voltava ao topo depois de cada filtro ou favorito. Ao marcar como usado, o foco vai para o nome do cupom seguinte (`focoPendente`). Qualquer botão novo que seja recriado no render precisa de um `data-*` listado em `FOCO_ATTRS`;
+  - a grade não é mais região ao vivo; o total de cupons é anunciado uma vez, 0,7 s depois da última mudança, por `#sr-status` (`announce`);
+  - nomes completos para o leitor: "Favorito: <nome>" (com `aria-pressed`), "Marcar como usado: <nome>", "Ver <nome> no mapa (abre em outra aba)", contadores com "cupons", horários falados ("das 11:30 às 14:30"), ✓/✗ lidos como "Vale em"/"Não vale em";
+  - cada cartão é um `article` com o nome como título (h3, ou h4 dentro dos grupos de "Por categoria"/"Por programa", que são h3); há um h2 oculto "Cupons" antes da lista;
+  - o aviso com "Desfazer" fica 10 s e não some enquanto o foco estiver nele;
+  - conferido com axe-core 4.10 (WCAG 2.1 AA + boas práticas) nos temas claro e escuro: nenhuma violação. A classe `.sr-only` esconde texto só da tela.
 - **Preferências:** ficam no navegador, em `localStorage`, na chave `cupons-em-dobro:prefs:v1`.
 - **Detalhes de cada cupom:**
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;
@@ -160,4 +168,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 8. `9aec061` `TRANSFERENCIA.md`, scripts de vídeo em `scripts/video/`, README atualizado
 9. `0dbf2af` detalhes de 34 cupons do Canoas, `scripts/video/canoas/`, filtros de categoria no app e comodidades, botão "Vale agora"
 10. `329a6e1` detalhes de mais 36 cupons do Canoas (Fornito a OCA Café & Brunch)
-11. (este commit) detalhes de mais 28 cupons do Canoas (Confraria 110 a Grano Forneria), Paradouro Café e The West Burger, oferta do Guido e do Shrek Lanches
+11. `e83c62a` detalhes de mais 28 cupons do Canoas (Confraria 110 a Grano Forneria), Paradouro Café e The West Burger, oferta do Guido e do Shrek Lanches
+12. (este commit) acessibilidade para leitores de tela (versão 7 da página)
