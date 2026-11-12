@@ -544,10 +544,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const faixas = (h) => String(h || "").split(";").map((x) => x.trim().split(/\s*-\s*/)).filter((p) => p.length === 2);
   const fmtFaixas = (h) => faixas(h).map(([a, b]) => `${a}–${b}`).join(", ");
   function valeAgora(c) {
-    const h = c.horarios?.[hojeKey()]; if (!h) return false;
+    if (!c.horarios) return false;
     const d = new Date(); const p = (n) => String(n).padStart(2, "0");
     const agora = `${p(d.getHours())}:${p(d.getMinutes())}`;
-    return faixas(h).some(([a, b]) => agora >= a && agora <= b);
+    const hoje = c.horarios[DIAS[d.getDay()]], ontem = c.horarios[DIAS[(d.getDay() + 6) % 7]];
+    // faixa que passa da meia-noite (ex.: 18:00 - 04:00): vale de a até 23:59 hoje e até b no dia seguinte
+    if (hoje && faixas(hoje).some(([a, b]) => (b >= a ? agora >= a && agora <= b : agora >= a))) return true;
+    return !!ontem && faixas(ontem).some(([a, b]) => b < a && agora <= b);
   }
 
   /* ---------- derivações ---------- */
