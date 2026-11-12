@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 7, ícone `ticket`) |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 8, ícone `ticket`) |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -56,6 +56,8 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - cada cartão é um `article` com o nome como título (h3, ou h4 dentro dos grupos de "Por categoria"/"Por programa", que são h3); há um h2 oculto "Cupons" antes da lista;
   - o aviso com "Desfazer" fica 10 s e não some enquanto o foco estiver nele;
   - conferido com axe-core 4.10 (WCAG 2.1 AA + boas práticas) nos temas claro e escuro: nenhuma violação. A classe `.sr-only` esconde texto só da tela.
+  - **dentro do visualizador do claude.ai** a página roda num iframe com título em inglês ("User-generated artifact content") e idioma en-US do lado de fora; o idioma pt-BR do quadro da carteira vale do mesmo jeito, e o foco entra no quadro pela navegação normal (conferido em 12/11). A regra `[hidden] { display: none !important; }` está na própria página porque o invólucro que a garante não existe em todo lugar onde ela abre;
+  - quem recebe o link e só pode ver usa a carteira em modo leitura: os botões aparecem como "desativado" e um aviso (`role=status`) explica o motivo.
 - **Preferências:** ficam no navegador, em `localStorage`, na chave `cupons-em-dobro:prefs:v1`.
 - **Detalhes de cada cupom:**
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;
@@ -169,4 +171,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 9. `0dbf2af` detalhes de 34 cupons do Canoas, `scripts/video/canoas/`, filtros de categoria no app e comodidades, botão "Vale agora"
 10. `329a6e1` detalhes de mais 36 cupons do Canoas (Fornito a OCA Café & Brunch)
 11. `e83c62a` detalhes de mais 28 cupons do Canoas (Confraria 110 a Grano Forneria), Paradouro Café e The West Burger, oferta do Guido e do Shrek Lanches
-12. (este commit) acessibilidade para leitores de tela (versão 7 da página)
+12. `e1430c3` acessibilidade para leitores de tela (versão 7 da página)
+13. (este commit) `[hidden]` garantido pela própria página (versão 8), notas sobre o visualizador
