@@ -58,13 +58,13 @@ São 203 cupons, vindos de 108 prints da aba Vouchers (os dois zips enviados era
 
 ### Detalhes do Tour (vídeos de 12/11/2026)
 
-Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a tela de detalhe de todos os cupons do Tour, menos o Ah! Casa (não foi aberto) e o Don Carlone (já usado, some da lista do app). Os quadros foram lidos com OCR (tesseract, português) e **todos os cupons foram conferidos em imagem** (folhas com unidade, feriados, horários e regras de cada um); as leituras erradas do OCR foram corrigidas à mão.
+Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a tela de detalhe de todos os cupons do Tour, menos o Ah! Casa (não foi aberto; entrou depois por dois prints) e o Don Carlone (já usado, some da lista do app). Os quadros foram lidos com OCR (tesseract, português) e **todos os cupons foram conferidos em imagem** (folhas com unidade, feriados, horários e regras de cada um); as leituras erradas do OCR foram corrigidas à mão.
 
 - **Dias e horários:** dia que falta na lista do app está mesmo ausente (conferido em imagem), ou seja, o cupom não vale nesse dia. Ex.: Domino's sem sexta, Pratika Rodízio sem segunda e quarta, Lumberjack sem terça, Ser Gastro Pub sem sexta.
 - **Feriados e datas comemorativas:** lidos pela cor do ícone (✓ verde / ✗ vermelho). O Mr. Pretzels mostra ✓ nos dois, mas a regra do próprio estabelecimento diz que não vale em feriados e datas comemorativas; ficou como o app mostra, com a regra no texto.
 - **Comodidades:** inclui a etiqueta "Exclusivo Takeaway" (só para retirada), presente em 17 cupons.
 - **Nomes completos:** o título da tela de detalhe completou 20 nomes que a lista corta (ex.: Empório 22 Wine & Bar, Pallina Di Latte - Shopping João Pessoa, Janela Bar POA - Zona Sul). "Mark - Harmonia, R…" continua cortado: a tela de detalhe mostra só "Mark Hamburgueria".
-- **Mais de uma unidade:** Camarão Express, Poke Delícia - São Leo, Coccaderia.Co, Milky Moo, Mr. Pretzels e os dois Mark Hamburgueria têm seletor de unidade; os dados são da unidade que aparece primeiro.
+- **Mais de uma unidade:** Ah! Casa, Camarão Express, Poke Delícia - São Leo, Coccaderia.Co, Milky Moo, Mr. Pretzels e os dois Mark Hamburgueria têm seletor de unidade; os dados são da unidade que aparece primeiro.
 - **Detalhes parciais:** PopCorn Gourmet - Praia de Belas (só as regras; o vídeo não rolou a tela) e Pallina Di Latte (unidade e feriados, sem dias e horários).
 - **Lacunas resolvidas:** os vídeos percorrem a lista sem pular, e a lista entre um cupom e outro mostra os dois cartões lado a lado; as nove emendas suspeitas dos prints estão confirmadas.
 - **Avisos com data:** várias regras falam de datas que já passaram (Dia dos Namorados, "nesse domingo 08/11"); estão transcritas como o app mostra.
