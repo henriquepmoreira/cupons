@@ -64,7 +64,7 @@ Uma gravação de tela (5 partes de 90 s, 720 px, 6 quadros/s) mostrou a tela de
 - **Feriados e datas comemorativas:** lidos pela cor do ícone (✓ verde / ✗ vermelho).
 - **Nomes completos:** o título da tela de detalhe completou 12 nomes que a lista corta (ex.: Empório 22 Wine & Bar, Spoleto Park Bourbon Novo Hamburgo, Café Con Acento by Felix).
 - **Lacunas resolvidas:** o vídeo percorre a lista sem pular, então as emendas Espaço Eminente → Gran Armazém, Chavin → Chica Maria, El Guerrero Gravataí → Pontal, Menu Poke Moinhos → ParkShopping e Usina de Massas → Saúde no Copo estão confirmadas. Continuam em aberto: ViVa Padaria → Buonissima Canoas, Montecchio → Morango & Alecrim, Inner → Janela Bar e Poeta Bar → Rancho Boiadeiros.
-- **Ainda sem detalhes:** Ah! Casa e os 114 cupons depois de Chá das Três - Chá (da Chá das Três em diante na lista do app).
+- **Ainda sem detalhes:** Ah! Casa e os 114 cupons depois de Chá das Três - Chá (da Cheirin Bão - ParkShopping em diante na lista do app).
 - **Dados do app que parecem errados, transcritos como estão:** Spoleto Bourbon Ipiranga mostra "Bourbon Shopping Novo Hamburgo" no endereço da Av. Ipiranga 5200; Poke Delícia - São Leo mostra a unidade Hamburgo Velho.
 
 ## Canoas em Dobro
