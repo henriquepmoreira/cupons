@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", privada, versão 8, ícone `ticket`) |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 9, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -58,7 +58,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - conferido com axe-core 4.10 (WCAG 2.1 AA + boas práticas) nos temas claro e escuro: nenhuma violação. A classe `.sr-only` esconde texto só da tela.
   - **dentro do visualizador do claude.ai** a página roda num iframe com título em inglês ("User-generated artifact content") e idioma en-US do lado de fora; o idioma pt-BR do quadro da carteira vale do mesmo jeito, e o foco entra no quadro pela navegação normal (conferido em 12/11). A regra `[hidden] { display: none !important; }` está na própria página porque o invólucro que a garante não existe em todo lugar onde ela abre;
   - quem recebe o link e só pode ver usa a carteira em modo leitura: os botões aparecem como "desativado" e um aviso (`role=status`) explica o motivo.
-- **Quem abre sem login no claude.ai** não recebe o banco (`claude.use("db")` resolve `null`) e via "Entre na sua conta". O `cupons.html` agora tenta carregar `snapshot.json` publicado junto com a página (gerado do banco por `scripts/gerar-snapshot.py`) e mostra uma cópia só para consulta, com aviso da data. **Ainda não publicado (13/11/2026):** a publicação com o snapshot foi barrada pela proteção automática da sessão por expor a carteira, com favoritos e usados, a qualquer pessoa com o link; aguarda decisão do usuário. Sem o arquivo publicado, a página continua mostrando "Entre na sua conta" para quem não está logado.
+- **Quem abre sem login no claude.ai** não recebe o banco (`claude.use("db")` resolve `null`) e via "Entre na sua conta". O `cupons.html` agora tenta carregar `snapshot.json` publicado junto com a página (gerado do banco por `scripts/gerar-snapshot.py`) e mostra uma cópia só para consulta, com aviso da data. **Publicado em 13/11/2026 (versão 9), com autorização explícita do usuário** para expor a carteira completa, favoritos e usados incluídos, a quem tiver o link. A cópia **não se atualiza sozinha**: depois de mudar dados ou de o usuário marcar cupons, leia o banco inteiro, rode o gerador e republique com `files: {"snapshot.json": ...}`. Republicar só o `cupons.html` mantém a cópia anterior.
 - **Preferências:** ficam no navegador, em `localStorage`, na chave `cupons-em-dobro:prefs:v1`.
 - **Detalhes de cada cupom:**
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;

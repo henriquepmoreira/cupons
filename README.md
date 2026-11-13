@@ -42,6 +42,8 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 
 Só a pessoa dona do artifact pode gravar no banco (regra `write: owner`).
 
+Quem abre o link sem estar logado no claude.ai não recebe o banco: a página mostra então uma cópia só para consulta, publicada junto com ela (`snapshot.json`, gerada do banco por `scripts/gerar-snapshot.py`). A cópia tem a data em que foi gerada e só muda quando a página é republicada com uma nova.
+
 `data/*.json` é o registro de origem, com a mesma estrutura. Mudanças feitas na página (favoritos, usados) ficam só no banco.
 Para importar um programa novo, crie `data/<programa>.json` e gere os documentos com:
 
