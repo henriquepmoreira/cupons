@@ -524,6 +524,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const state = {
     cupons: [], phase: "loading", // loading | ready | nodb | error
     slow: false, readOnly: false,
+    copiaDe: null, // data da cópia somente leitura, quando o banco não está disponível
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
     quando: null, cidades: new Set(), tipos: new Set(), comods: new Set(), abertos: new Set(),
@@ -792,7 +793,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   function renderNotice() {
     const el = $("notice");
     let msg = "";
-    if (state.phase === "ready" && state.slow) msg = "Sem resposta do servidor há alguns segundos. A lista pode estar desatualizada.";
+    if (state.phase === "ready" && state.copiaDe !== null) msg = `Cópia da carteira${state.copiaDe ? ` de ${fmtDate(state.copiaDe)}` : ""}, só para consulta. Favoritos e cupons usados podem ter mudado depois. Quem tem acesso à carteira vê a versão atualizada entrando no claude.ai antes de abrir o link.`;
+    else if (state.phase === "ready" && state.slow) msg = "Sem resposta do servidor há alguns segundos. A lista pode estar desatualizada.";
     else if (state.phase === "ready" && state.readOnly) msg = "Você está vendo a carteira em modo leitura. Só a dona ou o dono pode favoritar e marcar cupons como usados.";
     el.hidden = !msg;
     el.textContent = msg;
@@ -958,7 +960,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   async function boot() {
     const slowTimer = setTimeout(() => { state.slow = true; render(); }, 10000);
     const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
-    if (!db) { clearTimeout(slowTimer); state.phase = "nodb"; render(); return; }
+    if (!db) { clearTimeout(slowTimer); carregaCopia("nodb"); return; }
     col = db.collection("cupons");
     window.claude.use("user").then(async (user) => {
       if (!user) return;
@@ -975,9 +977,28 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       clearTimeout(slowTimer);
       state.slow = false;
       if (state.cupons.length) { state.phase = "ready"; toast("A conexão com a carteira caiu. Recarregue a página para ver mudanças novas."); }
-      else state.phase = "error";
+      else { carregaCopia("error"); return; }
       render();
     });
+  }
+
+  // Quem abre o link sem estar logado no claude.ai não recebe o banco. Nesse caso a página
+  // mostra a cópia publicada junto com ela (snapshot.json, gerada por scripts/gerar-snapshot.py),
+  // só para consulta.
+  async function carregaCopia(semCopia) {
+    try {
+      const r = await fetch("snapshot.json", { cache: "no-cache" });
+      if (!r.ok) throw new Error(String(r.status));
+      const data = await r.json();
+      if (!Array.isArray(data.cupons) || !data.cupons.length) throw new Error("cópia vazia");
+      state.cupons = data.cupons;
+      state.copiaDe = data.geradoEm || "";
+      state.readOnly = true;
+      state.phase = "ready";
+    } catch (_) {
+      state.phase = semCopia;
+    }
+    render();
   }
 
   /* ---------- eventos ---------- */
