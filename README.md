@@ -106,14 +106,15 @@ Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05�
 - **Regras com aviso:** o Kampeki é o único cupom que exige reserva antecipada, com sinal de R$ 100 por pessoa; o Darna atende mediante reserva; o Sushiaki só aceita consumo no local; o Buteco Comedy só funciona em dia de show (ver o Instagram @butecocomedy); a Trempe Parrilla pede reserva de sexta a domingo; o OCA Café & Brunch só vale no almoço, das 11h às 15h.
 - **Pequenas correções de grafia nas regras:** "sequencia" → "sequência", "burguer" → "burger", "Rodizio" → "Rodízio", "segundo pizza" → "segunda pizza", "segunda saladas" → "segunda salada", "igual ou menor valor" → "igual ou de menor valor", "a segundo pizza" → "a segunda pizza", "o segundo costelinha" → "a segunda costelinha", "o segundo um cesto" → "o segundo cesto", "fatia bolo" → "fatia de bolo", "waffer de igual" → "waffle igual", "Wook" → "wok".
 
-## Detalhes do Poa em Dobro (vídeos de 12/11/2026)
+## Detalhes do Poa em Dobro (vídeos de 12/11 e 16/11/2026)
 
-Duas gravações de tela abriram 9 cupons: os 6 primeiros da lista (Sabor de Luna a Soft Ice Cream) e os 46 a 48 (Hamadaya Sushi, Mandu Korean Food, Doralice Cantinho Saudável). O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
+As gravações de tela abriram 36 cupons: os 33 primeiros da lista (Sabor de Luna a Agridoce Café) e os 46 a 48 (Hamadaya Sushi, Mandu Korean Food, Doralice Cantinho Saudável). O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
 
-- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Historico e Bom Fim) e Soft Ice Cream (Cidade Baixa e Bom Fim) têm duas unidades, cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
-- **Feriados:** os 9 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
-- **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico", "Centro Historico").
-- **Ainda sem detalhes:** os outros 271 cupons do Poa.
+- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim) e Spia Bar e Cozinha (Moinhos de Vento e Bom Fim) têm duas unidades, cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
+- **Feriados:** os 36 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
+- **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico"), exceto o bairro "Centro Historico", que o app também escreve com acento e ficou "Centro Histórico" para não virar dois bairros no filtro.
+- **Ofertas:** as 27 do segundo vídeo batem com as registradas, e os 7 cupons com "(ver regras)" na oferta já estavam marcados.
+- **Ainda sem detalhes:** os outros 244 cupons do Poa (do 34, Ryori Sushi, em diante, menos 46 a 48).
 
 ## Pendências da fase 1 (Poa em Dobro)
 
