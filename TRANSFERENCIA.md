@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 9, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 10, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -41,7 +41,8 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 - **Recursos:**
   - busca sem acentos, que também procura em bairro, cidade, endereço, regras e comodidades;
   - situação (Disponíveis / Usados / Todos) e favoritos;
-  - filtros de programa, categoria, categoria no app (`categoriasApp`, só Canoas), tipo de benefício (`igual` ou `igual_ou_menor`), regras, "Quando", comodidades e cidade;
+  - filtros de programa, categoria, categoria no app (`categoriasApp`, só Canoas), tipo de benefício (`igual` ou `igual_ou_menor`), regras, "Quando", dias da semana (vale em pelo menos um dos dias marcados), comodidades, cidade e bairro (chave `cidade|bairro`, porque "Centro" existe em várias cidades; com cidade marcada, só os bairros dela);
+  - **painel "Filtros" do Poa em Dobro (prints de 16/11/2026):** dias da semana, Aberto agora, Favoritos, Perto de mim, ~40 categorias (inclui shoppings e Mercado Público como categoria), Diferenciais (Espaço Kids, Aceita Pet) e Regiões (bairros e algumas cidades). Faltam na carteira: **Perto de mim** (os artifacts não recebem a localização do aparelho e os cupons não têm coordenadas) e **as categorias do Poa** (os cupons do Poa não têm a tela de detalhe lida, então não há de onde tirar a categoria do app);
   - botão "Vale agora" na barra (o mesmo filtro de "Quando"), imitando o "Aberto agora" dos apps;
   - comodidades: o filtro exige todas as marcadas, e "Aceita Pet" (Canoas) e "Pet Friendly" (Tour) contam como uma só;
   - seis ordenações: app, A–Z, favoritos, categoria, programa e usados por último;
@@ -173,4 +174,6 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 10. `329a6e1` detalhes de mais 36 cupons do Canoas (Fornito a OCA Café & Brunch)
 11. `e83c62a` detalhes de mais 28 cupons do Canoas (Confraria 110 a Grano Forneria), Paradouro Café e The West Burger, oferta do Guido e do Shrek Lanches
 12. `e1430c3` acessibilidade para leitores de tela (versão 7 da página)
-13. (este commit) `[hidden]` garantido pela própria página (versão 8), notas sobre o visualizador
+13. `948aef7` `[hidden]` garantido pela própria página (versão 8), notas sobre o visualizador
+14. `78ac676`/`f68baa9` cópia somente leitura para quem abre sem login (versão 9)
+15. (este commit) filtros de dias da semana e bairro (versão 10)

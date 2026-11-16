@@ -9,7 +9,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 ## O que a página faz
 
 - Busca por estabelecimento, prato, categoria ou programa (ignora acentos)
-- Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale hoje, vale agora, aceita em feriados), comodidades e cidade
+- Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale hoje, vale agora, aceita em feriados), dias da semana, comodidades e diferenciais, cidade e bairro
 - Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps
 - Ordenação: ordem do app, nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
