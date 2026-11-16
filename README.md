@@ -108,16 +108,17 @@ Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05�
 
 ## Detalhes do Poa em Dobro (vídeos de 12/11 e 16/11/2026)
 
-As gravações de tela abriram os 88 primeiros cupons da lista, do Sabor de Luna ao O Burguês Hamburgueria Clássica. O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
+As gravações de tela abriram os 184 primeiros cupons da lista, do Sabor de Luna à Griffe Patisserie. O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
 
 - **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim), Spia Bar e Cozinha (Moinhos de Vento e Bom Fim), Lucho Burger (Rua Mostardeiro e Rua Padre Chagas, só almoço), Chocolate Lugano (Floresta e Iguatemi) e Gelateria Di Argento (Iguatemi e Moinhos de Vento) têm duas unidades, e Mix Natural tem três (Bela Vista, Bom Fim e Centro Histórico), cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
-- **Feriados:** os 88 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
+- **Várias unidades (cupons 89 a 184):** Consuela's (Moinhos de Vento e Santana), Spoleto (Passo da Areia e Jardim Botânico), Primeiro Reino Burger (Mário Quintana e Santa Cecília), Menu Poke (Cristal e Moinhos de Vento), Gelato Borelli (Cristal e Passo da Areia), Woking Thai Food (Boa Vista e Centro Histórico), Cachorro do Bigode (Sarandi e Cristo Redentor), O'Pasta Trattoria (Cristal e Petrópolis), Gelson Lanches (Tristeza e Praia de Belas) e El Lato (Bela Vista e Mont'Serrat) têm duas unidades; Cachorro do Bonfa tem três (Cidade Baixa, Bom Fim e Praia de Belas); Doce Docê Café tem cinco (Praia de Belas, Teresópolis, Jardim Lindóia, São João e São Sebastião); Gianluca Zaffari tem sete (Navegantes, São João, Moinhos de Vento, Bom Fim, Cristal, Tristeza e Jardim Europa). Na unidade São Sebastião do Doce Docê o app troca as colunas de manhã e noite; o horário foi guardado na ordem certa (08:00 - 15:00 e 15:01 - 20:00).
+- **Feriados:** os 184 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
 - **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico"), exceto o bairro "Centro Historico", que o app também escreve com acento e ficou "Centro Histórico" para não virar dois bairros no filtro.
-- **Ofertas:** todas batem com as registradas, e os cupons com "(ver regras)" na oferta já estavam marcados.
+- **Ofertas:** todas batem com as registradas, menos a do Ponto Zero, que mudou para "um prato principal (exceto Da Panela e da Brasa)"; os cupons com "(ver regras)" na oferta já estavam marcados.
 - **Nomes completados:** Raw Restaurante e Café, O Burguês Hamburgueria Clássica.
 - **Endereços com erro do app, normalizados:** Barranquinho e O Burguês aparecem como "Porto Alegre / AC", e Startt & Brothers como "Porto Ale / RS"; ficaram Porto Alegre.
 - **Emendas confirmadas:** Lucho Burger → Bistrô do Mercado e Joe Hamburgueria → D'Juca Confeitaria (a lista mostra os dois cartões juntos).
-- **Ainda sem detalhes:** os cupons 89 (Restaurante Hotel Intercity) a 280.
+- **Ainda sem detalhes:** os cupons 185 (Rancho 141) a 280.
 
 ## Pendências da fase 1 (Poa em Dobro)
 
