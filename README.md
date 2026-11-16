@@ -108,23 +108,23 @@ Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05�
 
 ## Detalhes do Poa em Dobro (vídeos de 12/11 e 16/11/2026)
 
-As gravações de tela abriram os 48 primeiros cupons da lista, do Sabor de Luna à Doralice Cantinho Saudável. O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
+As gravações de tela abriram os 88 primeiros cupons da lista, do Sabor de Luna ao O Burguês Hamburgueria Clássica. O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
 
-- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim), Spia Bar e Cozinha (Moinhos de Vento e Bom Fim) e Lucho Burger (Rua Mostardeiro e Rua Padre Chagas, só almoço) têm duas unidades, cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
-- **Feriados:** os 48 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
+- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim), Spia Bar e Cozinha (Moinhos de Vento e Bom Fim), Lucho Burger (Rua Mostardeiro e Rua Padre Chagas, só almoço), Chocolate Lugano (Floresta e Iguatemi) e Gelateria Di Argento (Iguatemi e Moinhos de Vento) têm duas unidades, e Mix Natural tem três (Bela Vista, Bom Fim e Centro Histórico), cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
+- **Feriados:** os 88 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
 - **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico"), exceto o bairro "Centro Historico", que o app também escreve com acento e ficou "Centro Histórico" para não virar dois bairros no filtro.
 - **Ofertas:** todas batem com as registradas, e os cupons com "(ver regras)" na oferta já estavam marcados.
-- **Nome completado:** Raw Restaurante e Café.
-- **Emenda confirmada:** Lucho Burger → Bistrô do Mercado (a lista mostra os dois cartões juntos).
-- **Ainda sem detalhes:** os cupons 49 (Hierro Y Fuego) a 280.
+- **Nomes completados:** Raw Restaurante e Café, O Burguês Hamburgueria Clássica.
+- **Endereços com erro do app, normalizados:** Barranquinho e O Burguês aparecem como "Porto Alegre / AC", e Startt & Brothers como "Porto Ale / RS"; ficaram Porto Alegre.
+- **Emendas confirmadas:** Lucho Burger → Bistrô do Mercado e Joe Hamburgueria → D'Juca Confeitaria (a lista mostra os dois cartões juntos).
+- **Ainda sem detalhes:** os cupons 89 (Restaurante Hotel Intercity) a 280.
 
 ## Pendências da fase 1 (Poa em Dobro)
 
 São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
 
 - **Di Toni:** já foi usado (marcado como usado na carteira, sem data). A oferta não foi registrada.
-- **Possíveis lacunas:** em catorze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
-  - Joe Hamburgueria → D'Juca Confeitaria
+- **Possíveis lacunas:** em treze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
   - Restaurante Hotel Intercity → Restaurante Madregaia
   - Confeitaria Princesa → Cheirin Bão
   - Ponto Zero Bar → Encouraçado Butikin
