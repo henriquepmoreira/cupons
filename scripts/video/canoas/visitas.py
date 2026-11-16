@@ -1,15 +1,16 @@
-# Canoas em Dobro: agrupa os quadros de detalhe em visitas.
+# Canoas em Dobro e Poa em Dobro (mesmo app): agrupa os quadros de detalhe em visitas.
 # Uso: python3 visitas.py <T>   (depois de preparar.sh; gera <T>/visits.json)
 import json, re, sys
 T = sys.argv[1]
 keep = json.load(open(f'{T}/vf3-keep.json'))
 def lines(b): return [l.strip() for l in open(f'{T}/ocr/{b}.txt', encoding='utf-8') if l.strip()]
-LIST = re.compile(r'Total ?economizado|Busque|Todos Hamburgueria|Hamburgueria Italiano|restaurante, bairro|Carregando', re.I)
+# lista: cabeçalho "Total economizado", busca ou barra de categorias (Canoas: "Todos Hamburgueria"; Poa: "Todos To Go")
+LIST = re.compile(r'Total ?economizado|economizado|Busque|Todos\s+(Hamburgueria|To\s*Go)|Hamburgueria Italiano|restaurante, bairro|Carregando', re.I)
 DET = re.compile(r'LER QRCODE|Dias e hor|Manh[aã]{1,2}/Tarde|Regras d|REGRAS|CUPOM V[AÁ]LIDO|Ver no mapa|Chamar Uber|estabelecimento', re.I)
 seq = []
 for f in keep:
     b = f.split('/')[-1][:-4]; t = lines(b); j = '\n'.join(t)
-    k = 'D' if DET.search(j) and not re.search(r'Total ?economizado|Busque', j) else ('L' if LIST.search(j) else '?')
+    k = 'L' if LIST.search(j) else ('D' if DET.search(j) else '?')
     seq.append((b, k, t))
 visits = []; cur = None
 for b, k, t in seq:

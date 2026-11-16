@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 10, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 11, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -59,7 +59,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - conferido com axe-core 4.10 (WCAG 2.1 AA + boas práticas) nos temas claro e escuro: nenhuma violação. A classe `.sr-only` esconde texto só da tela.
   - **dentro do visualizador do claude.ai** a página roda num iframe com título em inglês ("User-generated artifact content") e idioma en-US do lado de fora; o idioma pt-BR do quadro da carteira vale do mesmo jeito, e o foco entra no quadro pela navegação normal (conferido em 12/11). A regra `[hidden] { display: none !important; }` está na própria página porque o invólucro que a garante não existe em todo lugar onde ela abre;
   - quem recebe o link e só pode ver usa a carteira em modo leitura: os botões aparecem como "desativado" e um aviso (`role=status`) explica o motivo.
-- **Quem abre sem login no claude.ai** não recebe o banco (`claude.use("db")` resolve `null`) e via "Entre na sua conta". O `cupons.html` agora tenta carregar `snapshot.json` publicado junto com a página (gerado do banco por `scripts/gerar-snapshot.py`) e mostra uma cópia só para consulta, com aviso da data. **Publicado em 13/11/2026 (versão 9), com autorização explícita do usuário** para expor a carteira completa, favoritos e usados incluídos, a quem tiver o link. A cópia **não se atualiza sozinha**: depois de mudar dados ou de o usuário marcar cupons, leia o banco inteiro, rode o gerador e republique com `files: {"snapshot.json": ...}`. Republicar só o `cupons.html` mantém a cópia anterior.
+- **Quem abre sem login no claude.ai** não recebe o banco (`claude.use("db")` resolve `null`) e via "Entre na sua conta". O `cupons.html` agora tenta carregar `snapshot.json` publicado junto com a página (gerado do banco por `scripts/gerar-snapshot.py`) e mostra uma cópia só para consulta, com aviso da data. **Publicado em 13/11/2026 (versão 9), com autorização explícita do usuário** para expor a carteira completa, favoritos e usados incluídos, a quem tiver o link. A cópia **não se atualiza sozinha**: depois de mudar dados ou de o usuário marcar cupons, leia o banco inteiro, rode o gerador e republique com `files: {"snapshot.json": ...}`. Republicar só o `cupons.html` mantém a cópia anterior. Última atualização da cópia: 16/11/2026.
 - **Preferências:** ficam no navegador, em `localStorage`, na chave `cupons-em-dobro:prefs:v1`.
 - **Detalhes de cada cupom:**
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;
@@ -84,7 +84,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 | programa | cupons | favoritos | usados | pendências |
 |---|---|---|---|---|
-| Poa em Dobro | 280 | 176 | Di Toni (sem data) | Di Toni sem oferta registrada; 15 possíveis lacunas; fim da lista e topo não confirmados; 3 nomes cortados |
+| Poa em Dobro | 280 | 176 | Di Toni (sem data) | detalhes de 9 cupons (1–6 e 46–48), topo confirmado (Sabor de Luna); Di Toni sem oferta registrada; 15 possíveis lacunas; fim da lista e topo não confirmados; 3 nomes cortados |
 | Tour Grande Poa | 203 | 126 | Don Carlone (11/11/2026) | detalhes completos, exceto o Don Carlone (usado); poucas pendências menores (abaixo) |
 | Canoas em Dobro | 103 | 69 | nenhum | **lista incompleta**: depois do The West Burger há pelo menos mais um cupom. Detalhes dos cupons 1–100 (menos a Família Kabana, que sumiu da lista do app, e o segundo Urban 1736) |
 
@@ -96,7 +96,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
    - confirmar o fim, depois do Di Toni, e o topo (o card do Sabor de Luna está levemente cortado).
    - Um vídeo rolando a lista inteira resolve tudo de uma vez, como resolveu no Tour.
 3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
-4. **Detalhes de Poa e do resto do Canoas:** regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
+4. **Detalhes do Poa (faltam 271) e do resto do Canoas:** os vídeos do Poa de 12/11 vieram em 886 px de largura; converta para 720 px antes do `preparar.sh` (`ffmpeg -i <vídeo> -vf "scale=720:1560,fps=6" -c:v libx264 -crf 23 -an parte_00.mp4`), porque os recortes dos scripts são em coordenadas de 720 px. Os scripts de `scripts/video/canoas/` servem para o Poa (mesmo app, tema escuro). Nos cupons com várias unidades, gere uma folha com a tabela de cada unidade e guarde as outras em `outrasUnidades`. regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
    - **Família Kabana Pizzaria:** não aparece mais na lista do app (12/11/2026) e não estava usada. Confirmar com o usuário se saiu do programa antes de apagar ou marcar.
    - **Painel "Filtros" dos apps:** nunca apareceu aberto nos vídeos. Um print dele mostraria se há filtros que a carteira ainda não tem.
 5. **Tour, pendências menores:**
@@ -176,4 +176,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 12. `e1430c3` acessibilidade para leitores de tela (versão 7 da página)
 13. `948aef7` `[hidden]` garantido pela própria página (versão 8), notas sobre o visualizador
 14. `78ac676`/`f68baa9` cópia somente leitura para quem abre sem login (versão 9)
-15. (este commit) filtros de dias da semana e bairro (versão 10)
+15. `a67d53b` filtros de dias da semana e bairro (versão 10)
+16. (este commit) detalhes de 9 cupons do Poa, `outrasUnidades` na página, cópia sem login atualizada em 16/11 (versão 11)

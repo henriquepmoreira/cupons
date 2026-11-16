@@ -592,8 +592,28 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const DIAS_NOME = { dom: "Domingo", seg: "Segunda", ter: "Terça", qua: "Quarta", qui: "Quinta", sex: "Sexta", sab: "Sábado" };
   const hojeKey = () => DIAS[new Date().getDay()];
   const DIAS_CURTO = { dom: "Dom", seg: "Seg", ter: "Ter", qua: "Qua", qui: "Qui", sex: "Sex", sab: "Sáb" };
-  const bairroKey = (c) => (c.unidade?.bairro ? `${c.unidade.cidade || ""}|${c.unidade.bairro}` : null);
-  const temHorario = (c) => !!c.horarios && Object.keys(c.horarios).length > 0;
+  // Unidades: a principal (c.unidade + c.horarios) e as de c.outrasUnidades ({bairro, endereco, cidade, horarios}).
+  // Filtros de dia, horário, cidade e bairro valem se qualquer unidade atende.
+  const unidadesDe = (c) => [c.unidade ? { ...c.unidade, horarios: c.horarios } : null, ...(c.outrasUnidades || [])].filter(Boolean);
+  const chaveBairro = (u) => (u?.bairro ? `${u.cidade || ""}|${u.bairro}` : null);
+  const bairroKeys = (c) => unidadesDe(c).map(chaveBairro).filter(Boolean);
+  const cidadesDe = (c) => [...new Set(unidadesDe(c).map((u) => u.cidade).filter(Boolean))];
+  const _hor = new WeakMap();
+  function horDe(c) { // horários de todas as unidades, juntos por dia
+    if (_hor.has(c)) return _hor.get(c);
+    const out = {};
+    for (const h of [c.horarios, ...(c.outrasUnidades || []).map((u) => u.horarios)]) {
+      if (!h) continue;
+      for (const d of DIAS) if (h[d]) {
+        const xs = out[d] ? out[d].split("; ") : [];
+        for (const f of h[d].split(";").map((x) => x.trim()).filter(Boolean)) if (!xs.includes(f)) xs.push(f);
+        out[d] = xs.sort().join("; ");
+      }
+    }
+    _hor.set(c, out);
+    return out;
+  }
+  const temHorario = (c) => Object.keys(horDe(c)).length > 0;
   const faixas = (h) => String(h || "").split(";").map((x) => x.trim().split(/\s*-\s*/)).filter((p) => p.length === 2);
   const fmtFaixas = (h) => faixas(h).map(([a, b]) => `${a}–${b}`).join(", ");
   // versão falada: "das 11:30 às 14:30 e das 18:00 às 22:00" (o traço "–" é lido de forma confusa)
@@ -602,10 +622,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const duplo = (visual, falado) => `<span aria-hidden="true">${esc(visual)}</span><span class="sr-only">${esc(falado)}</span>`;
   const nCupons = (n) => `${n}<span class="sr-only"> ${n === 1 ? "cupom" : "cupons"}</span>`;
   function valeAgora(c) {
-    if (!c.horarios) return false;
+    const H = horDe(c);
     const d = new Date(); const p = (n) => String(n).padStart(2, "0");
     const agora = `${p(d.getHours())}:${p(d.getMinutes())}`;
-    const hoje = c.horarios[DIAS[d.getDay()]], ontem = c.horarios[DIAS[(d.getDay() + 6) % 7]];
+    const hoje = H[DIAS[d.getDay()]], ontem = H[DIAS[(d.getDay() + 6) % 7]];
     // faixa que passa da meia-noite (ex.: 18:00 - 04:00): vale de a até 23:59 hoje e até b no dia seguinte
     if (hoje && faixas(hoje).some(([a, b]) => (b >= a ? agora >= a && agora <= b : agora >= a))) return true;
     return !!ontem && faixas(ontem).some(([a, b]) => b < a && agora <= b);
@@ -614,9 +634,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   /* ---------- derivações ---------- */
   function matchesSearch(c, words) {
     if (!words.length) return true;
-    const u = c.unidade || {};
+    const us = unidadesDe(c).flatMap((u) => [u.bairro, u.cidade, u.endereco]);
     const hay = norm([c.nome, c.item, c.categoria, PROG[c.programa]?.nome, c.ganhe ? GANHE_TXT[c.ganhe] : "",
-      u.bairro, u.cidade, u.endereco, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" ")].join(" "));
+      ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" ")].join(" "));
     return words.every((w) => hay.includes(w));
   }
   function passes(c, skip) {
@@ -633,13 +653,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (state.regras === "simples" && c.verRegras) return false;
     }
     if (skip !== "quando" && state.quando) {
-      if (state.quando === "hoje" && !(temHorario(c) && c.horarios[hojeKey()])) return false;
+      if (state.quando === "hoje" && !horDe(c)[hojeKey()]) return false;
       if (state.quando === "agora" && !valeAgora(c)) return false;
       if (state.quando === "feriados" && c.feriados !== true) return false;
     }
-    if (skip !== "cidade" && state.cidades.size && !state.cidades.has(c.unidade?.cidade)) return false;
-    if (skip !== "dia" && state.dias.size && !(temHorario(c) && [...state.dias].some((d) => c.horarios[d]))) return false;
-    if (skip !== "bairro" && state.bairros.size && !state.bairros.has(bairroKey(c))) return false;
+    if (skip !== "cidade" && state.cidades.size && !cidadesDe(c).some((x) => state.cidades.has(x))) return false;
+    if (skip !== "dia" && state.dias.size && ![...state.dias].some((d) => horDe(c)[d])) return false;
+    if (skip !== "bairro" && state.bairros.size && !bairroKeys(c).some((k) => state.bairros.has(k))) return false;
     if (skip !== "tipo" && state.tipos.size && !(c.categoriasApp || []).some((t) => state.tipos.has(t))) return false;
     if (skip !== "comod" && state.comods.size) { const cs = comodSet(c); for (const t of state.comods) if (!cs.has(t)) return false; }
     return true;
@@ -675,18 +695,27 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (!c.item) tags.push('<span class="tag pend">Oferta pendente</span>');
     const u = c.unidade;
     if (temHorario(c) && !c.usado) {
-      const h = c.horarios[hojeKey()];
+      const h = horDe(c)[hojeKey()];
       tags.unshift(h ? `<span class="tag hoje">${duplo(`Hoje ${fmtFaixas(h)}`, `Vale hoje, ${falaFaixas(h)}.`)}</span>` : '<span class="tag off">Não vale hoje</span>');
     }
-    const loc = u && (u.bairro || u.cidade)
-      ? `<p class="loc">${esc([u.bairro, u.cidade].filter(Boolean).join(" · "))}${c.maisUnidades ? " · tem outras unidades no app" : ""}</p>` : "";
+    const uns = unidadesDe(c), outras = c.outrasUnidades || [];
+    const locTxt = outras.length
+      ? [[...new Set(uns.map((x) => x.bairro).filter(Boolean))].join(" e "), cidadesDe(c).join(" e "), `${uns.length} unidades`].filter(Boolean).join(" · ")
+      : u ? [u.bairro, u.cidade].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
+    const loc = locTxt ? `<p class="loc">${esc(locTxt)}</p>` : "";
     const q = encodeURIComponent(u?.endereco
       ? [u.endereco.replace(/\s*\(.*?\)/g, ""), u.bairro, u.cidade, "RS"].filter(Boolean).join(", ")
       : `${String(c.nome).replace(/…/g, "")} ${prog?.cidade || "RS"}`);
     let det = "";
     if (temHorario(c) || c.regras || u || (c.categoriasApp || []).length) {
       const hk = hojeKey();
-      const linhas = DIAS.map((d) => `<tr class="${c.horarios?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th scope="row">${DIAS_NOME[d]}${d === hk ? " (hoje)" : ""}</th><td>${c.horarios?.[d] ? duplo(fmtFaixas(c.horarios[d]), falaFaixas(c.horarios[d])) : "não vale"}</td></tr>`).join("");
+      const tabela = (h, cap) => `<table class="hor"><caption class="sr-only">${esc(cap)}</caption><tbody>${DIAS.map((d) => `<tr class="${h?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th scope="row">${DIAS_NOME[d]}${d === hk ? " (hoje)" : ""}</th><td>${h?.[d] ? duplo(fmtFaixas(h[d]), falaFaixas(h[d])) : "não vale"}</td></tr>`).join("")}</tbody></table>`;
+      const temH = (h) => !!h && Object.keys(h).length > 0;
+      const endHtml = (x) => `<p>${esc(x.endereco || "")}${x.bairro || x.cidade ? `${x.endereco ? "<br>" : ""}${esc([x.bairro, x.cidade].filter(Boolean).join(" – "))}` : ""}</p>`;
+      // com várias unidades conhecidas: um bloco por unidade, cada um com endereço e horários próprios
+      const blocoUnidades = outras.length
+        ? uns.map((x, i) => `<div><h4>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : ""}</div>`).join("")
+        : "";
       // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
       const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`
         : v === false ? `<span class="nao"><span aria-hidden="true">✗ </span><span class="sr-only">Não vale em </span>${nome}</span>` : "";
@@ -694,9 +723,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       <summary>Regras, horários e endereço<span class="sr-only"> de ${esc(c.nome)}</span></summary>
       <div class="det-body">
         ${c.regras ? `<div><h4>Regras do estabelecimento</h4><p class="rg">${esc(c.regras)}</p></div>` : ""}
-        ${temHorario(c) ? `<div><h4>Dias e horários</h4><table class="hor"><caption class="sr-only">Dias e horários em que o cupom vale</caption><tbody>${linhas}</tbody></table></div>` : ""}
+        ${outras.length ? blocoUnidades : temH(c.horarios) ? `<div><h4>Dias e horários</h4>${tabela(c.horarios, "Dias e horários em que o cupom vale")}</div>` : ""}
         ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
-        ${u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
+        ${!outras.length && u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
         ${(c.categoriasApp || []).length ? `<div><h4>Categoria no app</h4><p>${esc(c.categoriasApp.join(" · "))}</p></div>` : ""}
         ${(c.comodidades || []).length ? `<div><h4 class="sr-only">Comodidades</h4><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
       </div>
@@ -782,29 +811,32 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       b.setAttribute("aria-pressed", String(state.regras === b.dataset.regras));
       b.querySelector(".n").innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
     });
-    const quandoPred = { hoje: (c) => temHorario(c) && !!c.horarios[hojeKey()], agora: valeAgora, feriados: (c) => c.feriados === true };
+    const quandoPred = { hoje: (c) => !!horDe(c)[hojeKey()], agora: valeAgora, feriados: (c) => c.feriados === true };
     $("f-quando").querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(state.quando === b.dataset.quando));
       b.querySelector(".n").innerHTML = nCupons(count("quando", quandoPred[b.dataset.quando]));
     });
     const cidCount = {};
-    for (const c of state.cupons) { const cid = c.unidade?.cidade; if (cid && passes(c, "cidade") && matchesSearch(c, words)) cidCount[cid] = (cidCount[cid] || 0) + 1; }
-    const cidades = [...new Set(state.cupons.map((c) => c.unidade?.cidade).filter(Boolean))].sort(collator.compare);
+    for (const c of state.cupons) if (passes(c, "cidade") && matchesSearch(c, words)) for (const cid of cidadesDe(c)) cidCount[cid] = (cidCount[cid] || 0) + 1;
+    const cidades = [...new Set(state.cupons.flatMap(cidadesDe))].sort(collator.compare);
     $("f-cidade").innerHTML = cidades.length
       ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${nCupons(cidCount[cid] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
     // dias da semana, na ordem do app (domingo primeiro)
     const hk = hojeKey();
     $("f-dia").innerHTML = DIAS.map((d) => {
-      const n = count("dia", (c) => temHorario(c) && !!c.horarios[d]);
+      const n = count("dia", (c) => !!horDe(c)[d]);
       return `<button type="button" class="fchip" data-dia="${d}" aria-pressed="${state.dias.has(d)}">${duplo(DIAS_CURTO[d], DIAS_NOME[d] + (d === hk ? ", hoje" : ""))} <span class="n">${nCupons(n)}</span></button>`;
     }).join("");
     // bairros: com cidade marcada, só os dela (e os já marcados, para poder desmarcar)
     const bCount = {}, bInfo = {};
     for (const c of state.cupons) {
-      const k = bairroKey(c); if (!k) continue;
-      bInfo[k] = c.unidade;
-      if (passes(c, "bairro") && matchesSearch(c, words)) bCount[k] = (bCount[k] || 0) + 1;
+      const conta = passes(c, "bairro") && matchesSearch(c, words);
+      for (const x of unidadesDe(c)) {
+        const k = chaveBairro(x); if (!k) continue;
+        bInfo[k] = x;
+        if (conta) bCount[k] = (bCount[k] || 0) + 1;
+      }
     }
     const bairros = Object.keys(bInfo)
       .filter((k) => !state.cidades.size || state.cidades.has(bInfo[k].cidade) || state.bairros.has(k))

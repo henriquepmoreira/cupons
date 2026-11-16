@@ -38,6 +38,7 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 | `regras` | string \| null | texto de "Regras e avisos do estabelecimento" |
 | `comodidades` | lista | etiquetas do app (Acessibilidade, Pet Friendly, Opções veganas…) |
 | `maisUnidades` | bool | o app mostra um seletor de unidade; os dados são da unidade que aparece primeiro |
+| `outrasUnidades` | lista | as outras unidades, quando o vídeo mostra todas: `{bairro, endereco, cidade, horarios}` cada (Poa). Os filtros de dia, horário, cidade e bairro valem se qualquer unidade atende |
 | `categoriasApp` | lista | categorias que o app mostra abaixo do nome na tela do cupom (Canoas), como "Culinária Internacional" ou "Saudável, ParkShopping Canoas" |
 
 Só a pessoa dona do artifact pode gravar no banco (regra `write: owner`).
@@ -105,6 +106,15 @@ Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05�
 - **Regras com aviso:** o Kampeki é o único cupom que exige reserva antecipada, com sinal de R$ 100 por pessoa; o Darna atende mediante reserva; o Sushiaki só aceita consumo no local; o Buteco Comedy só funciona em dia de show (ver o Instagram @butecocomedy); a Trempe Parrilla pede reserva de sexta a domingo; o OCA Café & Brunch só vale no almoço, das 11h às 15h.
 - **Pequenas correções de grafia nas regras:** "sequencia" → "sequência", "burguer" → "burger", "Rodizio" → "Rodízio", "segundo pizza" → "segunda pizza", "segunda saladas" → "segunda salada", "igual ou menor valor" → "igual ou de menor valor", "a segundo pizza" → "a segunda pizza", "o segundo costelinha" → "a segunda costelinha", "o segundo um cesto" → "o segundo cesto", "fatia bolo" → "fatia de bolo", "waffer de igual" → "waffle igual", "Wook" → "wok".
 
+## Detalhes do Poa em Dobro (vídeos de 12/11/2026)
+
+Duas gravações de tela abriram 9 cupons: os 6 primeiros da lista (Sabor de Luna a Soft Ice Cream) e os 46 a 48 (Hamadaya Sushi, Mandu Korean Food, Doralice Cantinho Saudável). O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
+
+- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Historico e Bom Fim) e Soft Ice Cream (Cidade Baixa e Bom Fim) têm duas unidades, cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
+- **Feriados:** os 9 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
+- **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico", "Centro Historico").
+- **Ainda sem detalhes:** os outros 271 cupons do Poa.
+
 ## Pendências da fase 1 (Poa em Dobro)
 
 São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
@@ -127,7 +137,7 @@ São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha ant
   - Saori → Kampeki
   - Chic Brigadeiro → Fornellone
 
-  O fim (depois do Di Toni) não está confirmado. O Sabor de Luna parece ser o primeiro cupom da lista, mas o card aparece levemente cortado no print. As emendas Freddo → Iaiá Bistrô, Comfy Pizza Napoletana → A Costela Burger e Kioske do Pirata → Pradie Bakery estão confirmadas.
+  O fim (depois do Di Toni) não está confirmado. O Sabor de Luna é o primeiro cupom da lista (confirmado pelo vídeo de 12/11). As emendas Freddo → Iaiá Bistrô, Comfy Pizza Napoletana → A Costela Burger e Kioske do Pirata → Pradie Bakery estão confirmadas.
 - **Nomes cortados no app e ainda incompletos:** "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…" (o logo não mostra o resto). Estão registrados como Machry Armazém, Ponto Zero Bar e Raw Restaurante.
 - **Nomes cortados no app e completados a partir do logo:** Ratskeller Restaurante, Ciao Pizzeria Napoletana, Don Francesco Pastelaria, Salvador Carlos Gomes, Doralice Cantinho Saudável, Comfy Pizza Napoletana, La Chiviteria Restaurante (o "Restaurante" é dedução a partir de "Resta…"), Chica Maria Cocina y Bar, Churrascaria O Espeto de Ouro, Startt & Brothers Café, O Burguês Hamburgueria, Restaurante Hotel Intercity, Restaurante Madregaia, Biergarten Cervejaria, Usina de Massas Pocket, Famiglia Facin Casa Nápoles, Restaurante Figueiras, Rooster Crispy Kitchen, Edu_ Terrário Urbano, Primeiro Reino Burger, Mimô Brownie & Bistrô, Garibaldi Bar e Assado, Med Gastro Giardino, Quincho Parrilla y Bar, Du Nordeste Bom Fim, Johnny & Julie Doceria, Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
 - **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer"/"hamburguer" → "burger"/"hambúrguer" (exceto em nomes de estabelecimento), "amendoas" → "amêndoas", "cheeseou" → "cheese ou", "um experiência" → "uma experiência", "uma arepas" → "uma arepa", "Zaituna Arabe" → "Zaituna Árabe", "El Patron" → "El Patrón" (como no logo), "menu koreano" → "menu coreano", "300gr" → "300 g", "um Iscas" → "iscas".
