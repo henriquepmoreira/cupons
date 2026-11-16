@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 12, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 13, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -84,7 +84,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 | programa | cupons | favoritos | usados | pendências |
 |---|---|---|---|---|
-| Poa em Dobro | 280 | 176 | Di Toni (sem data) | detalhes de 36 cupons (1–33 e 46–48), topo confirmado (Sabor de Luna); próximo vídeo a partir do Ryori Sushi (34); Di Toni sem oferta registrada; 15 possíveis lacunas; fim da lista e topo não confirmados; 3 nomes cortados |
+| Poa em Dobro | 280 | 176 | Di Toni (sem data) | detalhes dos cupons 1–48, topo confirmado (Sabor de Luna); próximo vídeo a partir do Hierro Y Fuego (49); Di Toni sem oferta registrada; 14 possíveis lacunas; fim da lista não confirmado; 2 nomes cortados |
 | Tour Grande Poa | 203 | 126 | Don Carlone (11/11/2026) | detalhes completos, exceto o Don Carlone (usado); poucas pendências menores (abaixo) |
 | Canoas em Dobro | 103 | 69 | nenhum | **lista incompleta**: depois do The West Burger há pelo menos mais um cupom. Detalhes dos cupons 1–100 (menos a Família Kabana, que sumiu da lista do app, e o segundo Urban 1736) |
 
@@ -92,7 +92,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 1. **Canoas em Dobro:** mandar prints, ou um vídeo, da lista **depois do The West Burger** (a lista carrega mais cupons ao chegar no fim; role até parar de carregar) e abrir a tela de detalhe de Paradouro Café, Guido Café & Cia, The West Burger, do segundo Urban 1736 e dos que vierem depois.
 2. **Poa em Dobro:**
-   - confirmar as 15 emendas com anúncio no meio (lista no README);
+   - confirmar as 14 emendas com anúncio no meio (lista no README);
    - confirmar o fim, depois do Di Toni, e o topo (o card do Sabor de Luna está levemente cortado).
    - Um vídeo rolando a lista inteira resolve tudo de uma vez, como resolveu no Tour.
 3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
@@ -178,4 +178,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 14. `78ac676`/`f68baa9` cópia somente leitura para quem abre sem login (versão 9)
 15. `a67d53b` filtros de dias da semana e bairro (versão 10)
 16. `290df83` detalhes de 9 cupons do Poa, `outrasUnidades` na página, cópia sem login atualizada em 16/11 (versão 11)
-17. (este commit) detalhes dos cupons 7 a 33 do Poa, "Centro Histórico" padronizado, cópia sem login atualizada (versão 12)
+17. `c33e5a3` detalhes dos cupons 7 a 33 do Poa, "Centro Histórico" padronizado, cópia sem login atualizada (versão 12)
+18. (este commit) detalhes dos cupons 34 a 45 do Poa, Raw Restaurante e Café, cópia sem login atualizada (versão 13)

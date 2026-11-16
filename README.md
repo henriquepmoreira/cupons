@@ -108,21 +108,22 @@ Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05�
 
 ## Detalhes do Poa em Dobro (vídeos de 12/11 e 16/11/2026)
 
-As gravações de tela abriram 36 cupons: os 33 primeiros da lista (Sabor de Luna a Agridoce Café) e os 46 a 48 (Hamadaya Sushi, Mandu Korean Food, Doralice Cantinho Saudável). O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
+As gravações de tela abriram os 48 primeiros cupons da lista, do Sabor de Luna à Doralice Cantinho Saudável. O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
 
-- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim) e Spia Bar e Cozinha (Moinhos de Vento e Bom Fim) têm duas unidades, cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
-- **Feriados:** os 36 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
+- **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim), Spia Bar e Cozinha (Moinhos de Vento e Bom Fim) e Lucho Burger (Rua Mostardeiro e Rua Padre Chagas, só almoço) têm duas unidades, cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
+- **Feriados:** os 48 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
 - **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico"), exceto o bairro "Centro Historico", que o app também escreve com acento e ficou "Centro Histórico" para não virar dois bairros no filtro.
-- **Ofertas:** as 27 do segundo vídeo batem com as registradas, e os 7 cupons com "(ver regras)" na oferta já estavam marcados.
-- **Ainda sem detalhes:** os outros 244 cupons do Poa (do 34, Ryori Sushi, em diante, menos 46 a 48).
+- **Ofertas:** todas batem com as registradas, e os cupons com "(ver regras)" na oferta já estavam marcados.
+- **Nome completado:** Raw Restaurante e Café.
+- **Emenda confirmada:** Lucho Burger → Bistrô do Mercado (a lista mostra os dois cartões juntos).
+- **Ainda sem detalhes:** os cupons 49 (Hierro Y Fuego) a 280.
 
 ## Pendências da fase 1 (Poa em Dobro)
 
 São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
 
 - **Di Toni:** já foi usado (marcado como usado na carteira, sem data). A oferta não foi registrada.
-- **Possíveis lacunas:** em quinze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
-  - Lucho Burger → Bistrô do Mercado
+- **Possíveis lacunas:** em catorze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
   - Joe Hamburgueria → D'Juca Confeitaria
   - Restaurante Hotel Intercity → Restaurante Madregaia
   - Confeitaria Princesa → Cheirin Bão
@@ -139,7 +140,7 @@ São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha ant
   - Chic Brigadeiro → Fornellone
 
   O fim (depois do Di Toni) não está confirmado. O Sabor de Luna é o primeiro cupom da lista (confirmado pelo vídeo de 12/11). As emendas Freddo → Iaiá Bistrô, Comfy Pizza Napoletana → A Costela Burger e Kioske do Pirata → Pradie Bakery estão confirmadas.
-- **Nomes cortados no app e ainda incompletos:** "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…" (o logo não mostra o resto). Estão registrados como Machry Armazém, Ponto Zero Bar e Raw Restaurante.
+- **Nomes cortados no app e ainda incompletos:** "Machry Armazém e…" e "Ponto Zero Bar e C…" (o logo não mostra o resto). Estão registrados como Machry Armazém e Ponto Zero Bar. (Raw Restaurante e Café foi completado pela tela de detalhe.)
 - **Nomes cortados no app e completados a partir do logo:** Ratskeller Restaurante, Ciao Pizzeria Napoletana, Don Francesco Pastelaria, Salvador Carlos Gomes, Doralice Cantinho Saudável, Comfy Pizza Napoletana, La Chiviteria Restaurante (o "Restaurante" é dedução a partir de "Resta…"), Chica Maria Cocina y Bar, Churrascaria O Espeto de Ouro, Startt & Brothers Café, O Burguês Hamburgueria, Restaurante Hotel Intercity, Restaurante Madregaia, Biergarten Cervejaria, Usina de Massas Pocket, Famiglia Facin Casa Nápoles, Restaurante Figueiras, Rooster Crispy Kitchen, Edu_ Terrário Urbano, Primeiro Reino Burger, Mimô Brownie & Bistrô, Garibaldi Bar e Assado, Med Gastro Giardino, Quincho Parrilla y Bar, Du Nordeste Bom Fim, Johnny & Julie Doceria, Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
 - **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer"/"hamburguer" → "burger"/"hambúrguer" (exceto em nomes de estabelecimento), "amendoas" → "amêndoas", "cheeseou" → "cheese ou", "um experiência" → "uma experiência", "uma arepas" → "uma arepa", "Zaituna Arabe" → "Zaituna Árabe", "El Patron" → "El Patrón" (como no logo), "menu koreano" → "menu coreano", "300gr" → "300 g", "um Iscas" → "iscas".
 - O status "Aberto agora / Fechado" do app não foi importado, porque valia só para a hora do print.

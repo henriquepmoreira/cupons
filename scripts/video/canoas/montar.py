@@ -6,7 +6,7 @@ EX = json.load(open(f'{T}/extraido.json'))
 try: MAN = json.load(open(f'{T}/manual.json'))
 except FileNotFoundError: MAN = {}
 # "Av." e "Av" abreviados e nome colado ("RuaVenâncio") também contam
-RUA = re.compile(r'\b(Rua|Avenida|Av\.?|Estrada|Travessa|Alameda|Praça|Rodovia)(?=\s|[A-ZÁÉÍÓÚÂÊÔ])')
+RUA = re.compile(r'\b(Rua|Avenida|Av\.?|Estrada|Travessa|Alameda|Praça|Rodovia|Largo)(?=\s|[A-ZÁÉÍÓÚÂÊÔ])')
 def unidade(card):
     s = ' '.join(card)
     m = RUA.search(s)
