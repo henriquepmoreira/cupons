@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 15, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 16, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -84,7 +84,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 | programa | cupons | favoritos | usados | pendências |
 |---|---|---|---|---|
-| Poa em Dobro | 280 | 176 | Di Toni (sem data) | detalhes dos cupons 1–184, topo confirmado (Sabor de Luna); próximo vídeo a partir do Rancho 141 (185); Di Toni sem oferta registrada; 13 possíveis lacunas; fim da lista não confirmado; 2 nomes cortados |
+| Poa em Dobro | 281 | 176 | Di Toni (sem data) | detalhes de todos os cupons até a Ferradura (280); Céu Zona Sul entrou como cupom novo (223); **lista incompleta**: depois do Di Toni há pelo menos 11 cupons novos (Galeto Mamma Mia, Pampa Burger, Applebee's, Legado Sakaes, SK8 Burger, Niki Lanches, Soberano, Ventralis BBQ e Burger, Coccaderia.Co, Rocambolo, Maitê Caino Doceria…); Di Toni sem oferta registrada; 2 nomes cortados |
 | Tour Grande Poa | 203 | 126 | Don Carlone (11/11/2026) | detalhes completos, exceto o Don Carlone (usado); poucas pendências menores (abaixo) |
 | Canoas em Dobro | 103 | 69 | nenhum | **lista incompleta**: depois do The West Burger há pelo menos mais um cupom. Detalhes dos cupons 1–100 (menos a Família Kabana, que sumiu da lista do app, e o segundo Urban 1736) |
 
@@ -92,11 +92,10 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 1. **Canoas em Dobro:** mandar prints, ou um vídeo, da lista **depois do The West Burger** (a lista carrega mais cupons ao chegar no fim; role até parar de carregar) e abrir a tela de detalhe de Paradouro Café, Guido Café & Cia, The West Burger, do segundo Urban 1736 e dos que vierem depois.
 2. **Poa em Dobro:**
-   - confirmar as 13 emendas com anúncio no meio (lista no README);
-   - confirmar o fim, depois do Di Toni, e o topo (o card do Sabor de Luna está levemente cortado).
-   - Um vídeo rolando a lista inteira resolve tudo de uma vez, como resolveu no Tour.
+   - vídeo da lista **depois do Di Toni**, rolando até parar de carregar, abrindo a tela de detalhe de cada cupom (as 13 emendas com anúncio já foram confirmadas pelos vídeos de detalhe);
+   - criar esses cupons com `set` (ordem 282 em diante) e gravar os detalhes.
 3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
-4. **Detalhes do Poa (faltam 96) e do resto do Canoas:** os vídeos do Poa de 12/11 vieram em 886 px de largura; converta para 720 px antes do `preparar.sh` (`ffmpeg -i <vídeo> -vf "scale=720:1560,fps=6" -c:v libx264 -crf 23 -an parte_00.mp4`), porque os recortes dos scripts são em coordenadas de 720 px. Os scripts de `scripts/video/canoas/` servem para o Poa (mesmo app, tema escuro). Os vídeos de 16/11 ("tour_parte_00…04", Poa apesar do nome) já vieram em 720 px. Para achar cupons com várias unidades, conte os endereços diferentes no OCR de cada visita. Confira se a oferta do topo da tela bate com o `item` registrado (o Shrek Lanches do Canoas tinha mudado). O `visitas.py` às vezes junta dois cupons numa visita (Fogo + Comfy em 16/11): procure duas moradas diferentes ou dois nomes e separe pelos quadros. Nome de restaurante que começa com "Rua" (Rua Gastronomia) confunde o `montar.py`: corrija a unidade no `manual.json`. Nos cupons com várias unidades, gere uma folha com a tabela de cada unidade e guarde as outras em `outrasUnidades`. Confira a ordem das colunas de horário em cada unidade: na unidade São Sebastião do Doce Docê o app mostra a manhã na coluna da noite. regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
+4. **Detalhes dos cupons novos do Poa e do resto do Canoas:** os vídeos do Poa de 12/11 vieram em 886 px de largura; converta para 720 px antes do `preparar.sh` (`ffmpeg -i <vídeo> -vf "scale=720:1560,fps=6" -c:v libx264 -crf 23 -an parte_00.mp4`), porque os recortes dos scripts são em coordenadas de 720 px. Os scripts de `scripts/video/canoas/` servem para o Poa (mesmo app, tema escuro). Os vídeos de 16/11 ("tour_parte_00…04", Poa apesar do nome) já vieram em 720 px. Para achar cupons com várias unidades, conte os endereços diferentes no OCR de cada visita. Confira se a oferta do topo da tela bate com o `item` registrado (o Shrek Lanches do Canoas tinha mudado). O `visitas.py` às vezes junta dois cupons numa visita (Fogo + Comfy em 16/11): procure duas moradas diferentes ou dois nomes e separe pelos quadros. Nome de restaurante que começa com "Rua" (Rua Gastronomia) confunde o `montar.py`: corrija a unidade no `manual.json`. Nos cupons com várias unidades, gere uma folha com a tabela de cada unidade e guarde as outras em `outrasUnidades` (`scripts/video/canoas/unidades.py <T> <slug>` gera essa folha). As etiquetas de cada unidade ficam logo abaixo da tabela dela; o OCR erra essas pílulas, então confira em imagem. Confira a ordem das colunas de horário em cada unidade: na unidade São Sebastião do Doce Docê o app mostra a manhã na coluna da noite. regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
    - **Família Kabana Pizzaria:** não aparece mais na lista do app (12/11/2026) e não estava usada. Confirmar com o usuário se saiu do programa antes de apagar ou marcar.
    - **Painel "Filtros" dos apps:** nunca apareceu aberto nos vídeos. Um print dele mostraria se há filtros que a carteira ainda não tem.
 5. **Tour, pendências menores:**
@@ -182,4 +181,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 18. `3c58e70` detalhes dos cupons 34 a 45 do Poa, Raw Restaurante e Café, cópia sem login atualizada (versão 13)
 19. `34e15c9` detalhes dos cupons 49 a 88 do Poa, cópia sem login atualizada (versão 14)
 20. `dec2fdb` script de diagnóstico de visitas (`diagnostico.py`)
-21. (este commit) detalhes dos cupons 89 a 184 do Poa, 13 cupons com várias unidades, cópia sem login atualizada (versão 15)
+21. `641af64` detalhes dos cupons 89 a 184 do Poa, 13 cupons com várias unidades, cópia sem login atualizada (versão 15)
+22. (este commit) detalhes dos cupons 185 a 280 do Poa, Céu Zona Sul novo, 12 cupons com várias unidades, cópia sem login atualizada (versão 16)

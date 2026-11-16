@@ -23,3 +23,5 @@ A tela de detalhe do Canoas é diferente da do Tour (sem "seu plano está ativo"
 6. `<T>/manual.json` com `categoriasApp`, `comodidades` e `regras` transcritas das folhas; `python3 canoas/montar.py <T>` gera `<T>/detalhes.json`.
 
 O cabeçalho às vezes fica escondido pela pílula vermelha de gravação do iOS; nesse caso, procure outro quadro da mesma visita.
+
+Cupons com várias unidades: `python3 canoas/unidades.py <T> <slug>` gera `<T>/sheets/u-<slug>.jpg` com o cartão de cada endereço, a tabela de horários e as etiquetas logo abaixo (só usa quadros em que a tabela aparece inteira). As etiquetas podem mudar de uma unidade para outra; o OCR erra essas pílulas, então confira em imagem.

@@ -108,24 +108,28 @@ Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05�
 
 ## Detalhes do Poa em Dobro (vídeos de 12/11 e 16/11/2026)
 
-As gravações de tela abriram os 184 primeiros cupons da lista, do Sabor de Luna à Griffe Patisserie. O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
+As gravações de tela abriram todos os cupons da lista, do Sabor de Luna à Ferradura (o Di Toni, já usado, ficou sem detalhes). O app do Poa é o mesmo do Canoas, em tema escuro, e foi lido com os mesmos scripts, tudo conferido em imagem.
 
 - **Várias unidades:** Charlie Confeitaria (Mont'Serrat e Moinhos de Vento), Osso Parrilla Bar (Centro Histórico e Bom Fim), Soft Ice Cream (Cidade Baixa e Bom Fim), Spia Bar e Cozinha (Moinhos de Vento e Bom Fim), Lucho Burger (Rua Mostardeiro e Rua Padre Chagas, só almoço), Chocolate Lugano (Floresta e Iguatemi) e Gelateria Di Argento (Iguatemi e Moinhos de Vento) têm duas unidades, e Mix Natural tem três (Bela Vista, Bom Fim e Centro Histórico), cada uma com horários próprios. A primeira fica em `unidade`/`horarios` e a outra em `outrasUnidades`.
 - **Várias unidades (cupons 89 a 184):** Consuela's (Moinhos de Vento e Santana), Spoleto (Passo da Areia e Jardim Botânico), Primeiro Reino Burger (Mário Quintana e Santa Cecília), Menu Poke (Cristal e Moinhos de Vento), Gelato Borelli (Cristal e Passo da Areia), Woking Thai Food (Boa Vista e Centro Histórico), Cachorro do Bigode (Sarandi e Cristo Redentor), O'Pasta Trattoria (Cristal e Petrópolis), Gelson Lanches (Tristeza e Praia de Belas) e El Lato (Bela Vista e Mont'Serrat) têm duas unidades; Cachorro do Bonfa tem três (Cidade Baixa, Bom Fim e Praia de Belas); Doce Docê Café tem cinco (Praia de Belas, Teresópolis, Jardim Lindóia, São João e São Sebastião); Gianluca Zaffari tem sete (Navegantes, São João, Moinhos de Vento, Bom Fim, Cristal, Tristeza e Jardim Europa). Na unidade São Sebastião do Doce Docê o app troca as colunas de manhã e noite; o horário foi guardado na ordem certa (08:00 - 15:00 e 15:01 - 20:00).
-- **Feriados:** os 184 mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
+- **Várias unidades (cupons 185 a 280):** Balcone Pizzaria (Auxiliadora e Boa Vista), Fuga Bar (Floresta e Centro Histórico), Frutos de Goiás (Jardim São Pedro e Parque Harmonia), Hora do Pastel (Moinhos de Vento e Petrópolis) e Uai Why (Bom Fim e Moinhos de Vento) têm duas unidades; Mercado Brasco (Jardim Europa, Moinhos de Vento e Bom Fim), Milky Moo (Pontal, Barra Shopping Sul e Iguatemi) e El Guerrero (Barra Shopping Sul, Pontal e Vila Roubadinhas) têm três; Mais1Café, Temakeria Japesca e Mark Hamburgueria têm seis; 4Beer tem sete. As etiquetas (Aceita Pet, Espaço Kids) às vezes mudam de uma unidade para outra; o cupom fica com as de qualquer unidade.
+- **Cupom novo:** Céu Zona Sul (um hambúrguer selecionado, Cristal), entre o Empório do Cookie e o Zambrano Gastrô. Os cupons seguintes andaram uma posição (o Di Toni agora é o 281).
+- **Fora de Porto Alegre:** Don Zarichta Pizzaria fica em Novo Hamburgo e POB Burger House em Viamão.
+- **Feriados:** todos mostram "Não Aceita"; datas comemorativas ficam `false` pelas regras gerais, como no Canoas.
 - **Categorias do app** (`categoriasApp`) são as do painel de filtros do Poa: Restaurante, Combos, Tipico, Doces / Cafés, Carnes, Opção vegetariana, Hamburgueria, Sorveterias, Orientais, Saudável. Grafia como no app ("Tipico"), exceto o bairro "Centro Historico", que o app também escreve com acento e ficou "Centro Histórico" para não virar dois bairros no filtro.
-- **Ofertas:** todas batem com as registradas, menos a do Ponto Zero, que mudou para "um prato principal (exceto Da Panela e da Brasa)"; os cupons com "(ver regras)" na oferta já estavam marcados.
+- **Ofertas:** todas batem com as registradas, menos a do Ponto Zero, que mudou para "um prato principal (exceto Da Panela e da Brasa)", e a do Le Grand Burger, que agora é "um Le Incendie Burger ou Burger do Mês (ver regras)"; os cupons com "(ver regras)" na oferta já estavam marcados.
 - **Nomes completados:** Raw Restaurante e Café, O Burguês Hamburgueria Clássica.
 - **Endereços com erro do app, normalizados:** Barranquinho e O Burguês aparecem como "Porto Alegre / AC", e Startt & Brothers como "Porto Ale / RS"; ficaram Porto Alegre.
 - **Emendas confirmadas:** Lucho Burger → Bistrô do Mercado e Joe Hamburgueria → D'Juca Confeitaria (a lista mostra os dois cartões juntos).
-- **Ainda sem detalhes:** os cupons 185 (Rancho 141) a 280.
+- **Visita que juntou dois cupons:** Bierkeller e Hanko Sushi (separados pelos quadros).
+- **Lista continua depois do Di Toni:** o vídeo de 16/11 mostra, sem abrir, mais cupons que ainda não estão na carteira: Galeto Mamma Mia, Pampa Burger, Applebee's, Legado Sakaes, SK8 Burger, Niki Lanches, Soberano, Ventralis BBQ e Burger, Coccaderia.Co, Rocambolo, Maitê Caino Doceria e possivelmente outros (a lista carrega mais ao rolar).
 
 ## Pendências da fase 1 (Poa em Dobro)
 
-São 280 cupons, vindos de 99 prints enviados em sete lotes. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
+São 281 cupons: 280 vindos de 99 prints enviados em sete lotes, mais o Céu Zona Sul, achado no vídeo. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
 
 - **Di Toni:** já foi usado (marcado como usado na carteira, sem data). A oferta não foi registrada.
-- **Possíveis lacunas:** em treze pontos o print termina num anúncio e o seguinte já começa em outro cupom, então não dá para confirmar que nenhum ficou de fora:
+- **Lacunas resolvidas:** em treze pontos o print terminava num anúncio. Os vídeos de detalhe abriram os cupons um a um, na ordem da lista, e nenhum ficou de fora nesses pontos (o único cupom novo, o Céu Zona Sul, apareceu em outro lugar):
   - Restaurante Hotel Intercity → Restaurante Madregaia
   - Confeitaria Princesa → Cheirin Bão
   - Ponto Zero Bar → Encouraçado Butikin
