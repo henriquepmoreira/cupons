@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 17, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 18, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -65,7 +65,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - etiqueta "Hoje 11:30–14:30" ou "Não vale hoje", só em cupons com horários e ainda não usados;
   - painel recolhível "Regras, horários e endereço";
   - "Quando" tem três opções: Vale hoje, Vale agora e Aceita em feriados.
-- **Quem tem detalhes:** o Tour inteiro e os cupons 1–100 do Canoas (até o Grano Forneria, menos a Família Kabana e o segundo Urban 1736). O Poa e o resto do Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando", comodidades e cidade.
+- **Quem tem detalhes:** o Tour inteiro e os cupons 1–98 do Canoas (até o Grano Forneria). O Poa e o resto do Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando", comodidades e cidade.
 - **Regras com várias linhas:** as do Canoas guardam `\n` entre os itens; a página mostra as quebras (`white-space: pre-line`).
 - **Comparação de horários:** é feita como texto `HH:MM`, por isso o zero à esquerda é obrigatório. Desde a versão 5, `valeAgora` entende faixas que passam da meia-noite: Estaleiro 2 Irmãos, 18:00–04:00, conta até 04:00 do dia seguinte.
 - **Partes parciais são escondidas:** `horarios: {}` não mostra tabela, e `feriados: null` não mostra os ícones (é o caso do PopCorn Gourmet).
@@ -85,12 +85,12 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 | programa | cupons | favoritos | usados | pendências |
 |---|---|---|---|---|
 | Poa em Dobro | 310 | 198 | 31 (Di Toni, Joe Hamburgueria em 16/11 e 29 vistos nos prints de 17/11) | detalhes de todos os cupons disponíveis até a Ferradura; Céu Zona Sul entrou como cupom novo (223); lista completa (o que vem depois do Di Toni são os usados); 2 nomes cortados nos usados |
-| Tour Grande Poa | 235 | 149 | 36 (Don Carlone 11/11, Manos Fast Food 16/11, Chiquinho Havan, Cachorro do Bigode e 32 vistos nos prints de 17/11) | detalhes completos dos 203 disponíveis da captura; os usados novos não têm detalhes; o Woking usado não foi casado com uma unidade |
-| Canoas em Dobro | 134 | 96 | 35 (Paradouro, Guido, The West Burger e 32 vistos nos prints de 17/11) | lista completa; Família Kabana apagada (saiu do programa); detalhes dos cupons 1–99 disponíveis, menos o segundo Urban 1736 |
+| Tour Grande Poa | 236 | 150 | 37 (Don Carlone 11/11, Manos Fast Food 16/11, Chiquinho Havan, Cachorro do Bigode e 33 vistos nos prints de 17/11, entre eles o Woking Thai Food - Canoas) | detalhes completos dos 203 disponíveis da captura; os usados novos não têm detalhes |
+| Canoas em Dobro | 133 | 96 | 35 (Paradouro, Guido, The West Burger e 32 vistos nos prints de 17/11) | lista completa; Família Kabana (saiu do programa) e segundo Urban 1736 (erro do app) apagados; detalhes de todos os disponíveis (1–98) |
 
 ## 6. O que falta fazer (por prioridade)
 
-1. **Canoas em Dobro:** abrir a tela de detalhe do segundo Urban 1736 (único cupom disponível sem detalhes).
+1. **Canoas em Dobro:** nada pendente; todos os cupons disponíveis têm detalhes.
 2. **Poa em Dobro:** lista completa (os cupons depois do Di Toni são os usados, registrados em 17/11). As 13 emendas com anúncio foram confirmadas pelos vídeos de detalhe.
 3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
 4. **Detalhes dos cupons novos do Poa e do resto do Canoas:** os vídeos do Poa de 12/11 vieram em 886 px de largura; converta para 720 px antes do `preparar.sh` (`ffmpeg -i <vídeo> -vf "scale=720:1560,fps=6" -c:v libx264 -crf 23 -an parte_00.mp4`), porque os recortes dos scripts são em coordenadas de 720 px. Os scripts de `scripts/video/canoas/` servem para o Poa (mesmo app, tema escuro). Os vídeos de 16/11 ("tour_parte_00…04", Poa apesar do nome) já vieram em 720 px. Para achar cupons com várias unidades, conte os endereços diferentes no OCR de cada visita. Confira se a oferta do topo da tela bate com o `item` registrado (o Shrek Lanches do Canoas tinha mudado). O `visitas.py` às vezes junta dois cupons numa visita (Fogo + Comfy em 16/11): procure duas moradas diferentes ou dois nomes e separe pelos quadros. Nome de restaurante que começa com "Rua" (Rua Gastronomia) confunde o `montar.py`: corrija a unidade no `manual.json`. Nos cupons com várias unidades, gere uma folha com a tabela de cada unidade e guarde as outras em `outrasUnidades` (`scripts/video/canoas/unidades.py <T> <slug>` gera essa folha). As etiquetas de cada unidade ficam logo abaixo da tabela dela; o OCR erra essas pílulas, então confira em imagem. Confira a ordem das colunas de horário em cada unidade: na unidade São Sebastião do Doce Docê o app mostra a manhã na coluna da noite. regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
@@ -153,7 +153,7 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
   - asterisco no texto do cupom quer dizer "ver regras" (57 cupons com `verRegras: true`);
   - o mesmo restaurante pode ter vários cupons (Gran Forneria, Saúde no Copo, Chá das Três, Banca do Açaí, redes com várias unidades).
 - **Poa:** os prints vieram em 7 lotes, cada um **antes** do anterior na lista. As posições estão no README.
-- **Canoas:** a lista começa no Kampeki Sushi. Urban 1736 e Comidas de Boteco têm dois cupons cada.
+- **Canoas:** a lista começa no Kampeki Sushi. Comidas de Boteco tem dois cupons (o segundo Urban 1736 era erro do app e foi apagado).
 - **Status momentâneos:** "Aberto agora / Fechado" e "ACEITA AGORA!" valem só para a hora da captura e não foram importados.
 - **Categorias:** 10, deduzidas do item do cupom (lista no README).
 
@@ -181,4 +181,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 20. `dec2fdb` script de diagnóstico de visitas (`diagnostico.py`)
 21. `641af64` detalhes dos cupons 89 a 184 do Poa, 13 cupons com várias unidades, cópia sem login atualizada (versão 15)
 22. `b718de0` detalhes dos cupons 185 a 280 do Poa, Céu Zona Sul novo, 12 cupons com várias unidades, cópia sem login atualizada (versão 16)
-23. (este commit) cupons já usados dos três programas (prints de 17/11), Família Kabana apagada, cópia sem login atualizada (versão 17)
+23. `b797ea7` cupons já usados dos três programas (prints de 17/11), Família Kabana apagada, cópia sem login atualizada (versão 17)
+24. (este commit) Woking Thai Food - Canoas usado no Tour, segundo Urban 1736 apagado do Canoas (erro do app), cópia sem login atualizada (versão 18)
