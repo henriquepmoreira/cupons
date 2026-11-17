@@ -9,11 +9,14 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 ## O que a página faz
 
 - Busca por estabelecimento, prato, categoria ou programa (ignora acentos)
-- Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale hoje, vale agora, aceita em feriados), dias da semana, comodidades e diferenciais, cidade e bairro
+- Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale agora, aceita em feriados), data (hoje e os próximos 6 dias), dias da semana, comodidades e diferenciais, cidade e bairro
 - Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps
 - Ordenação: ordem do app, nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
 - Link de mapa para cada estabelecimento
+- Validade de cada plano no topo, com os dias que faltam e quantos cupons por dia e por semana dão conta dos disponíveis (por enquanto só o Tour tem data: 05/03/2027)
+- Feriados e datas comemorativas: cupons com `feriados: false` ou `datasComemorativas: false` aparecem como "Não vale hoje (feriado: …)" nesses dias, e o topo avisa os feriados dos próximos 7 dias com quantos cupons eles bloqueiam
+- Filtro "Data" para planejar: filtra os cupons que valem numa data dos próximos 7 dias (com feriados e validade) e mostra no cartão o horário dessa data
 - Acessível a leitores de tela (TalkBack, VoiceOver, NVDA): o foco não se perde ao filtrar, favoritar ou marcar como usado, o total de cupons é anunciado, e cada botão diz de qual cupom é
 
 ## Onde os dados ficam

@@ -144,6 +144,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .prog-poa { --pc: var(--p-poa); }
 .prog-tour { --pc: var(--p-tour); }
 .prog-canoas { --pc: var(--p-canoas); }
+.planos { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.planos p { margin: 0; }
+.planos b { color: var(--ink); font-weight: 600; }
+.planos .pdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pc); margin-right: 7px; vertical-align: .05em; }
+.planos .alerta { color: var(--ink); }
+.planos .alerta::before { content: "⚑"; content: "⚑" / ""; color: var(--p-canoas); margin-right: 6px; }
 
 /* ---------- barra fixa ---------- */
 .toolbar {
@@ -395,6 +401,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     </div>
   </div>
   <div class="programs" id="programs" role="group" aria-label="Filtrar por programa"></div>
+  <div class="planos" id="planos" hidden></div>
 </header>
 
 <div class="toolbar" role="region" aria-label="Busca e opções da lista">
@@ -463,11 +470,15 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="fgroup">
     <h2 id="f-quando-h">Quando usar</h2>
     <div class="fchips" id="f-quando" role="group" aria-labelledby="f-quando-h">
-      <button type="button" class="fchip" data-quando="hoje">Vale hoje <span class="n"></span></button>
       <button type="button" class="fchip" data-quando="agora">Vale agora <span class="n"></span></button>
       <button type="button" class="fchip" data-quando="feriados">Aceita em feriados <span class="n"></span></button>
     </div>
     <p class="fnote">Considera só os cupons com dias e horários cadastrados.</p>
+  </div>
+  <div class="fgroup">
+    <h2 id="f-data-h">Data</h2>
+    <div class="fchips" id="f-data" role="group" aria-labelledby="f-data-h"></div>
+    <p class="fnote">Hoje e os próximos 6 dias. Leva em conta feriados, datas comemorativas e a validade do plano, e o cartão passa a mostrar o horário da data escolhida.</p>
   </div>
   <div class="fgroup">
     <h2 id="f-dia-h">Dias da semana</h2>
@@ -514,10 +525,37 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   /* ---------- configuração fixa ---------- */
   const PROGRAMAS = [
-    { id: "poa-em-dobro", nome: "Poa em Dobro", cls: "prog-poa", cidade: "Porto Alegre" },
-    { id: "tour-grande-poa", nome: "Tour Grande Poa", cls: "prog-tour", cidade: "RS" },
-    { id: "canoas-em-dobro", nome: "Canoas em Dobro", cls: "prog-canoas", cidade: "Canoas" },
+    // validade: último dia em que o plano vale (AAAA-MM-DD); null = ainda não cadastrada
+    { id: "poa-em-dobro", nome: "Poa em Dobro", cls: "prog-poa", cidade: "Porto Alegre", validade: null },
+    { id: "tour-grande-poa", nome: "Tour Grande Poa", cls: "prog-tour", cidade: "RS", validade: "2027-03-05" },
+    { id: "canoas-em-dobro", nome: "Canoas em Dobro", cls: "prog-canoas", cidade: "Canoas", validade: null },
   ];
+  // Feriados até o fim de 2027. Sem "onde" = vale em todo lugar; com "onde" = só nessas cidades (cidade da unidade).
+  // Carnaval é ponto facultativo e fica de fora. Feriados municipais de outras cidades não estão na lista.
+  const FERIADOS = {
+    "2026-11-20": { nome: "Consciência Negra" },
+    "2026-12-25": { nome: "Natal" },
+    "2027-01-01": { nome: "Confraternização Universal" },
+    "2027-02-02": { nome: "Nossa Senhora dos Navegantes", onde: ["Porto Alegre"] },
+    "2027-03-26": { nome: "Sexta-feira Santa" },
+    "2027-04-21": { nome: "Tiradentes" },
+    "2027-05-01": { nome: "Dia do Trabalho" },
+    "2027-05-27": { nome: "Corpus Christi", onde: ["Porto Alegre"] },
+    "2027-09-07": { nome: "Independência" },
+    "2027-09-20": { nome: "Revolução Farroupilha" },
+    "2027-10-12": { nome: "Nossa Senhora Aparecida" },
+    "2027-11-02": { nome: "Finados" },
+    "2027-11-15": { nome: "Proclamação da República" },
+    "2027-11-20": { nome: "Consciência Negra" },
+    "2027-12-25": { nome: "Natal" },
+  };
+  // Os apps não dizem quais são as "datas comemorativas"; estas são as que os restaurantes costumam bloquear.
+  const DATAS_COMEMORATIVAS = {
+    "2026-12-24": "Véspera de Natal", "2026-12-25": "Natal", "2026-12-31": "Véspera de Ano-Novo",
+    "2027-01-01": "Ano-Novo", "2027-03-28": "Páscoa", "2027-05-09": "Dia das Mães",
+    "2027-06-12": "Dia dos Namorados", "2027-08-08": "Dia dos Pais", "2027-10-12": "Dia das Crianças",
+    "2027-12-24": "Véspera de Natal", "2027-12-25": "Natal", "2027-12-31": "Véspera de Ano-Novo",
+  };
   const PROG = Object.fromEntries(PROGRAMAS.map((p, i) => [p.id, { ...p, i }]));
   const CAT_CLS = {
     "Pizzaria": "cat-pizza", "Hamburgueria": "cat-burger", "Restaurante": "cat-rest", "Lanches": "cat-lanche",
@@ -532,6 +570,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const GANHE_TXT = { igual_ou_menor: "outro igual ou de menor valor", igual: "outro igual" };
   const PREFS_KEY = "cupons-em-dobro:prefs:v1";
 
+  /* ---------- datas (horário local) ---------- */
+  function isoDate(d) { const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
+  function today() { return isoDate(new Date()); }
+  function parseIso(iso) { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); }
+  function addDays(iso, n) { const d = parseIso(iso); d.setDate(d.getDate() + n); return isoDate(d); }
+  function diasEntre(a, b) { return Math.round((parseIso(b) - parseIso(a)) / 864e5); }
+
   /* ---------- estado ---------- */
   const state = {
     cupons: [], phase: "loading", // loading | ready | nodb | error
@@ -539,7 +584,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     copiaDe: null, // data da cópia somente leitura, quando o banco não está disponível
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
-    quando: null, cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
+    quando: null, data: null, cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
     filtersOpen: false,
   };
   try {
@@ -552,7 +597,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       state.categorias = new Set(p.categorias || []);
       state.ganhe = p.ganhe || null;
       state.regras = p.regras || null;
-      state.quando = ["hoje", "agora", "feriados"].includes(p.quando) ? p.quando : null;
+      state.quando = ["agora", "feriados"].includes(p.quando) ? p.quando : null;
+      // o antigo "Vale hoje" virou a data de hoje; datas que já passaram ou fora da semana são descartadas
+      const t0 = today();
+      if (p.quando === "hoje" || p.data === "hoje") state.data = t0;
+      else if (typeof p.data === "string" && p.data >= t0 && p.data <= addDays(t0, 6)) state.data = p.data;
       state.cidades = new Set(p.cidades || []);
       state.dias = new Set((p.dias || []).filter((d) => ["dom", "seg", "ter", "qua", "qui", "sex", "sab"].includes(d)));
       state.bairros = new Set(p.bairros || []);
@@ -565,7 +614,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        quando: state.quando, cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
+        quando: state.quando, data: state.data === today() ? "hoje" : state.data, cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
   }
@@ -577,7 +626,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const norm = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/burguer/g, "burger");
   const collator = new Intl.Collator("pt-BR", { sensitivity: "base", numeric: true });
   const fmtDate = (iso) => { try { const [y, m, d] = iso.slice(0, 10).split("-"); return `${d}/${m}/${y.slice(2)}`; } catch (_) { return ""; } };
-  const today = () => { const d = new Date(); const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
   function initials(nome) {
     const stop = new Set(["da", "de", "do", "das", "dos", "e", "a", "o", "la", "el"]);
     const words = String(nome).replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
@@ -614,6 +662,41 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     return out;
   }
   const temHorario = (c) => Object.keys(horDe(c)).length > 0;
+  const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const diaKey = (iso) => DIAS[parseIso(iso).getDay()];
+  const ddmm = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+  function rotuloDia(iso) { // visual: "Hoje", "Amanhã", "Sex 20/11"
+    const t = today();
+    if (iso === t) return "Hoje";
+    if (iso === addDays(t, 1)) return "Amanhã";
+    return `${DIAS_CURTO[diaKey(iso)]} ${ddmm(iso)}`;
+  }
+  function falaDia(iso) { // leitor de tela: "hoje", "amanhã", "sexta, 20 de novembro"
+    const t = today();
+    if (iso === t) return "hoje";
+    if (iso === addDays(t, 1)) return "amanhã";
+    return `${DIAS_NOME[diaKey(iso)].toLowerCase()}, ${Number(iso.slice(8, 10))} de ${MESES[Number(iso.slice(5, 7)) - 1]}`;
+  }
+  const cidadesOuPadrao = (c) => { const xs = cidadesDe(c); return xs.length ? xs : [PROG[c.programa]?.cidade]; };
+  // feriado na data; com cupom, só conta se alguma unidade fica numa cidade de "onde"
+  function feriadoEm(iso, c) {
+    const f = FERIADOS[iso];
+    if (!f) return null;
+    if (c && f.onde && !cidadesOuPadrao(c).some((x) => f.onde.includes(x))) return null;
+    return f;
+  }
+  const planoVencido = (c, iso) => { const v = PROG[c.programa]?.validade; return !!v && iso > v; };
+  // null = sem horários cadastrados; { ok: true, h } = vale nas faixas h; { ok: false, motivo } = não vale
+  function valeEm(c, iso) {
+    if (planoVencido(c, iso)) return { ok: false, motivo: "plano vencido" };
+    if (!temHorario(c)) return null;
+    const f = feriadoEm(iso, c);
+    if (f && c.feriados === false) return { ok: false, motivo: `feriado: ${f.nome}` };
+    const dc = DATAS_COMEMORATIVAS[iso];
+    if (dc && c.datasComemorativas === false) return { ok: false, motivo: dc };
+    const h = horDe(c)[diaKey(iso)];
+    return h ? { ok: true, h } : { ok: false, motivo: null };
+  }
   const faixas = (h) => String(h || "").split(";").map((x) => x.trim().split(/\s*-\s*/)).filter((p) => p.length === 2);
   const fmtFaixas = (h) => faixas(h).map(([a, b]) => `${a}–${b}`).join(", ");
   // versão falada: "das 11:30 às 14:30 e das 18:00 às 22:00" (o traço "–" é lido de forma confusa)
@@ -624,10 +707,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const listaE = (xs) => xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} e ${xs[xs.length - 1]}`;
   const nCupons = (n) => `${n}<span class="sr-only"> ${n === 1 ? "cupom" : "cupons"}</span>`;
   function valeAgora(c) {
-    const H = horDe(c);
     const d = new Date(); const p = (n) => String(n).padStart(2, "0");
     const agora = `${p(d.getHours())}:${p(d.getMinutes())}`;
-    const hoje = H[DIAS[d.getDay()]], ontem = H[DIAS[(d.getDay() + 6) % 7]];
+    // feriado, data comemorativa e validade valem para o dia em que a faixa começa
+    const t = isoDate(d), vh = valeEm(c, t), vo = valeEm(c, addDays(t, -1));
+    const hoje = vh?.ok ? vh.h : null, ontem = vo?.ok ? vo.h : null;
     // faixa que passa da meia-noite (ex.: 18:00 - 04:00): vale de a até 23:59 hoje e até b no dia seguinte
     if (hoje && faixas(hoje).some(([a, b]) => (b >= a ? agora >= a && agora <= b : agora >= a))) return true;
     return !!ontem && faixas(ontem).some(([a, b]) => b < a && agora <= b);
@@ -655,10 +739,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (state.regras === "simples" && c.verRegras) return false;
     }
     if (skip !== "quando" && state.quando) {
-      if (state.quando === "hoje" && !horDe(c)[hojeKey()]) return false;
       if (state.quando === "agora" && !valeAgora(c)) return false;
-      if (state.quando === "feriados" && c.feriados !== true) return false;
+      if (state.quando === "feriados" && (c.feriados !== true || planoVencido(c, today()))) return false;
     }
+    if (skip !== "data" && state.data && !valeEm(c, state.data)?.ok) return false;
     if (skip !== "cidade" && state.cidades.size && !cidadesDe(c).some((x) => state.cidades.has(x))) return false;
     if (skip !== "dia" && state.dias.size && ![...state.dias].some((d) => horDe(c)[d])) return false;
     if (skip !== "bairro" && state.bairros.size && !bairroKeys(c).some((k) => state.bairros.has(k))) return false;
@@ -680,7 +764,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }[state.sort] || byApp;
     return list.sort(cmp);
   }
-  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
+  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
@@ -697,14 +781,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (!c.item) tags.push('<span class="tag pend">Oferta pendente</span>');
     const u = c.unidade;
     const uns = unidadesDe(c), outras = c.outrasUnidades || [];
-    if (temHorario(c) && !c.usado) {
-      const hk = hojeKey(), h = horDe(c)[hk];
-      if (!h) tags.unshift('<span class="tag off">Não vale hoje</span>');
-      else if (outras.length) {
-        // várias unidades: dizer em quantas vale hoje; os horários de cada uma ficam nos detalhes
-        const k = uns.filter((x) => x.horarios?.[hk]).length;
-        tags.unshift(`<span class="tag hoje">${duplo(`Hoje em ${k} de ${uns.length} unidades`, `Vale hoje em ${k} de ${uns.length} unidades. Os horários de cada uma estão nos detalhes.`)}</span>`);
-      } else tags.unshift(`<span class="tag hoje">${duplo(`Hoje ${fmtFaixas(h)}`, `Vale hoje, ${falaFaixas(h)}.`)}</span>`);
+    const alvo = state.data || today(); // data das etiquetas e do destaque na tabela de horários
+    if (planoVencido(c, today())) {
+      tags.unshift(`<span class="tag off">Plano vencido em ${esc(fmtDate(prog.validade))}</span>`);
+    } else if (temHorario(c) && !c.usado) {
+      const v = valeEm(c, alvo), dk = diaKey(alvo), rot = rotuloDia(alvo), fala = falaDia(alvo);
+      if (!v.ok) {
+        tags.unshift(`<span class="tag off">${duplo(`Não vale ${rot.toLowerCase()}${v.motivo ? ` (${v.motivo})` : ""}`, `Não vale ${fala}${v.motivo ? `, ${v.motivo}` : ""}.`)}</span>`);
+      } else if (outras.length) {
+        // várias unidades: dizer em quantas vale; os horários de cada uma ficam nos detalhes
+        const k = uns.filter((x) => x.horarios?.[dk]).length;
+        tags.unshift(`<span class="tag hoje">${duplo(`${rot} em ${k} de ${uns.length} unidades`, `Vale ${fala} em ${k} de ${uns.length} unidades. Os horários de cada uma estão nos detalhes.`)}</span>`);
+      } else tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}`, `Vale ${fala}, ${falaFaixas(v.h)}.`)}</span>`);
     }
     const locTxt = outras.length
       ? [listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean).join(" · ")
@@ -715,8 +803,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       : `${String(c.nome).replace(/…/g, "")} ${prog?.cidade || "RS"}`);
     let det = "";
     if (temHorario(c) || c.regras || u || (c.categoriasApp || []).length) {
-      const hk = hojeKey();
-      const tabela = (h, cap) => `<table class="hor"><caption class="sr-only">${esc(cap)}</caption><tbody>${DIAS.map((d) => `<tr class="${h?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th scope="row">${DIAS_NOME[d]}${d === hk ? " (hoje)" : ""}</th><td>${h?.[d] ? duplo(fmtFaixas(h[d]), falaFaixas(h[d])) : "não vale"}</td></tr>`).join("")}</tbody></table>`;
+      const hk = diaKey(alvo), hl = alvo === today() ? "hoje" : ddmm(alvo);
+      const tabela = (h, cap) => `<table class="hor"><caption class="sr-only">${esc(cap)}</caption><tbody>${DIAS.map((d) => `<tr class="${h?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th scope="row">${DIAS_NOME[d]}${d === hk ? ` (${hl})` : ""}</th><td>${h?.[d] ? duplo(fmtFaixas(h[d]), falaFaixas(h[d])) : "não vale"}</td></tr>`).join("")}</tbody></table>`;
       const temH = (h) => !!h && Object.keys(h).length > 0;
       const endHtml = (x) => `<p>${esc(x.endereco || "")}${x.bairro || x.cidade ? `${x.endereco ? "<br>" : ""}${esc([x.bairro, x.cidade].filter(Boolean).join(" – "))}` : ""}</p>`;
       // com várias unidades conhecidas: um bloco por unidade, cada um com endereço e horários próprios
@@ -782,11 +870,48 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     for (const c of all) if (passes(c, "programa") && matchesSearch(c, words)) counts[c.programa] = (counts[c.programa] || 0) + 1;
     const totals = {};
     for (const c of all) totals[c.programa] = (totals[c.programa] || 0) + 1;
+    renderPlanos(ready, disp);
     $("programs").innerHTML = PROGRAMAS.map((p) => {
       const has = (totals[p.id] || 0) > 0;
       const n = has ? nCupons(counts[p.id] || 0) : "em breve";
       return `<button type="button" class="prog-pill ${p.cls}" data-prog="${p.id}" aria-pressed="${state.programas.has(p.id)}"${has ? "" : " disabled"}>${esc(p.nome)} <span class="n">${n}</span></button>`;
     }).join("");
+  }
+
+  function renderPlanos(ready, disp) {
+    const el = $("planos");
+    if (!ready || !state.cupons.length) { el.hidden = true; return; }
+    const t = today();
+    const nf = (n) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+    const pl = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
+    const linhas = [], semValidade = [];
+    for (const p of PROGRAMAS) {
+      if (!state.cupons.some((c) => c.programa === p.id)) continue;
+      if (!p.validade) { semValidade.push(p.nome); continue; }
+      const n = disp.filter((c) => c.programa === p.id).length;
+      const dias = diasEntre(t, p.validade);
+      const dot = `<span class="pdot ${p.cls}" aria-hidden="true"></span>`;
+      if (dias < 0) { linhas.push(`<p>${dot}<b>${esc(p.nome)}</b> venceu em ${esc(fmtDate(p.validade))}.</p>`); continue; }
+      const porDia = n / (dias + 1); // o último dia também conta
+      const faltam = dias === 0 ? "hoje é o último dia" : dias === 1 ? "falta 1 dia" : `faltam ${dias} dias`;
+      const ritmo = n === 0 ? "nenhum cupom disponível"
+        : `${pl(n, "cupom disponível", "cupons disponíveis")}, cerca de ${nf(porDia)} por dia (${nf(porDia * 7)} por semana)`;
+      linhas.push(`<p>${dot}<b>${esc(p.nome)}</b> vale até ${esc(fmtDate(p.validade))} · ${faltam} · ${ritmo}</p>`);
+    }
+    if (semValidade.length) linhas.push(`<p>Validade ainda não cadastrada: ${esc(listaE(semValidade))}.</p>`);
+    // feriados e datas comemorativas dos próximos 7 dias, com quantos cupons disponíveis deixam de valer
+    for (let i = 0; i < 7; i++) {
+      const iso = addDays(t, i);
+      const f = FERIADOS[iso], dc = DATAS_COMEMORATIVAS[iso];
+      if (!f && !dc) continue;
+      const bloq = disp.filter((c) => { const v = valeEm(c, iso); return v && !v.ok && v.motivo && v.motivo !== "plano vencido"; }).length;
+      const quando = i === 0 ? "Hoje" : i === 1 ? "Amanhã" : `${DIAS_NOME[diaKey(iso)]} (${ddmm(iso)})`;
+      const oque = f ? `feriado${f.onde ? ` em ${listaE(f.onde)}` : ""} (${f.nome}${dc && dc !== f.nome ? ` e ${dc}` : ""})` : `data comemorativa (${dc})`;
+      const efeito = bloq ? `: ${pl(bloq, "cupom disponível não vale", "cupons disponíveis não valem")} ${i === 0 ? "hoje" : "nesse dia"}` : "";
+      linhas.push(`<p class="alerta">${esc(quando)} é ${esc(oque)}${efeito}.</p>`);
+    }
+    el.innerHTML = linhas.join("");
+    el.hidden = !linhas.length;
   }
 
   function renderControls() {
@@ -818,10 +943,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       b.setAttribute("aria-pressed", String(state.regras === b.dataset.regras));
       b.querySelector(".n").innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
     });
-    const quandoPred = { hoje: (c) => !!horDe(c)[hojeKey()], agora: valeAgora, feriados: (c) => c.feriados === true };
+    const t = today();
+    // "Vale agora" e Data se excluem (tocar num desliga o outro): cada contagem ignora o filtro que vai sair
+    const semFiltro = (campo, fn) => { const salvo = state[campo]; state[campo] = null; try { return fn(); } finally { state[campo] = salvo; } };
+    const quandoPred = { agora: valeAgora, feriados: (c) => c.feriados === true && !planoVencido(c, t) };
     $("f-quando").querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(state.quando === b.dataset.quando));
-      b.querySelector(".n").innerHTML = nCupons(count("quando", quandoPred[b.dataset.quando]));
+      const fn = () => count("quando", quandoPred[b.dataset.quando]);
+      b.querySelector(".n").innerHTML = nCupons(b.dataset.quando === "agora" ? semFiltro("data", fn) : fn());
     });
     const cidCount = {};
     for (const c of state.cupons) if (passes(c, "cidade") && matchesSearch(c, words)) for (const cid of cidadesDe(c)) cidCount[cid] = (cidCount[cid] || 0) + 1;
@@ -829,6 +958,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("f-cidade").innerHTML = cidades.length
       ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${nCupons(cidCount[cid] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
+    // datas: hoje e os próximos 6 dias, marcando feriados e datas comemorativas
+    $("f-data").innerHTML = Array.from({ length: 7 }, (_, i) => addDays(t, i)).map((iso) => {
+      const f = FERIADOS[iso], dc = DATAS_COMEMORATIVAS[iso];
+      const vis = rotuloDia(iso) + (f ? ` · feriado${f.onde ? ` em ${f.onde.join(", ")}` : ""}` : dc ? ` · ${dc}` : "");
+      const fala = falaDia(iso).replace(/^./, (x) => x.toUpperCase()) + (f ? `, feriado: ${f.nome}${f.onde ? `, só em ${listaE(f.onde)}` : ""}` : dc ? `, ${dc}` : "");
+      return `<button type="button" class="fchip" data-data="${iso}" aria-pressed="${state.data === iso}">${duplo(vis, fala)} <span class="n">${nCupons(state.quando === "agora" ? semFiltro("quando", () => count("data", (c) => !!valeEm(c, iso)?.ok)) : count("data", (c) => !!valeEm(c, iso)?.ok))}</span></button>`;
+    }).join("");
     // dias da semana, na ordem do app (domingo primeiro)
     const hk = hojeKey();
     $("f-dia").innerHTML = DIAS.map((d) => {
@@ -938,7 +1074,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
      Cada render recria botões com innerHTML. Sem isto, o foco do TalkBack cai no topo da página
      depois de cada filtro, favorito ou "usado". Guardamos uma descrição do elemento focado e
      devolvemos o foco ao equivalente recriado. */
-  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
+  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
   let focoPendente = null; // lista de seletores; o primeiro que existir recebe o foco
   function descreveFoco() {
     const el = document.activeElement;
@@ -1120,6 +1256,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   $("f-quando").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-quando]"); if (!b) return;
     state.quando = state.quando === b.dataset.quando ? null : b.dataset.quando;
+    if (state.quando === "agora") state.data = null; // "agora" já é hoje
+    savePrefs(); render();
+  });
+  $("f-data").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-data]"); if (!b) return;
+    state.data = state.data === b.dataset.data ? null : b.dataset.data;
+    if (state.data && state.quando === "agora") state.quando = null;
     savePrefs(); render();
   });
   $("f-dia").addEventListener("click", (e) => {
@@ -1136,7 +1279,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     state.cidades.has(cid) ? state.cidades.delete(cid) : state.cidades.add(cid);
     savePrefs(); render();
   });
-  $("agora-toggle").addEventListener("click", () => { state.quando = state.quando === "agora" ? null : "agora"; savePrefs(); render(); });
+  $("agora-toggle").addEventListener("click", () => {
+    state.quando = state.quando === "agora" ? null : "agora";
+    if (state.quando === "agora") state.data = null;
+    savePrefs(); render();
+  });
   const toggleSet = (set, v) => (set.has(v) ? set.delete(v) : set.add(v));
   $("f-tipo").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-tipo]"); if (!b) return;
@@ -1151,7 +1298,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const id = d.closest(".ticket")?.dataset.id; if (!id) return;
     d.open ? state.abertos.add(id) : state.abertos.delete(id);
   }, true);
-  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
+  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
   function clearAll() { clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; savePrefs(); render(); }
   $("filters-clear").addEventListener("click", () => { clearFilters(); savePrefs(); render(); });
   $("result-clear").addEventListener("click", clearAll);
