@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 22, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 23, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -38,6 +38,12 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 
 - **Conexão com o banco:** usa `window.claude.use("db")` e `collection("cupons").onSnapshot(...)`. Grava com `doc(id).update(patch)`: a tela muda na hora e o snapshot confirma depois. Há mensagens próprias para modo leitura, espaço de dados esgotado e falha de rede. Aberta fora do claude.ai, a página não tem banco e mostra um aviso.
 - **`PROGRAMAS` no JS:** cada programa tem id, nome, classe de cor, cidade padrão (Poa → Porto Alegre, Tour → RS, Canoas → Canoas) e `validade` (último dia do plano, `AAAA-MM-DD`, ou `null`). Um programa novo precisa de uma entrada aqui, além do arquivo de dados.
+- **Mesmo lugar em outro programa (versão 23, 17/11/2026):**
+  - `nomeBase(nome)`: sem o que vem depois de " - ", sem apóstrofos, acentos e sinais, "&" vira "e". Dois cupons de **programas diferentes** ficam no mesmo grupo quando um nome-base é o começo do outro, palavra por palavra. Os grupos são fechados por união (union-find), então redes juntam todas as unidades (Spoleto: 1 Poa + 4 Tour + 1 Canoas). Calculado na página, sem campo no banco; em 17/11 eram 197 cartões com aviso e nenhum par errado na conferência manual.
+  - Se aparecer um par errado, a saída é uma lista de exceções em `grupos()`; se faltar um (nomes diferentes no app), uma lista de pares extras.
+  - Cartão: `<details class="det outros" data-outros>` com resumo por programa ("1 disponível", "já usado", "todos usados") e, aberto, nome, unidade, situação e oferta de cada um. O estado aberto fica em `state.abertos` com a chave `outros:<id>`.
+  - "Ver os N juntos" põe `state.grupo = id`: a lista mostra só o grupo, com usados, ignorando busca e filtros. Sai com "Voltar à lista" (foco volta ao botão) ou com qualquer clique em programa, barra ou filtros, ou digitando na busca. Não fica salvo.
+  - Marcar como usado: o aviso diz "Ainda tem no Tour Grande Poa e no Canoas em Dobro." quando o grupo tem disponíveis em outros programas.
 - **Validade, feriados e datas comemorativas (versão 21, 17/11/2026):**
   - `validade`: Poa = `2027-04-05` e Canoas = `2027-04-08` (informadas pelo usuário em 17/11/2026); Tour = `2027-03-05` (rodapé do detalhe: "TOUR VÁLIDO ATÉ 05/03/2027"). O topo mostra os dias que faltam e o ritmo (disponíveis ÷ dias restantes, contando o último). Depois da data, os cartões do programa mostram "Plano vencido" e saem de Data, Vale agora e Aceita em feriados.
   - `FERIADOS`: nacionais, RS (20/09) e Porto Alegre (02/02 Navegantes e 27/05 Corpus Christi, com `onde: ["Porto Alegre"]`, pela Lei Municipal 4.453/78 citada no calendário 2027 do TRT4), até o fim de 2027. `onde` é comparado com as cidades das unidades do cupom (ou a cidade padrão do programa). Carnaval é ponto facultativo e ficou de fora. Feriados municipais de Canoas e de outras cidades não entraram, porque as fontes divergem. **Para 2028 é preciso estender a lista.**
@@ -196,4 +202,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 26. `f2f4169` camadas do Google My Maps (`scripts/gerar-mapa.py` e `mapa/*.csv`)
 27. `8669ead` revisão de acessibilidade para TalkBack (versão 20)
 28. validade dos planos, feriados e datas comemorativas, filtro "Data" (versão 21)
-29. (este commit) validade do Poa (05/04/2027) e do Canoas (08/04/2027) (versão 22)
+29. `2d57205` validade do Poa (05/04/2027) e do Canoas (08/04/2027) (versão 22)
+30. (este commit) aviso de mesmo lugar em outro programa e "Ver juntos" (versão 23)

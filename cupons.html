@@ -147,7 +147,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .planos { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .planos p { margin: 0; }
 .planos b { color: var(--ink); font-weight: 600; }
-.planos .pdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pc); margin-right: 7px; vertical-align: .05em; }
+.pdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pc); margin-right: 7px; vertical-align: .05em; }
 .planos .alerta { color: var(--ink); }
 .planos .alerta::before { content: "⚑"; content: "⚑" / ""; color: var(--p-canoas); margin-right: 6px; }
 
@@ -319,6 +319,15 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .det-body h4 { margin: 0 0 3px; font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .det-body p { margin: 0; line-height: 1.45; }
 .det-body p.rg { white-space: pre-line; }
+.outros { border-top: 0; padding-top: 0; }
+.outros > summary { color: var(--ink); font-weight: 600; }
+.outros > summary::before { color: var(--accent); }
+.outros > summary .lbl { color: var(--muted); font-weight: 500; }
+.outros ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.outros li { display: grid; gap: 1px; font-size: 13px; }
+.outros li .mini { color: var(--muted); font-size: 12.5px; }
+.outros li .st-usado { color: var(--fav); }
+.resultbar .grupo-sair { white-space: nowrap; }
 .hor { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
 .hor td, .hor th { padding: 2px 0; vertical-align: top; }
 .hor th { text-align: left; font-weight: inherit; }
@@ -506,6 +515,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="resultbar">
     <p id="result-count">Carregando cupons…</p>
     <button type="button" class="linkbtn" id="result-clear" hidden>Limpar busca e filtros</button>
+    <button type="button" class="linkbtn grupo-sair" id="grupo-sair" hidden>Voltar à lista</button>
   </div>
   <p class="notice" id="notice" role="status" hidden></p>
   <h2 class="sr-only" id="lista-h">Cupons</h2>
@@ -585,6 +595,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
     quando: null, data: null, cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
+    grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
   };
   try {
@@ -717,6 +728,49 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     return !!ontem && faixas(ontem).some(([a, b]) => b < a && agora <= b);
   }
 
+  /* ---------- mesmo lugar em outro programa ----------
+     Nome-base: sem o que vem depois de " - ", sem apóstrofos, acentos e sinais. Dois cupons de programas
+     diferentes são do mesmo lugar quando um nome-base é o começo do outro, palavra por palavra
+     ("Spoleto" ~ "Spoleto Canoas", "D'Juca Confeitaria" ~ "Djuca Confeitaria Artesanal"). Redes entram
+     juntas; a cidade e o bairro de cada cupom aparecem para separar as unidades. */
+  const nomeBase = (nome) => norm(nome).split(/\s+[-–]\s+/)[0].replace(/['’`´]/g, "").replace(/&/g, " e ")
+    .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  let _grupos = { de: null, n: -1, mapa: new Map() };
+  function grupos() { // id -> lista de cupons do mesmo lugar (inclui o próprio), só quando há outro programa
+    if (_grupos.de === state.cupons && _grupos.n === state.cupons.length) return _grupos.mapa;
+    const cs = state.cupons, ws = cs.map((c) => nomeBase(c.nome));
+    const pai = cs.map((_, i) => i);
+    const raiz = (i) => (pai[i] === i ? i : (pai[i] = raiz(pai[i])));
+    const prefixo = (a, b) => a.length > 0 && a.length <= b.length && a.every((w, i) => w === b[i]);
+    for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
+      if (cs[i].programa === cs[j].programa) continue;
+      if (prefixo(ws[i], ws[j]) || prefixo(ws[j], ws[i])) pai[raiz(i)] = raiz(j);
+    }
+    const porRaiz = new Map();
+    cs.forEach((c, i) => { const r = raiz(i); if (!porRaiz.has(r)) porRaiz.set(r, []); porRaiz.get(r).push(c); });
+    const mapa = new Map();
+    for (const g of porRaiz.values()) if (new Set(g.map((c) => c.programa)).size > 1) for (const c of g) mapa.set(c.id, g);
+    _grupos = { de: cs, n: cs.length, mapa };
+    return mapa;
+  }
+  const outrosProgramas = (c) => (grupos().get(c.id) || []).filter((x) => x.programa !== c.programa);
+  const ondeFica = (c) => {
+    const uns = unidadesDe(c);
+    if (uns.length > 1) return `${uns.length} unidades em ${listaE(cidadesDe(c))}`;
+    const u = uns[0];
+    return u ? [u.bairro, u.cidade].filter(Boolean).join(", ") : "endereço não cadastrado";
+  };
+  // "Tour Grande Poa (1 disponível) · Canoas em Dobro (já usado)"
+  function resumoOutros(outros) {
+    const porProg = new Map();
+    for (const x of outros) { if (!porProg.has(x.programa)) porProg.set(x.programa, []); porProg.get(x.programa).push(x); }
+    return [...porProg].sort(([a], [b]) => PROG[a].i - PROG[b].i).map(([p, xs]) => {
+      const n = xs.filter((x) => !x.usado).length;
+      const st = n === 0 ? (xs.length === 1 ? "já usado" : "todos usados") : n === 1 ? "1 disponível" : `${n} disponíveis`;
+      return { nome: PROG[p].nome, cls: PROG[p].cls, st, n };
+    });
+  }
+
   /* ---------- derivações ---------- */
   function matchesSearch(c, words) {
     if (!words.length) return true;
@@ -751,9 +805,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     return true;
   }
   function visible() {
+    const byApp = (a, b) => (PROG[a.programa]?.i ?? 9) - (PROG[b.programa]?.i ?? 9) || (a.ordem ?? 999) - (b.ordem ?? 999);
+    // "Ver juntos": só o grupo, com usados, sem busca nem filtros
+    if (state.grupo) return [...(grupos().get(state.grupo) || [])].sort(byApp);
     const words = norm(state.q).split(/\s+/).filter(Boolean);
     const list = state.cupons.filter((c) => passes(c) && matchesSearch(c, words));
-    const byApp = (a, b) => (PROG[a.programa]?.i ?? 9) - (PROG[b.programa]?.i ?? 9) || (a.ordem ?? 999) - (b.ordem ?? 999);
     const cmp = {
       app: byApp,
       az: (a, b) => collator.compare(a.nome, b.nome),
@@ -843,6 +899,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     </div>
     ${offer}
     ${loc}
+    ${outrosHtml(c)}
     ${tags.length ? `<div class="tags">${tags.join("")}</div>` : ""}
     ${det}
     <div class="tfoot">
@@ -855,6 +912,26 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   </div>
   ${c.usado ? '<span class="stamp" aria-hidden="true">Usado</span>' : ""}
 </article>`;
+  }
+
+  function outrosHtml(c) {
+    const outros = outrosProgramas(c);
+    if (!outros.length) return "";
+    const resumo = resumoOutros(outros);
+    const vis = resumo.map((r) => `${r.nome} (${r.st})`).join(" · ");
+    const fala = `Também em ${listaE(resumo.map((r) => `${r.nome}, ${r.st}`))}`;
+    const itens = [...outros].sort((a, b) => PROG[a.programa].i - PROG[b.programa].i || (a.ordem ?? 999) - (b.ordem ?? 999)).map((x) => {
+      const oferta = x.item ? `Na compra de ${x.item} ganhe ${GANHE_TXT[x.ganhe] || "outro igual"}.` : (x.pendente || "Oferta não cadastrada.");
+      const st = x.usado ? `<span class="st-usado">usado${x.usadoEm ? ` em ${esc(fmtDate(x.usadoEm))}` : ""}</span>` : "disponível";
+      return `<li><span><span class="pdot ${PROG[x.programa].cls}" aria-hidden="true"></span><b>${esc(x.nome)}</b><span class="sr-only">,</span> · ${esc(PROG[x.programa].nome)}</span>
+        <span class="mini">${esc(ondeFica(x))} · ${st}</span><span class="mini">${esc(oferta)}</span></li>`;
+    }).join("");
+    const total = outros.length + 1;
+    return `<details class="det outros"${state.abertos.has("outros:" + c.id) ? " open" : ""} data-outros="${esc(c.id)}">
+      <summary>${duplo(`Também em ${vis}`, fala)}</summary>
+      <div class="det-body"><ul>${itens}</ul>
+      ${state.grupo ? "" : `<button type="button" class="linkbtn" data-act="grupo">Ver os ${total} juntos<span class="sr-only">: ${esc(c.nome)} em todos os programas</span></button>`}</div>
+    </details>`;
   }
 
   function renderHeader() {
@@ -1015,7 +1092,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   function renderGrid() {
     const grid = $("grid");
     const rc = $("result-count");
-    $("result-clear").hidden = !(state.phase === "ready" && anyNarrowing());
+    $("result-clear").hidden = !(state.phase === "ready" && anyNarrowing()) || !!state.grupo;
+    $("grupo-sair").hidden = !(state.phase === "ready" && state.grupo);
 
     grid.setAttribute("aria-busy", String(state.phase === "loading"));
     if (state.phase === "loading") {
@@ -1042,7 +1120,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const list = visible();
     const statusTxt = { disponiveis: "disponíveis", usados: "usados", todos: "no total" }[state.status];
     const base = state.cupons.filter((c) => state.status === "todos" || (state.status === "usados" ? c.usado : !c.usado)).length;
-    rc.innerHTML = anyNarrowing()
+    const gc = state.grupo && state.cupons.find((x) => x.id === state.grupo);
+    rc.innerHTML = gc
+      ? `<b>${list.length}</b> cupons de ${esc(gc.nome)} e do mesmo lugar nos outros programas, com os usados`
+      : anyNarrowing()
       ? `<b>${list.length}</b> de ${base} cupons ${statusTxt}`
       : `<b>${list.length}</b> cupons ${statusTxt}`;
     announce(rc.textContent);
@@ -1083,7 +1164,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const pre = card ? `.ticket[data-id="${CSS.escape(card.dataset.id)}"] ` : "";
     if (el.id && !card) return [`#${CSS.escape(el.id)}`];
     for (const a of FOCO_ATTRS) if (el.hasAttribute(a)) return [`${pre}[${a}="${CSS.escape(el.getAttribute(a))}"]`];
-    if (card && el.matches("summary")) return [`${pre}summary`];
+    if (card && el.matches("summary")) return [`${pre}details${el.parentElement?.dataset.outros ? ".outros" : ":not(.outros)"} > summary`];
     if (card && el.matches(".tname")) return [`${pre}.tname`];
     return null;
   }
@@ -1295,7 +1376,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   });
   $("grid").addEventListener("toggle", (e) => {
     const d = e.target; if (!(d instanceof HTMLDetailsElement)) return;
-    const id = d.closest(".ticket")?.dataset.id; if (!id) return;
+    let id = d.closest(".ticket")?.dataset.id; if (!id) return;
+    if (d.dataset.outros) id = "outros:" + id;
     d.open ? state.abertos.add(id) : state.abertos.delete(id);
   }, true);
   function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
@@ -1314,7 +1396,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const card = b.closest(".ticket"); if (!card) return;
     const id = card.dataset.id;
     const c = state.cupons.find((x) => x.id === id); if (!c) return;
-    if (b.dataset.act === "fav") {
+    if (b.dataset.act === "grupo") {
+      state.grupo = id;
+      focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+      render();
+      document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
+    } else if (b.dataset.act === "fav") {
       write(id, { favorito: !c.favorito });
     } else if (b.dataset.act === "use") {
       // na lista de disponíveis o cartão some: o foco vai para o nome do próximo cupom
@@ -1322,7 +1409,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       silenciarAnuncio = true;
       write(id, { usado: true, usadoEm: today() });
       silenciarAnuncio = false;
-      toast(`${c.nome}: marcado como usado.`, () => {
+      const ainda = resumoOutros(outrosProgramas(c)).filter((r) => r.n > 0).map((r) => r.nome);
+      toast(`${c.nome}: marcado como usado.${ainda.length ? ` Ainda tem no ${listaE(ainda).replace(/ e (?=[^,]*$)/, " e no ").replace(/, /g, ", no ")}.` : ""}`, () => {
         // desfazer: o cartão volta e o foco vai para ele, em vez de cair no topo da página
         focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
         write(id, { usado: false, usadoEm: null });
@@ -1339,6 +1427,19 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       });
     }
   });
+
+  // sair do "Ver juntos": botão próprio, ou qualquer busca, filtro, programa, situação ou ordenação
+  function saiGrupo(foco) {
+    if (!state.grupo) return;
+    const id = state.grupo; state.grupo = null;
+    if (foco) focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="grupo"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+  }
+  $("grupo-sair").addEventListener("click", () => { saiGrupo(true); render(); });
+  for (const el of [$("programs"), document.querySelector(".toolbar"), $("filters")]) {
+    el.addEventListener("click", (e) => { if (state.grupo && e.target.closest("button, select")) saiGrupo(false); }, true);
+    el.addEventListener("change", () => saiGrupo(false), true);
+  }
+  $("q").addEventListener("input", () => saiGrupo(false), true);
 
   render();
   boot();
