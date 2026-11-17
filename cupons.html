@@ -307,7 +307,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .det { border-top: 1px dashed var(--line); padding-top: 6px; }
 .det > summary { cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--accent); padding: 4px 0; }
 .det > summary::-webkit-details-marker { display: none; }
-.det > summary::before { content: "▸"; display: inline-block; width: 1em; transition: transform .15s ease; }
+.det > summary::before { content: "▸"; content: "▸" / ""; display: inline-block; width: 1em; transition: transform .15s ease; }
 .det[open] > summary::before { transform: rotate(90deg); }
 .det-body { display: grid; gap: 10px; padding: 6px 0 4px; font-size: 13.5px; }
 .det-body h4 { margin: 0 0 3px; font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -328,7 +328,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .usedate { margin-left: auto; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
 
 .ticket.is-used .stub { filter: grayscale(1); opacity: .7; }
-.ticket.is-used .tname, .ticket.is-used .offer { opacity: .6; }
+.ticket.is-used .tname, .ticket.is-used .offer, .ticket.is-used .offer strong { color: var(--muted); }
 .stamp {
   position: absolute; right: 18px; top: 46%; z-index: 2; pointer-events: none;
   font-family: var(--f-display); font-stretch: 70%; font-weight: 850; font-size: 22px; letter-spacing: .12em;
@@ -498,7 +498,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   </div>
   <p class="notice" id="notice" role="status" hidden></p>
   <h2 class="sr-only" id="lista-h">Cupons</h2>
-  <div class="grid" id="grid" aria-labelledby="lista-h" aria-busy="true">
+  <div class="grid" id="grid" role="region" aria-labelledby="lista-h" aria-busy="true">
     <div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
   </div>
   <p class="sr-only" id="sr-status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -620,6 +620,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const falaFaixas = (h) => faixas(h).map(([a, b]) => `das ${a} às ${b}`).join(" e ");
   // mostra o texto visual e entrega outro ao leitor de tela
   const duplo = (visual, falado) => `<span aria-hidden="true">${esc(visual)}</span><span class="sr-only">${esc(falado)}</span>`;
+  // "A, B e C" (lida com naturalidade pelo leitor de tela)
+  const listaE = (xs) => xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} e ${xs[xs.length - 1]}`;
   const nCupons = (n) => `${n}<span class="sr-only"> ${n === 1 ? "cupom" : "cupons"}</span>`;
   function valeAgora(c) {
     const H = horDe(c);
@@ -694,13 +696,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (c.ganhe === "igual") tags.push('<span class="tag">Só item igual</span>');
     if (!c.item) tags.push('<span class="tag pend">Oferta pendente</span>');
     const u = c.unidade;
-    if (temHorario(c) && !c.usado) {
-      const h = horDe(c)[hojeKey()];
-      tags.unshift(h ? `<span class="tag hoje">${duplo(`Hoje ${fmtFaixas(h)}`, `Vale hoje, ${falaFaixas(h)}.`)}</span>` : '<span class="tag off">Não vale hoje</span>');
-    }
     const uns = unidadesDe(c), outras = c.outrasUnidades || [];
+    if (temHorario(c) && !c.usado) {
+      const hk = hojeKey(), h = horDe(c)[hk];
+      if (!h) tags.unshift('<span class="tag off">Não vale hoje</span>');
+      else if (outras.length) {
+        // várias unidades: dizer em quantas vale hoje; os horários de cada uma ficam nos detalhes
+        const k = uns.filter((x) => x.horarios?.[hk]).length;
+        tags.unshift(`<span class="tag hoje">${duplo(`Hoje em ${k} de ${uns.length} unidades`, `Vale hoje em ${k} de ${uns.length} unidades. Os horários de cada uma estão nos detalhes.`)}</span>`);
+      } else tags.unshift(`<span class="tag hoje">${duplo(`Hoje ${fmtFaixas(h)}`, `Vale hoje, ${falaFaixas(h)}.`)}</span>`);
+    }
     const locTxt = outras.length
-      ? [[...new Set(uns.map((x) => x.bairro).filter(Boolean))].join(" e "), cidadesDe(c).join(" e "), `${uns.length} unidades`].filter(Boolean).join(" · ")
+      ? [listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean).join(" · ")
       : u ? [u.bairro, u.cidade].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
     const loc = locTxt ? `<p class="loc">${esc(locTxt)}</p>` : "";
     const q = encodeURIComponent(u?.endereco
@@ -1168,14 +1175,21 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       silenciarAnuncio = true;
       write(id, { usado: true, usadoEm: today() });
       silenciarAnuncio = false;
-      toast(`${c.nome}: marcado como usado.`, () => write(id, { usado: false, usadoEm: null }));
+      toast(`${c.nome}: marcado como usado.`, () => {
+        // desfazer: o cartão volta e o foco vai para ele, em vez de cair no topo da página
+        focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+        write(id, { usado: false, usadoEm: null });
+      });
     } else if (b.dataset.act === "unuse") {
       const prev = c.usadoEm || null;
       focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, ...vizinhos(card), "#result-count"];
       silenciarAnuncio = true;
       write(id, { usado: false, usadoEm: null });
       silenciarAnuncio = false;
-      toast(`${c.nome} voltou para os disponíveis.`, () => write(id, { usado: true, usadoEm: prev || today() }));
+      toast(`${c.nome} voltou para os disponíveis.`, () => {
+        focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="unuse"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+        write(id, { usado: true, usadoEm: prev || today() });
+      });
     }
   });
 

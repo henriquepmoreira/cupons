@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 19, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 20, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -56,7 +56,8 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - nomes completos para o leitor: "Favorito: <nome>" (com `aria-pressed`), "Marcar como usado: <nome>", "Ver <nome> no mapa (abre em outra aba)", contadores com "cupons", horários falados ("das 11:30 às 14:30"), ✓/✗ lidos como "Vale em"/"Não vale em";
   - cada cartão é um `article` com o nome como título (h3, ou h4 dentro dos grupos de "Por categoria"/"Por programa", que são h3); há um h2 oculto "Cupons" antes da lista;
   - o aviso com "Desfazer" fica 10 s e não some enquanto o foco estiver nele;
-  - conferido com axe-core 4.10 (WCAG 2.1 AA + boas práticas) nos temas claro e escuro: nenhuma violação. A classe `.sr-only` esconde texto só da tela.
+  - **revisão de 17/11 (versão 20):** "Desfazer" devolve o foco ao cartão restaurado (antes caía no topo); cupons com várias unidades dizem "Vale hoje em N de M unidades" em vez de ler todos os horários emendados; bairros lidos como lista ("A, B e C"); o triângulo do "Regras, horários e endereço" é só visual (`content: "▸" / ""`); texto dos cupons usados com contraste AA no tema claro (cor `--muted` em vez de opacidade); a grade virou `role=region` com o título "Cupons";
+  - conferido com axe-core 4.10 (WCAG 2.2 AA + boas práticas) nos temas claro e escuro, em tela de celular (Pixel 7), com a lista inicial, filtros abertos, detalhes de cupom com várias unidades, aba de usados, busca sem resultado e aviso de desfazer: nenhuma violação (17/11). A classe `.sr-only` esconde texto só da tela.
   - **dentro do visualizador do claude.ai** a página roda num iframe com título em inglês ("User-generated artifact content") e idioma en-US do lado de fora; o idioma pt-BR do quadro da carteira vale do mesmo jeito, e o foco entra no quadro pela navegação normal (conferido em 12/11). A regra `[hidden] { display: none !important; }` está na própria página porque o invólucro que a garante não existe em todo lugar onde ela abre;
   - quem recebe o link e só pode ver usa a carteira em modo leitura: os botões aparecem como "desativado" e um aviso (`role=status`) explica o motivo.
 - **Quem abre sem login no claude.ai** não recebe o banco (`claude.use("db")` resolve `null`) e via "Entre na sua conta". O `cupons.html` agora tenta carregar `snapshot.json` publicado junto com a página (gerado do banco por `scripts/gerar-snapshot.py`) e mostra uma cópia só para consulta, com aviso da data. **Publicado em 13/11/2026 (versão 9), com autorização explícita do usuário** para expor a carteira completa, favoritos e usados incluídos, a quem tiver o link. A cópia **não se atualiza sozinha**: depois de mudar dados ou de o usuário marcar cupons, leia o banco inteiro, rode o gerador e republique com `files: {"snapshot.json": ...}`. Republicar só o `cupons.html` mantém a cópia anterior. Última atualização da cópia: 16/11/2026.
@@ -184,4 +185,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 23. `b797ea7` cupons já usados dos três programas (prints de 17/11), Família Kabana apagada, cópia sem login atualizada (versão 17)
 24. `905db77` Woking Thai Food - Canoas usado no Tour, segundo Urban 1736 apagado do Canoas (erro do app), cópia sem login atualizada (versão 18)
 25. `f28a8f2` Cachorro do Bigode usado separado do Cachorro do Bigode - Cristo Redentor (disponível), cópia sem login atualizada (versão 19)
-26. (este commit) camadas do Google My Maps (`scripts/gerar-mapa.py` e `mapa/*.csv`)
+26. `f2f4169` camadas do Google My Maps (`scripts/gerar-mapa.py` e `mapa/*.csv`)
+27. (este commit) revisão de acessibilidade para TalkBack (versão 20)
