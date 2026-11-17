@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 21, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 22, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -39,7 +39,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 - **Conexão com o banco:** usa `window.claude.use("db")` e `collection("cupons").onSnapshot(...)`. Grava com `doc(id).update(patch)`: a tela muda na hora e o snapshot confirma depois. Há mensagens próprias para modo leitura, espaço de dados esgotado e falha de rede. Aberta fora do claude.ai, a página não tem banco e mostra um aviso.
 - **`PROGRAMAS` no JS:** cada programa tem id, nome, classe de cor, cidade padrão (Poa → Porto Alegre, Tour → RS, Canoas → Canoas) e `validade` (último dia do plano, `AAAA-MM-DD`, ou `null`). Um programa novo precisa de uma entrada aqui, além do arquivo de dados.
 - **Validade, feriados e datas comemorativas (versão 21, 17/11/2026):**
-  - `validade`: Tour = `2027-03-05` (rodapé do detalhe: "TOUR VÁLIDO ATÉ 05/03/2027"); Poa e Canoas = `null` até o usuário informar. O topo mostra os dias que faltam e o ritmo (disponíveis ÷ dias restantes, contando o último). Depois da data, os cartões do programa mostram "Plano vencido" e saem de Data, Vale agora e Aceita em feriados.
+  - `validade`: Poa = `2027-04-05` e Canoas = `2027-04-08` (informadas pelo usuário em 17/11/2026); Tour = `2027-03-05` (rodapé do detalhe: "TOUR VÁLIDO ATÉ 05/03/2027"). O topo mostra os dias que faltam e o ritmo (disponíveis ÷ dias restantes, contando o último). Depois da data, os cartões do programa mostram "Plano vencido" e saem de Data, Vale agora e Aceita em feriados.
   - `FERIADOS`: nacionais, RS (20/09) e Porto Alegre (02/02 Navegantes e 27/05 Corpus Christi, com `onde: ["Porto Alegre"]`, pela Lei Municipal 4.453/78 citada no calendário 2027 do TRT4), até o fim de 2027. `onde` é comparado com as cidades das unidades do cupom (ou a cidade padrão do programa). Carnaval é ponto facultativo e ficou de fora. Feriados municipais de Canoas e de outras cidades não entraram, porque as fontes divergem. **Para 2028 é preciso estender a lista.**
   - `DATAS_COMEMORATIVAS`: estimativa (Natal e véspera, véspera de Ano-Novo, Ano-Novo, Páscoa, Mães, Namorados, Pais, Crianças); os apps não dizem quais datas contam.
   - `valeEm(cupom, data)` concentra a regra, nesta ordem: plano vencido → feriado com `feriados: false` → data comemorativa com `datasComemorativas: false` → dia da semana (`horDe`, todas as unidades). `feriados: null` não bloqueia. `valeAgora` usa `valeEm` para hoje e para ontem (faixas que passam da meia-noite).
@@ -195,4 +195,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 25. `f28a8f2` Cachorro do Bigode usado separado do Cachorro do Bigode - Cristo Redentor (disponível), cópia sem login atualizada (versão 19)
 26. `f2f4169` camadas do Google My Maps (`scripts/gerar-mapa.py` e `mapa/*.csv`)
 27. `8669ead` revisão de acessibilidade para TalkBack (versão 20)
-28. (este commit) validade dos planos, feriados e datas comemorativas, filtro "Data" (versão 21)
+28. validade dos planos, feriados e datas comemorativas, filtro "Data" (versão 21)
+29. (este commit) validade do Poa (05/04/2027) e do Canoas (08/04/2027) (versão 22)

@@ -14,7 +14,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Ordenação: ordem do app, nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
 - Link de mapa para cada estabelecimento
-- Validade de cada plano no topo, com os dias que faltam e quantos cupons por dia e por semana dão conta dos disponíveis (por enquanto só o Tour tem data: 05/03/2027)
+- Validade de cada plano no topo, com os dias que faltam e quantos cupons por dia e por semana dão conta dos disponíveis (Poa em Dobro até 05/04/2027, Tour Grande Poa até 05/03/2027, Canoas em Dobro até 08/04/2027)
 - Feriados e datas comemorativas: cupons com `feriados: false` ou `datasComemorativas: false` aparecem como "Não vale hoje (feriado: …)" nesses dias, e o topo avisa os feriados dos próximos 7 dias com quantos cupons eles bloqueiam
 - Filtro "Data" para planejar: filtra os cupons que valem numa data dos próximos 7 dias (com feriados e validade) e mostra no cartão o horário dessa data
 - Acessível a leitores de tela (TalkBack, VoiceOver, NVDA): o foco não se perde ao filtrar, favoritar ou marcar como usado, o total de cupons é anunciado, e cada botão diz de qual cupom é
