@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 25, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 26, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -38,6 +38,12 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 
 - **Conexão com o banco:** usa `window.claude.use("db")` e `collection("cupons").onSnapshot(...)`. Grava com `doc(id).update(patch)`: a tela muda na hora e o snapshot confirma depois. Há mensagens próprias para modo leitura, espaço de dados esgotado e falha de rede. Aberta fora do claude.ai, a página não tem banco e mostra um aviso.
 - **`PROGRAMAS` no JS:** cada programa tem id, nome, classe de cor, cidade padrão (Poa → Porto Alegre, Tour → RS, Canoas → Canoas) e `validade` (último dia do plano, `AAAA-MM-DD`, ou `null`). Um programa novo precisa de uma entrada aqui, além do arquivo de dados.
+- **Perto de mim (versão 26, 17/11/2026):**
+  - `data/geo.json`: `"<endereco>|<bairro>|<cidade>" -> {lat, lng, precisao}` para cada unidade (inclui `outrasUnidades`). Gerado por `scripts/geocodificar.py` (Nominatim/OpenStreetMap, 1 consulta por segundo, User-Agent genérico, sem dados pessoais). Tenta rua e número, depois só a rua, depois o centro do bairro (`precisao: "bairro"`, mostrado com "≈"). Consultas limitadas à caixa da Grande Porto Alegre e Vale dos Sinos. Rode de novo depois de importar cupons ou endereços novos: só consulta o que falta.
+  - **Rede:** o ambiente padrão bloqueia o Nominatim. Foi criado o ambiente pessoal **"cupons"** (só `nominatim.openstreetmap.org` liberado, além dos registros de pacotes), ligado a este repositório. Use-o nas próximas sessões.
+  - **Publicação:** `geo.json` vai junto com a página, como `snapshot.json`: `files: {"geo.json": "data/geo.json"}` no publish. Sem ele, o grupo "Perto de" diz que as coordenadas não carregaram.
+  - Ponto de partida (`state.perto`): a localização do navegador (`navigator.geolocation`; só funciona onde o visualizador permitir, e a plataforma não oferece capacidade de localização) ou um bairro (média das coordenadas das unidades com endereço naquele bairro). Se a localização falhar, a página abre Filtros e põe o foco no seletor de bairro. O bairro fica salvo nas preferências (`pertoBairro`); a localização não.
+  - Ordenação `perto` (cupons sem endereço no fim) e raio `state.raio` (1, 2, 5, 10 km; conta no selo de Filtros). A distância é em linha reta até a unidade mais perto (`distDe`, com cache por ponto de partida).
 - **Comodidades (versão 24, 17/11/2026):**
   - cada chip calcula em quais programas a comodidade aparece (em todos os cupons, sem filtro); se não for em todos os programas com cupons, mostra "· só Tour" (falado: ", só no Tour Grande Poa"). Hoje só Pet e Kids aparecem nos três. `PROGRAMAS` ganhou `curto` (Poa, Tour, Canoas).
   - atalhos na barra: `#pet-toggle` e `#kids-toggle`, com `data-atalho` igual à chave do chip ("Pet Friendly / Aceita Pet", "Espaço Kids"); ligam e desligam o mesmo `state.comods`, então chip e atalho ficam sempre iguais e contam no selo de Filtros.
@@ -211,4 +217,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 29. `2d57205` validade do Poa (05/04/2027) e do Canoas (08/04/2027) (versão 22)
 30. `1070743` aviso de mesmo lugar em outro programa e "Ver juntos" (versão 23)
 31. `47ff31f` comodidades: aviso "só Tour" e atalhos Pet e Kids; rolagem lateral no celular corrigida (versão 24)
-32. (este commit) sugestão de qual cupom usar e comparação de ofertas no aviso de mesmo lugar (versão 25)
+32. `74fee0a` sugestão de qual cupom usar e comparação de ofertas no aviso de mesmo lugar (versão 25)
+33. (este commit) perto de mim: `data/geo.json`, `scripts/geocodificar.py`, ordenação "Mais perto" e raio (versão 26)

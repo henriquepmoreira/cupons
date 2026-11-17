@@ -1,0 +1,502 @@
+{
+"Av Venâncio Aires, Nº 02|Cidade Baixa|Porto Alegre": {
+"lat": -30.038965,
+"lng": -51.212485,
+"precisao": "endereco"
+},
+"Av. Padre Claret, Nº 818|Centro|Esteio": {
+"lat": -29.848654,
+"lng": -51.146109,
+"precisao": "endereco"
+},
+"Avenida Armando Fajardo, Nº 1330|Igara|Canoas": {
+"lat": -29.894682,
+"lng": -51.167156,
+"precisao": "endereco"
+},
+"Avenida Armando Fajardo, Nº 1480|Igara|Canoas": {
+"lat": -29.89602,
+"lng": -51.14661,
+"precisao": "endereco"
+},
+"Avenida Armando Fajardo, Nº 2707|Igara|Canoas": {
+"lat": -29.89602,
+"lng": -51.14661,
+"precisao": "endereco"
+},
+"Avenida Açucena, Nº 1000, Moinhos Open Mall - Loja 08|Estância Velha|Canoas": {
+"lat": -29.919004,
+"lng": -51.155451,
+"precisao": "endereco"
+},
+"Avenida Açucena, Nº 1000, Park Shopping Canoas|Estância Velha|Canoas": {
+"lat": -29.919004,
+"lng": -51.155451,
+"precisao": "endereco"
+},
+"Avenida Açucena, Nº 1140, Loja 2|Estância Velha|Canoas": {
+"lat": -29.917455,
+"lng": -51.155161,
+"precisao": "endereco"
+},
+"Avenida Açucena, Nº 1575|Estância Velha|Canoas": {
+"lat": -29.914114,
+"lng": -51.154482,
+"precisao": "endereco"
+},
+"Avenida Boqueirão, Nº 2221, Stop Food Park|Estância Velha|Canoas": {
+"lat": -29.904984,
+"lng": -51.161262,
+"precisao": "endereco"
+},
+"Avenida Boqueirão, Nº 2221, Stop Food Park|Guajuviras|Canoas": {
+"lat": -29.904888,
+"lng": -51.16125,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 1680|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 1736, Esquina|Estância Velha|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 1814|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 1886|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 1910|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 2042|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 2060|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 2246|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 2446|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 2643|Estância Velha|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 2663|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 266|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 689|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Doutor Sezefredo Azambuja Vieira, Nº 851|Marechal Rondon|Canoas": {
+"lat": -29.920446,
+"lng": -51.11753,
+"precisao": "endereco"
+},
+"Avenida Farroupilha, Nº 3833|Marechal Rondon|Canoas": {
+"lat": -29.90734,
+"lng": -51.164935,
+"precisao": "endereco"
+},
+"Avenida Farroupilha, Nº 3989|Marechal Rondon|Canoas": {
+"lat": -29.90735,
+"lng": -51.164784,
+"precisao": "endereco"
+},
+"Avenida Farroupilha, Nº 4545, Park Shopping Canoas|Marechal Rondon|Canoas": {
+"lat": -29.915369,
+"lng": -51.164799,
+"precisao": "endereco"
+},
+"Avenida Farroupilha, Nº 4545, Parkshopping Canoas|Marechal Rondon|Canoas": {
+"lat": -29.915369,
+"lng": -51.164799,
+"precisao": "endereco"
+},
+"Avenida Farroupilha, Nº 7247|Igara|Canoas": {
+"lat": -29.894741,
+"lng": -51.167098,
+"precisao": "endereco"
+},
+"Avenida General Flores da Cunha, Nº 622|Vila Santo Ângelo|Cachoeirinha": {
+"lat": -29.932793,
+"lng": -51.077992,
+"precisao": "endereco"
+},
+"Avenida Getúlio Vargas, Nº 1877|Centro|Guaíba": {
+"lat": -30.109847,
+"lng": -51.315722,
+"precisao": "bairro"
+},
+"Avenida Getúlio Vargas, Nº 5555|Marechal Rondon|Canoas": {
+"lat": -29.916988,
+"lng": -51.177496,
+"precisao": "endereco"
+},
+"Avenida Inconfidência, Nº 1248, Loja 08|Marechal Rondon|Canoas": {
+"lat": -29.926067,
+"lng": -51.179173,
+"precisao": "endereco"
+},
+"Avenida Inconfidência, Nº 550|Marechal Rondon|Canoas": {
+"lat": -29.924826,
+"lng": -51.175471,
+"precisao": "endereco"
+},
+"Avenida Pará, Nº 1324|Navegantes|Porto Alegre": {
+"lat": -30.013943,
+"lng": -51.199939,
+"precisao": "endereco"
+},
+"Avenida Plínio Brasil Milano, Nº 20|Auxiliadora|Porto Alegre": {
+"lat": -30.021079,
+"lng": -51.181744,
+"precisao": "endereco"
+},
+"Avenida Praia de Belas, Nº 1181, Shopping Praia de Belas|Praia de Belas|Porto Alegre": {
+"lat": -30.049616,
+"lng": -51.228732,
+"precisao": "endereco"
+},
+"Avenida Presidente Lucena, Nº 5760|Nova Vila|Ivoti": {
+"lat": -29.62082,
+"lng": -51.165552,
+"precisao": "endereco"
+},
+"Avenida Ramiro Barcelos, Nº 1006|São José|Canoas": {
+"lat": -29.883185,
+"lng": -51.16027,
+"precisao": "endereco"
+},
+"Avenida Ramiro Barcelos, Nº 1944|São José|Canoas": {
+"lat": -29.883185,
+"lng": -51.16027,
+"precisao": "endereco"
+},
+"Avenida Rio Grande do Sul, Nº 1235|Mathias Velho|Canoas": {
+"lat": -29.901409,
+"lng": -51.21472,
+"precisao": "endereco"
+},
+"Avenida Santos Ferreira, Nº 1845|Nossa Senhora das Graças|Canoas": {
+"lat": -29.920656,
+"lng": -51.176138,
+"precisao": "endereco"
+},
+"Avenida Santos Ferreira, Nº 889|Nossa Senhora das Graças|Canoas": {
+"lat": -29.920656,
+"lng": -51.176138,
+"precisao": "endereco"
+},
+"Avenida Senador Salgado Filho, Nº 9043|Krahe|Viamão": {
+"lat": -30.077334,
+"lng": -51.041769,
+"precisao": "endereco"
+},
+"Avenida Sete de Setembro, Nº 290|Centro|Guaíba": {
+"lat": -30.108135,
+"lng": -51.31398,
+"precisao": "endereco"
+},
+"Praça da Bandeira, Nº 417|Centro|Novo Hamburgo": {
+"lat": -29.685114,
+"lng": -51.125658,
+"precisao": "bairro"
+},
+"Rua 7 de Setembro, Nº 91|Centro|Nova Santa Rita": {
+"lat": -29.858408,
+"lng": -51.278577,
+"precisao": "endereco"
+},
+"Rua Araguaia, Nº 405|Igara|Canoas": {
+"lat": -29.900705,
+"lng": -51.160827,
+"precisao": "endereco"
+},
+"Rua Arroio do Meio, Nº 84|Primavera|Novo Hamburgo": {
+"lat": -29.682607,
+"lng": -51.14517,
+"precisao": "endereco"
+},
+"Rua Auxiliadora, Nº 248|Auxiliadora|Porto Alegre": {
+"lat": -30.021416,
+"lng": -51.190906,
+"precisao": "endereco"
+},
+"Rua Barão de Santo Ângelo, Nº 212|Moinhos de Vento|Porto Alegre": {
+"lat": -30.023147,
+"lng": -51.204438,
+"precisao": "endereco"
+},
+"Rua Bento Gonçalves, Nº 110|Centro|Esteio": {
+"lat": -29.863011,
+"lng": -51.179169,
+"precisao": "endereco"
+},
+"Rua Cel. Serafim Pereira, Nº 353|Centro|Sapucaia do Sul": {
+"lat": -29.825359,
+"lng": -51.14781,
+"precisao": "endereco"
+},
+"Rua Chavantes, Nº 636|Vila Assunção|Porto Alegre": {
+"lat": -30.103674,
+"lng": -51.255074,
+"precisao": "endereco"
+},
+"Rua Coronel Vicente, Nº 126|Centro|Canoas": {
+"lat": -29.918588,
+"lng": -51.187353,
+"precisao": "endereco"
+},
+"Rua Coronel Vicente, Nº 273|Centro|Canoas": {
+"lat": -29.918616,
+"lng": -51.185095,
+"precisao": "endereco"
+},
+"Rua Domingos Martins, Nº 910|Centro|Canoas": {
+"lat": -29.915508,
+"lng": -51.178312,
+"precisao": "endereco"
+},
+"Rua Domingos Martins, Nº 947|Centro|Canoas": {
+"lat": -29.914653,
+"lng": -51.186098,
+"precisao": "endereco"
+},
+"Rua Domingos Martins, Nº 960|Centro|Canoas": {
+"lat": -29.914653,
+"lng": -51.186098,
+"precisao": "endereco"
+},
+"Rua Dona Rafaela, Nº 77|Marechal Rondon|Canoas": {
+"lat": -29.916997,
+"lng": -51.175194,
+"precisao": "endereco"
+},
+"Rua Doutor Barcelos, Nº 1086|Centro|Canoas": {
+"lat": -29.919584,
+"lng": -51.185197,
+"precisao": "endereco"
+},
+"Rua Doutor Barcelos, Nº 230|Centro|Canoas": {
+"lat": -29.925124,
+"lng": -51.183435,
+"precisao": "endereco"
+},
+"Rua Doutor Barcelos, Nº 511|Centro|Canoas": {
+"lat": -29.92368,
+"lng": -51.18383,
+"precisao": "endereco"
+},
+"Rua Doutor Barcelos, Nº 897|Centro|Canoas": {
+"lat": -29.92368,
+"lng": -51.18383,
+"precisao": "endereco"
+},
+"Rua Doutor Luiz Bastos do Prado, Loja 62143|Centro|Gravataí": {
+"lat": -29.946852,
+"lng": -50.991541,
+"precisao": "rua"
+},
+"Rua Doutor Timóteo - lado ímpar, Nº 465|Moinhos de Vento|Porto Alegre": {
+"lat": -30.024069,
+"lng": -51.205423,
+"precisao": "bairro"
+},
+"Rua Dr Lourenço Zaccaro, Nº 1546|Centro|Nova Santa Rita": {
+"lat": -29.853933,
+"lng": -51.280247,
+"precisao": "endereco"
+},
+"Rua Dr. Freire Alemão, Nº 310|Mont'Serrat|Porto Alegre": {
+"lat": -30.02353,
+"lng": -51.192093,
+"precisao": "endereco"
+},
+"Rua Expedicionário, Nº 3400|Nossa Senhora das Graças|Canoas": {
+"lat": -29.930443,
+"lng": -51.170959,
+"precisao": "bairro"
+},
+"Rua Felipe Neri, Nº 81|Auxiliadora|Porto Alegre": {
+"lat": -30.023227,
+"lng": -51.194467,
+"precisao": "endereco"
+},
+"Rua Fernandes Vieira, Nº 656|Bom Fim|Porto Alegre": {
+"lat": -30.035334,
+"lng": -51.210936,
+"precisao": "endereco"
+},
+"Rua Frederico Guilherme Ludwig, Nº 319|Centro|Canoas": {
+"lat": -29.913025,
+"lng": -51.185828,
+"precisao": "endereco"
+},
+"Rua General Lima e Silva, Nº 948|Centro Histórico|Porto Alegre": {
+"lat": -30.040537,
+"lng": -51.218697,
+"precisao": "endereco"
+},
+"Rua General Osório, Nº 984|Hamburgo Velho|Novo Hamburgo": {
+"lat": -29.675608,
+"lng": -51.116153,
+"precisao": "endereco"
+},
+"Rua Guarujá, Nº 463|São José|Canoas": {
+"lat": -29.881176,
+"lng": -51.168097,
+"precisao": "endereco"
+},
+"Rua Humaitá, Nº 1431|Nossa Senhora das Graças|Canoas": {
+"lat": -29.928277,
+"lng": -51.176653,
+"precisao": "endereco"
+},
+"Rua Joaquim Nabuco, Nº 281|Cidade Baixa|Porto Alegre": {
+"lat": -30.042527,
+"lng": -51.222419,
+"precisao": "endereco"
+},
+"Rua Lajeado, Nº 1576|Niterói|Canoas": {
+"lat": -29.962741,
+"lng": -51.17159,
+"precisao": "endereco"
+},
+"Rua Lindolfo Collor, Nº 301|Centro|São Leopoldo": {
+"lat": -29.769586,
+"lng": -51.152204,
+"precisao": "endereco"
+},
+"Rua Mathias Velho, Nº 414|Centro|Canoas": {
+"lat": -29.911135,
+"lng": -51.186544,
+"precisao": "endereco"
+},
+"Rua Muck, Nº 268|Centro|Canoas": {
+"lat": -29.918098,
+"lng": -51.180236,
+"precisao": "endereco"
+},
+"Rua Noruega, Nº 755|Marechal Rondon|Canoas": {
+"lat": -29.91754,
+"lng": -51.161732,
+"precisao": "endereco"
+},
+"Rua Nossa Senhora das Graças, Nº 300|Centro|Sapucaia do Sul": {
+"lat": -29.826758,
+"lng": -51.147597,
+"precisao": "endereco"
+},
+"Rua Pedro Peres, Nº 375|Rio Branco|São Leopoldo": {
+"lat": -29.770858,
+"lng": -51.13326,
+"precisao": "endereco"
+},
+"Rua Quinze de Janeiro, Nº 379|Centro|Canoas": {
+"lat": -29.920053,
+"lng": -51.180104,
+"precisao": "endereco"
+},
+"Rua Ramiro Barcelos, Nº 1374|Bom Fim|Porto Alegre": {
+"lat": -30.030939,
+"lng": -51.208363,
+"precisao": "endereco"
+},
+"Rua Santos Pedroso, Nº 307|Hamburgo Velho|Novo Hamburgo": {
+"lat": -29.678617,
+"lng": -51.118006,
+"precisao": "endereco"
+},
+"Rua Sarmento Leite, Nº 969|Cidade Baixa|Porto Alegre": {
+"lat": -30.037271,
+"lng": -51.223908,
+"precisao": "endereco"
+},
+"Rua Sete de setembro, Nº 65|Centro|Nova Santa Rita": {
+"lat": -29.858408,
+"lng": -51.278577,
+"precisao": "endereco"
+},
+"Rua Tenente Coronel Fabricio Pillar, Nº 822|Mont'Serrat|Porto Alegre": {
+"lat": -30.028687,
+"lng": -51.190591,
+"precisao": "bairro"
+},
+"Rua Tomé de Souza, Nº 157|Nossa Senhora das Graças|Canoas": {
+"lat": -29.933618,
+"lng": -51.1739,
+"precisao": "endereco"
+},
+"Rua Venâncio Aires, Nº 3203, Sala 01|Niterói|Canoas": {
+"lat": -29.928995,
+"lng": -51.176015,
+"precisao": "endereco"
+},
+"Rua Venâncio Aires, Nº 3320|Niterói|Canoas": {
+"lat": -29.96186,
+"lng": -51.173846,
+"precisao": "endereco"
+},
+"Rua Vinte e Quatro de Agosto, Nº 2488|Parque Amador|Esteio": {
+"lat": -29.854273,
+"lng": -51.151738,
+"precisao": "endereco"
+},
+"Rua Vinte e Quatro de Agosto, Nº 677|Centro|Esteio": {
+"lat": -29.854273,
+"lng": -51.151738,
+"precisao": "endereco"
+},
+"Rua Vinte e Quatro de Outubro, Nº 1454, Pátio 24|Moinhos de Vento|Porto Alegre": {
+"lat": -30.02206,
+"lng": -51.194831,
+"precisao": "endereco"
+},
+"Rua Vinte e Quatro de Outubro, Nº 500|Fátima|Canoas": {
+"lat": -29.942108,
+"lng": -51.189175,
+"precisao": "endereco"
+},
+"Rua Xingu, Nº 556|Igara|Canoas": {
+"lat": -29.899612,
+"lng": -51.162489,
+"precisao": "endereco"
+},
+"Rua das Petúnias, Nº 132|Estância Velha|Canoas": {
+"lat": -29.92495,
+"lng": -51.151645,
+"precisao": "endereco"
+}
+}

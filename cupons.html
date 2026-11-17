@@ -332,6 +332,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .outros li .dif { color: var(--p-canoas); font-weight: 600; }
 .outros > summary .sug { display: block; margin: 3px 0 0 1em; font-weight: 500; color: var(--ok); }
 .resultbar .grupo-sair { white-space: nowrap; }
+.perto-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.perto-ctl select {
+  height: 34px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+  padding: 0 10px; font-size: 13.5px; color: var(--ink); max-width: 100%;
+}
+.perto-ctl select.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.fchip:disabled { opacity: .5; cursor: default; }
+.loc .dist { color: var(--ink); font-weight: 600; }
 .hor { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
 .hor td, .hor th { padding: 2px 0; vertical-align: top; }
 .hor th { text-align: left; font-weight: inherit; }
@@ -458,6 +466,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
           <option value="categoria">Por categoria</option>
           <option value="programa">Por programa</option>
           <option value="recentes">Usados por último</option>
+          <option value="perto">Mais perto</option>
         </select>
       </label>
     </div>
@@ -519,6 +528,15 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     <h2 id="f-bairro-h">Região (bairro)</h2>
     <div class="fchips" id="f-bairro" role="group" aria-labelledby="f-bairro-h"></div>
     <p class="fnote">Com uma cidade marcada, mostra só os bairros dela. Só conta os cupons com endereço cadastrado.</p>
+  </div>
+  <div class="fgroup">
+    <h2 id="f-perto-h">Perto de</h2>
+    <div class="perto-ctl">
+      <button type="button" class="fchip" id="perto-gps" aria-pressed="false">Minha localização</button>
+      <select id="perto-bairro" aria-label="Perto de um bairro"><option value="">Ou escolha um bairro…</option></select>
+    </div>
+    <div class="fchips" id="f-raio" role="group" aria-label="Distância máxima"></div>
+    <p class="fnote" id="perto-nota"></p>
   </div>
   <div class="filters-foot"><button type="button" class="linkbtn" id="filters-clear">Limpar filtros</button></div>
 </section>
@@ -607,6 +625,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
     quando: null, data: null, cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
+    geo: null, geoFalhou: false, // coordenadas das unidades (geo.json, gerado por scripts/geocodificar.py)
+    perto: null, // ponto de partida: { lat, lng, rotulo, tipo: "gps" | "bairro", chave }
+    pertoPendente: null, // bairro salvo nas preferências, aplicado quando geo.json chegar
+    raio: null, // distância máxima em km
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
   };
@@ -630,6 +652,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       state.bairros = new Set(p.bairros || []);
       state.tipos = new Set(p.tipos || []);
       state.comods = new Set(p.comods || []);
+      if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
+      if ([1, 2, 5, 10].includes(p.raio)) state.raio = p.raio;
     }
   } catch (_) {}
   function savePrefs() {
@@ -637,6 +661,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
+        pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -783,6 +808,47 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     });
   }
 
+  /* ---------- perto de mim ----------
+     geo.json: "<endereco>|<bairro>|<cidade>" -> { lat, lng, precisao: endereco | rua | bairro }.
+     Distância em linha reta até a unidade mais perto do ponto de partida. */
+  const chaveGeo = (u) => `${u.endereco || ""}|${u.bairro || ""}|${u.cidade || ""}`;
+  const coordsDe = (c) => (state.geo ? unidadesDe(c).map((u) => state.geo[chaveGeo(u)]).filter(Boolean) : []);
+  function kmEntre(a, b) {
+    const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  }
+  let _dist = { ref: null, geo: null, mapa: new Map() };
+  function distDe(c) { // { km, aprox } da unidade mais perto, ou null
+    if (!state.perto || !state.geo) return null;
+    if (_dist.ref !== state.perto || _dist.geo !== state.geo) _dist = { ref: state.perto, geo: state.geo, mapa: new Map() };
+    if (_dist.mapa.has(c.id)) return _dist.mapa.get(c.id);
+    let best = null;
+    for (const g of coordsDe(c)) { const km = kmEntre(state.perto, g); if (!best || km < best.km) best = { km, aprox: g.precisao === "bairro" }; }
+    _dist.mapa.set(c.id, best);
+    return best;
+  }
+  const fmtKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} m` : `${km.toLocaleString("pt-BR", { maximumFractionDigits: km < 10 ? 1 : 0 })} km`);
+  const falaKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} metros` : `${km.toLocaleString("pt-BR", { maximumFractionDigits: km < 10 ? 1 : 0 })} quilômetros`);
+  let _bairrosRef = { geo: null, n: -1, mapa: new Map() };
+  function bairrosRef() { // "cidade|bairro" -> { lat, lng, bairro, cidade }: média das unidades com endereço no bairro
+    if (_bairrosRef.geo === state.geo && _bairrosRef.n === state.cupons.length) return _bairrosRef.mapa;
+    const soma = new Map();
+    for (const c of state.cupons) for (const u of unidadesDe(c)) {
+      const g = state.geo?.[chaveGeo(u)];
+      if (!g || !u.bairro || !u.cidade) continue;
+      const k = `${u.cidade}|${u.bairro}`;
+      const a = soma.get(k) || { lat: 0, lng: 0, n: 0, bairro: u.bairro, cidade: u.cidade, pesoBairro: 0 };
+      // o centro do bairro (precisão "bairro") só entra quando o bairro não tem endereço exato
+      const w = g.precisao === "bairro" ? 0.001 : 1;
+      a.lat += g.lat * w; a.lng += g.lng * w; a.n += w;
+      soma.set(k, a);
+    }
+    const mapa = new Map([...soma].map(([k, a]) => [k, { lat: a.lat / a.n, lng: a.lng / a.n, bairro: a.bairro, cidade: a.cidade }]));
+    _bairrosRef = { geo: state.geo, n: state.cupons.length, mapa };
+    return mapa;
+  }
+
   /* ---------- derivações ---------- */
   function matchesSearch(c, words) {
     if (!words.length) return true;
@@ -809,6 +875,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (state.quando === "feriados" && (c.feriados !== true || planoVencido(c, today()))) return false;
     }
     if (skip !== "data" && state.data && !valeEm(c, state.data)?.ok) return false;
+    if (skip !== "raio" && state.raio && state.perto) { const d = distDe(c); if (!d || d.km > state.raio) return false; }
     if (skip !== "cidade" && state.cidades.size && !cidadesDe(c).some((x) => state.cidades.has(x))) return false;
     if (skip !== "dia" && state.dias.size && ![...state.dias].some((d) => horDe(c)[d])) return false;
     if (skip !== "bairro" && state.bairros.size && !bairroKeys(c).some((k) => state.bairros.has(k))) return false;
@@ -829,10 +896,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       categoria: (a, b) => collator.compare(a.categoria || "", b.categoria || "") || collator.compare(a.nome, b.nome),
       programa: byApp,
       recentes: (a, b) => String(b.usadoEm || "").localeCompare(String(a.usadoEm || "")) || byApp(a, b),
+      // sem endereço vai para o fim
+      perto: state.perto ? (a, b) => (distDe(a)?.km ?? 1e9) - (distDe(b)?.km ?? 1e9) || byApp(a, b) : byApp,
     }[state.sort] || byApp;
     return list.sort(cmp);
   }
-  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
+  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + (state.raio && state.perto ? 1 : 0) + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
@@ -865,7 +934,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const locTxt = outras.length
       ? [listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean).join(" · ")
       : u ? [u.bairro, u.cidade].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
-    const loc = locTxt ? `<p class="loc">${esc(locTxt)}</p>` : "";
+    const dist = distDe(c);
+    const distHtml = dist ? `<span class="dist">${duplo(`${dist.aprox ? "≈ " : ""}${fmtKm(dist.km)}`, `A ${dist.aprox ? "cerca de " : ""}${falaKm(dist.km)} de ${state.perto.rotulo}${outras.length ? ", na unidade mais perto" : ""}.`)}</span>` : "";
+    const loc = locTxt || distHtml ? `<p class="loc">${distHtml}${distHtml && locTxt ? '<span aria-hidden="true"> · </span>' : ""}${esc(locTxt)}</p>` : "";
     const q = encodeURIComponent(u?.endereco
       ? [u.endereco.replace(/\s*\(.*?\)/g, ""), u.bairro, u.cidade, "RS"].filter(Boolean).join(", ")
       : `${String(c.nome).replace(/…/g, "")} ${prog?.cidade || "RS"}`);
@@ -1034,6 +1105,28 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     el.hidden = !linhas.length;
   }
 
+  function renderPerto(count) {
+    const sel = $("perto-bairro"), refs = bairrosRef();
+    if (sel.dataset.n !== String(refs.size)) { // monta a lista só quando muda
+      const porCidade = new Map();
+      for (const [k, b] of refs) { if (!porCidade.has(b.cidade)) porCidade.set(b.cidade, []); porCidade.get(b.cidade).push([k, b]); }
+      sel.innerHTML = '<option value="">Ou escolha um bairro…</option>' + [...porCidade].sort(([a], [b]) => (a === "Porto Alegre" ? -1 : b === "Porto Alegre" ? 1 : collator.compare(a, b)))
+        .map(([cid, xs]) => `<optgroup label="${esc(cid)}">${xs.sort(([, a], [, b]) => collator.compare(a.bairro, b.bairro)).map(([k, b]) => `<option value="${esc(k)}">${esc(b.bairro)}</option>`).join("")}</optgroup>`).join("");
+      sel.dataset.n = String(refs.size);
+    }
+    sel.value = state.perto?.tipo === "bairro" ? state.perto.chave : "";
+    sel.classList.toggle("on", state.perto?.tipo === "bairro");
+    sel.disabled = !state.geo;
+    $("perto-gps").setAttribute("aria-pressed", String(state.perto?.tipo === "gps"));
+    $("perto-gps").disabled = !state.geo;
+    $("f-raio").innerHTML = [1, 2, 5, 10].map((r) => `<button type="button" class="fchip" data-raio="${r}" aria-pressed="${state.raio === r && !!state.perto}"${state.perto ? "" : " disabled"}>Até ${r} km <span class="n">${state.perto ? nCupons(count("raio", (c) => { const d = distDe(c); return !!d && d.km <= r; })) : ""}</span></button>`).join("");
+    $("perto-nota").textContent = !state.geo
+      ? (state.geoFalhou ? "As coordenadas dos endereços não carregaram nesta visualização." : "Carregando as coordenadas dos endereços…")
+      : state.perto
+      ? `Distâncias em linha reta a partir de ${state.perto.rotulo}, até a unidade mais perto de cada cupom. “≈” quer dizer que o endereço foi achado só pelo bairro. Cupons sem endereço ficam no fim da ordem “Mais perto” e fora do raio.`
+      : "Use sua localização ou escolha um bairro para ordenar do mais perto ao mais longe e filtrar pela distância.";
+  }
+
   function renderControls() {
     $("status").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.status === state.status)));
     $("fav-toggle").setAttribute("aria-pressed", String(state.fav));
@@ -1066,6 +1159,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const t = today();
     // "Vale agora" e Data se excluem (tocar num desliga o outro): cada contagem ignora o filtro que vai sair
     const semFiltro = (campo, fn) => { const salvo = state[campo]; state[campo] = null; try { return fn(); } finally { state[campo] = salvo; } };
+    renderPerto(count);
     const quandoPred = { agora: valeAgora, feriados: (c) => c.feriados === true && !planoVencido(c, t) };
     $("f-quando").querySelectorAll("button").forEach((b) => {
       b.setAttribute("aria-pressed", String(state.quando === b.dataset.quando));
@@ -1176,9 +1270,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const gc = state.grupo && state.cupons.find((x) => x.id === state.grupo);
     rc.innerHTML = gc
       ? `<b>${list.length}</b> cupons de ${esc(gc.nome)} e do mesmo lugar nos outros programas, com os usados`
-      : anyNarrowing()
+      : (anyNarrowing()
       ? `<b>${list.length}</b> de ${base} cupons ${statusTxt}`
-      : `<b>${list.length}</b> cupons ${statusTxt}`;
+      : `<b>${list.length}</b> cupons ${statusTxt}`) + (state.sort === "perto" && state.perto ? `, do mais perto ao mais longe de ${esc(state.perto.rotulo)}` : "");
     announce(rc.textContent);
 
     if (!list.length) {
@@ -1208,7 +1302,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
      Cada render recria botões com innerHTML. Sem isto, o foco do TalkBack cai no topo da página
      depois de cada filtro, favorito ou "usado". Guardamos uma descrição do elemento focado e
      devolvemos o foco ao equivalente recriado. */
-  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
+  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-raio", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
   let focoPendente = null; // lista de seletores; o primeiro que existir recebe o foco
   function descreveFoco() {
     const el = document.activeElement;
@@ -1242,7 +1336,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }, 700);
   }
 
+  // bairro salvo da última visita: só dá para aplicar quando as coordenadas e os cupons já chegaram
+  function aplicaPertoPendente() {
+    if (!state.pertoPendente || state.perto || !state.geo || !state.cupons.length) return;
+    const b = bairrosRef().get(state.pertoPendente);
+    if (b) state.perto = { lat: b.lat, lng: b.lng, rotulo: `${b.bairro} (${b.cidade})`, tipo: "bairro", chave: state.pertoPendente };
+    state.pertoPendente = null;
+  }
+
   function render() {
+    aplicaPertoPendente();
     const sels = focoPendente || descreveFoco();
     renderHeader();
     renderControls();
@@ -1364,7 +1467,55 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   });
   $("fav-toggle").addEventListener("click", () => { state.fav = !state.fav; savePrefs(); render(); });
   $("filters-toggle").addEventListener("click", () => { state.filtersOpen = !state.filtersOpen; render(); });
-  $("sort").addEventListener("change", (e) => { state.sort = e.target.value; savePrefs(); render(); });
+  $("sort").addEventListener("change", (e) => {
+    state.sort = e.target.value;
+    savePrefs(); render();
+    if (state.sort === "perto" && !state.perto) pedeLocalizacao();
+  });
+  function falhaLocalizacao(msg) {
+    state.filtersOpen = true;
+    render();
+    toast(`${msg} Escolha um bairro em Filtros, no grupo Perto de.`);
+    $("perto-bairro").scrollIntoView({ block: "center" });
+    $("perto-bairro").focus();
+  }
+  function pedeLocalizacao() {
+    if (!navigator.geolocation) { falhaLocalizacao("Este navegador não informa a localização."); return; }
+    toast("Buscando sua localização…");
+    navigator.geolocation.getCurrentPosition((pos) => {
+      state.perto = { lat: pos.coords.latitude, lng: pos.coords.longitude, rotulo: "você", tipo: "gps" };
+      state.pertoPendente = null;
+      state.sort = "perto";
+      savePrefs(); render();
+      toast("Cupons em ordem do mais perto para o mais longe de você.");
+    }, (err) => {
+      falhaLocalizacao(err && err.code === 1 ? "A localização foi negada ou não é permitida nesta visualização." : "Não foi possível obter sua localização.");
+    }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
+  }
+  $("perto-gps").addEventListener("click", () => {
+    if (state.perto?.tipo === "gps") { state.perto = null; if (state.sort === "perto") state.sort = "app"; savePrefs(); render(); return; }
+    pedeLocalizacao();
+  });
+  $("perto-bairro").addEventListener("change", (e) => {
+    const k = e.target.value, b = bairrosRef().get(k);
+    if (!b) { state.perto = null; state.pertoPendente = null; if (state.sort === "perto") state.sort = "app"; }
+    else { state.perto = { lat: b.lat, lng: b.lng, rotulo: `${b.bairro} (${b.cidade})`, tipo: "bairro", chave: k }; state.sort = "perto"; }
+    savePrefs(); render();
+  });
+  $("f-raio").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-raio]"); if (!b || b.disabled) return;
+    const r = Number(b.dataset.raio);
+    state.raio = state.raio === r ? null : r;
+    savePrefs(); render();
+  });
+  async function carregaGeo() {
+    try {
+      const r = await fetch("geo.json", { cache: "no-cache" });
+      if (!r.ok) throw new Error(String(r.status));
+      state.geo = await r.json();
+    } catch (_) { state.geoFalhou = true; }
+    render();
+  }
   $("programs").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-prog]"); if (!b || b.disabled) return;
     const id = b.dataset.prog;
@@ -1434,7 +1585,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (d.dataset.outros) id = "outros:" + id;
     d.open ? state.abertos.add(id) : state.abertos.delete(id);
   }, true);
-  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
+  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.raio = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
   function clearAll() { clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; savePrefs(); render(); }
   $("filters-clear").addEventListener("click", () => { clearFilters(); savePrefs(); render(); });
   $("result-clear").addEventListener("click", clearAll);
@@ -1497,5 +1648,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   render();
   boot();
+  carregaGeo();
 })();
 </script>
