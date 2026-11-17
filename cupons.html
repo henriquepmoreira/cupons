@@ -247,9 +247,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   background: var(--surface); border-radius: var(--r-ticket); box-shadow: var(--shadow);
   min-height: 168px;
 }
-/* cartões fora da tela não são diagramados nem pintados (577 cartões pesam no celular);
-   o tamanho estimado mantém a barra de rolagem estável */
-.ticket { content-visibility: auto; contain-intrinsic-size: auto 240px; }
+/* Sem content-visibility nos cartões: no Chrome, cartões fora da tela ficam vazios na árvore de
+   acessibilidade (o TalkBack veria a lista acabar na tela atual). Conferido em 17/11/2026. */
 .ticket::before, .ticket::after {
   content: ""; position: absolute; left: 74px; width: 16px; height: 16px; border-radius: 50%;
   background: var(--bg); translate: -50% 0; z-index: 1;
