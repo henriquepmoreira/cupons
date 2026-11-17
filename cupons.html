@@ -334,6 +334,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .outros li .dif { color: var(--p-canoas); font-weight: 600; }
 .outros > summary .sug { display: block; margin: 3px 0 0 1em; font-weight: 500; color: var(--ok); }
 .resultbar .grupo-sair { white-space: nowrap; }
+.mais { display: flex; justify-content: center; margin: -28px 0 48px; }
+.mais .usebtn { height: 44px; padding: 0 18px; font-size: 14px; }
 .perto-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .perto-ctl select {
   height: 34px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
@@ -554,6 +556,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="grid" id="grid" role="region" aria-labelledby="lista-h" aria-busy="true">
     <div class="ghost"></div><div class="ghost"></div><div class="ghost"></div>
   </div>
+  <div class="mais" id="mais" hidden><button type="button" class="usebtn" id="mais-btn"></button></div>
   <p class="sr-only" id="sr-status" role="status" aria-live="polite" aria-atomic="true"></p>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-msg"></span><button type="button" id="toast-undo" hidden>Desfazer</button></div>
 </main>
@@ -631,6 +634,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     perto: null, // ponto de partida: { lat, lng, rotulo, tipo: "gps" | "bairro", chave }
     pertoPendente: null, // bairro salvo nas preferências, aplicado quando geo.json chegar
     raio: null, // distância máxima em km
+    limite: 40, // quantos cartões aparecem (lotes de LOTE); volta ao primeiro lote quando a lista muda
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
   };
@@ -670,6 +674,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   }
 
   /* ---------- utilidades ---------- */
+  /* Escritas no DOM só quando o valor muda: cada troca de nó ou atributo vira um evento que o Chrome
+     manda ao leitor de tela (TalkBack), e um botão trocado por outro igual é anunciado de novo. */
+  function htmlDe(el) {
+    return {
+      set innerHTML(v) { if (el.__h !== v) { el.innerHTML = v; el.__h = v; } },
+      set textContent(v) { v = String(v); el.__h = undefined; if (el.textContent !== v) el.textContent = v; },
+    };
+  }
+  const setAttr = (el, nome, v) => { v = String(v); if (el.getAttribute(nome) !== v) el.setAttribute(nome, v); };
+  const setHidden = (el, v) => { if (el.hidden !== !!v) el.hidden = !!v; };
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   // sem acento, minúsculas; "burguer" e "burger" contam como a mesma palavra
@@ -960,16 +974,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
       const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`
         : v === false ? `<span class="nao"><span aria-hidden="true">✗ </span><span class="sr-only">Não vale em </span>${nome}</span>` : "";
-      det = `<details class="det"${state.abertos.has(c.id) ? " open" : ""}>
+      // o conteúdo só entra na página com o painel aberto (corta perto de metade dos nós de cada cartão)
+      const aberto = state.abertos.has(c.id);
+      det = `<details class="det"${aberto ? " open" : ""}>
       <summary>Regras, horários e endereço<span class="sr-only"> de ${esc(c.nome)}</span></summary>
-      <div class="det-body">
+      <div class="det-body">${!aberto ? "" : `
         ${c.regras ? `<div><h4>Regras do estabelecimento</h4><p class="rg">${esc(c.regras)}</p></div>` : ""}
         ${outras.length ? blocoUnidades : temH(c.horarios) ? `<div><h4>Dias e horários</h4>${tabela(c.horarios, "Dias e horários em que o cupom vale")}</div>` : ""}
         ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
         ${!outras.length && u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
         ${(c.categoriasApp || []).length ? `<div><h4>Categoria no app</h4><p>${esc(c.categoriasApp.join(" · "))}</p></div>` : ""}
         ${(c.comodidades || []).length ? `<div><h4 class="sr-only">Comodidades</h4><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
-      </div>
+      `}</div>
     </details>`;
     }
     const hid = `t-${String(c.id).replace(/[^\w-]/g, "")}`;
@@ -1040,7 +1056,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const vis = resumo.map((r) => `${r.nome} (${r.st})`).join(" · ") + (algumDif ? " · ofertas diferentes" : "");
     const fala = `Também em ${listaE(resumo.map((r) => `${r.nome}, ${r.st}`))}${algumDif ? ", com ofertas diferentes" : ""}`;
     const sug = sugestaoUso(c, outros);
-    const itens = [...outros].sort((a, b) => PROG[a.programa].i - PROG[b.programa].i || (a.ordem ?? 999) - (b.ordem ?? 999)).map((x) => {
+    const abertoOutros = state.abertos.has("outros:" + c.id);
+    const itens = !abertoOutros ? "" : [...outros].sort((a, b) => PROG[a.programa].i - PROG[b.programa].i || (a.ordem ?? 999) - (b.ordem ?? 999)).map((x) => {
       const oferta = x.item ? `Na compra de ${x.item} ganhe ${GANHE_TXT[x.ganhe] || "outro igual"}.` : (x.pendente || "Oferta não cadastrada.");
       const st = x.usado ? `<span class="st-usado">usado${x.usadoEm ? ` em ${esc(fmtDate(x.usadoEm))}` : ""}</span>` : "disponível";
       return `<li><span><span class="pdot ${PROG[x.programa].cls}" aria-hidden="true"></span><b>${esc(x.nome)}</b><span class="sr-only">,</span> · ${esc(PROG[x.programa].nome)}</span>
@@ -1048,10 +1065,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <span class="mini">${mesmaOferta(x, c) ? "Mesma oferta: " : '<span class="dif">Oferta diferente:</span> '}${esc(oferta)}</span></li>`;
     }).join("");
     const total = outros.length + 1;
-    return `<details class="det outros"${state.abertos.has("outros:" + c.id) ? " open" : ""} data-outros="${esc(c.id)}">
+    return `<details class="det outros"${abertoOutros ? " open" : ""} data-outros="${esc(c.id)}">
       <summary>${duplo(`Também em ${vis}`, fala)}${sug ? `<span class="sug">${esc(sug.vis)}</span>` : ""}</summary>
-      <div class="det-body"><ul>${itens}</ul>
-      ${state.grupo ? "" : `<button type="button" class="linkbtn" data-act="grupo">Ver os ${total} juntos<span class="sr-only">: ${esc(c.nome)} em todos os programas</span></button>`}</div>
+      <div class="det-body">${!abertoOutros ? "" : `<ul>${itens}</ul>
+      ${state.grupo ? "" : `<button type="button" class="linkbtn" data-act="grupo">Ver os ${total} juntos<span class="sr-only">: ${esc(c.nome)} em todos os programas</span></button>`}`}</div>
     </details>`;
   }
 
@@ -1059,9 +1076,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const all = state.cupons;
     const disp = all.filter((c) => !c.usado);
     const ready = state.phase === "ready";
-    $("st-disp").textContent = ready ? disp.length : "–";
-    $("st-fav").textContent = ready ? disp.filter((c) => c.favorito).length : "–";
-    $("st-used").textContent = ready ? all.length - disp.length : "–";
+    htmlDe($("st-disp")).textContent = ready ? disp.length : "–";
+    htmlDe($("st-fav")).textContent = ready ? disp.filter((c) => c.favorito).length : "–";
+    htmlDe($("st-used")).textContent = ready ? all.length - disp.length : "–";
 
     const words = norm(state.q).split(/\s+/).filter(Boolean);
     const counts = {};
@@ -1069,7 +1086,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const totals = {};
     for (const c of all) totals[c.programa] = (totals[c.programa] || 0) + 1;
     renderPlanos(ready, disp);
-    $("programs").innerHTML = PROGRAMAS.map((p) => {
+    htmlDe($("programs")).innerHTML = PROGRAMAS.map((p) => {
       const has = (totals[p.id] || 0) > 0;
       const n = has ? nCupons(counts[p.id] || 0) : "em breve";
       return `<button type="button" class="prog-pill ${p.cls}" data-prog="${p.id}" aria-pressed="${state.programas.has(p.id)}"${has ? "" : " disabled"}>${esc(p.nome)} <span class="n">${n}</span></button>`;
@@ -1078,7 +1095,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   function renderPlanos(ready, disp) {
     const el = $("planos");
-    if (!ready || !state.cupons.length) { el.hidden = true; return; }
+    if (!ready || !state.cupons.length) { setHidden(el, true); return; }
     const t = today();
     const nf = (n) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
     const pl = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
@@ -1108,8 +1125,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const efeito = bloq ? `: ${pl(bloq, "cupom disponível não vale", "cupons disponíveis não valem")} ${i === 0 ? "hoje" : "nesse dia"}` : "";
       linhas.push(`<p class="alerta">${esc(quando)} é ${esc(oque)}${efeito}.</p>`);
     }
-    el.innerHTML = linhas.join("");
-    el.hidden = !linhas.length;
+    htmlDe(el).innerHTML = linhas.join("");
+    setHidden(el, !linhas.length);
   }
 
   function renderPerto(count) {
@@ -1117,17 +1134,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (sel.dataset.n !== String(refs.size)) { // monta a lista só quando muda
       const porCidade = new Map();
       for (const [k, b] of refs) { if (!porCidade.has(b.cidade)) porCidade.set(b.cidade, []); porCidade.get(b.cidade).push([k, b]); }
-      sel.innerHTML = '<option value="">Ou escolha um bairro…</option>' + [...porCidade].sort(([a], [b]) => (a === "Porto Alegre" ? -1 : b === "Porto Alegre" ? 1 : collator.compare(a, b)))
+      htmlDe(sel).innerHTML = '<option value="">Ou escolha um bairro…</option>' + [...porCidade].sort(([a], [b]) => (a === "Porto Alegre" ? -1 : b === "Porto Alegre" ? 1 : collator.compare(a, b)))
         .map(([cid, xs]) => `<optgroup label="${esc(cid)}">${xs.sort(([, a], [, b]) => collator.compare(a.bairro, b.bairro)).map(([k, b]) => `<option value="${esc(k)}">${esc(b.bairro)}</option>`).join("")}</optgroup>`).join("");
       sel.dataset.n = String(refs.size);
     }
     sel.value = state.perto?.tipo === "bairro" ? state.perto.chave : "";
     sel.classList.toggle("on", state.perto?.tipo === "bairro");
     sel.disabled = !state.geo;
-    $("perto-gps").setAttribute("aria-pressed", String(state.perto?.tipo === "gps"));
+    setAttr($("perto-gps"), "aria-pressed", String(state.perto?.tipo === "gps"));
     $("perto-gps").disabled = !state.geo;
-    $("f-raio").innerHTML = [1, 2, 5, 10].map((r) => `<button type="button" class="fchip" data-raio="${r}" aria-pressed="${state.raio === r && !!state.perto}"${state.perto ? "" : " disabled"}>Até ${r} km <span class="n">${state.perto ? nCupons(count("raio", (c) => { const d = distDe(c); return !!d && d.km <= r; })) : ""}</span></button>`).join("");
-    $("perto-nota").textContent = !state.geo
+    htmlDe($("f-raio")).innerHTML = [1, 2, 5, 10].map((r) => `<button type="button" class="fchip" data-raio="${r}" aria-pressed="${state.raio === r && !!state.perto}"${state.perto ? "" : " disabled"}>Até ${r} km <span class="n">${state.perto ? nCupons(count("raio", (c) => { const d = distDe(c); return !!d && d.km <= r; })) : ""}</span></button>`).join("");
+    htmlDe($("perto-nota")).textContent = !state.geo
       ? (state.geoFalhou ? "As coordenadas dos endereços não carregaram nesta visualização." : "Carregando as coordenadas dos endereços…")
       : state.perto
       ? `Distâncias em linha reta a partir de ${state.perto.rotulo}, até a unidade mais perto de cada cupom. “≈” quer dizer que o endereço foi achado só pelo bairro. Cupons sem endereço ficam no fim da ordem “Mais perto” e fora do raio.`
@@ -1135,17 +1152,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   }
 
   function renderControls() {
-    $("status").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.status === state.status)));
-    $("fav-toggle").setAttribute("aria-pressed", String(state.fav));
-    $("agora-toggle").setAttribute("aria-pressed", String(state.quando === "agora"));
+    $("status").querySelectorAll("button").forEach((b) => setAttr(b, "aria-pressed", String(b.dataset.status === state.status)));
+    setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
+    setAttr($("agora-toggle"), "aria-pressed", String(state.quando === "agora"));
     $("sort").value = state.sort;
-    $("filters").hidden = !state.filtersOpen;
-    $("filters-toggle").setAttribute("aria-expanded", String(state.filtersOpen));
+    setHidden($("filters"), !state.filtersOpen);
+    setAttr($("filters-toggle"), "aria-expanded", String(state.filtersOpen));
     const n = activeFilterCount();
-    $("filters-badge").hidden = n === 0;
-    $("filters-badge").innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
-    $("q-clear").hidden = !state.q;
-    for (const b of document.querySelectorAll("[data-atalho]")) b.setAttribute("aria-pressed", String(state.comods.has(b.dataset.atalho)));
+    setHidden($("filters-badge"), n === 0);
+    htmlDe($("filters-badge")).innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
+    setHidden($("q-clear"), !state.q);
+    for (const b of document.querySelectorAll("[data-atalho]")) setAttr(b, "aria-pressed", String(state.comods.has(b.dataset.atalho)));
     // o resto do painel (chips e contagens) só é montado com Filtros aberto: são dezenas de passadas pelos cupons
     if (!state.filtersOpen) return;
 
@@ -1154,17 +1171,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const catCount = {};
     for (const c of state.cupons) if (passes(c, "categoria") && matchesSearch(c, words)) catCount[c.categoria] = (catCount[c.categoria] || 0) + 1;
     const cats = [...new Set(state.cupons.map((c) => c.categoria).filter(Boolean))].sort(collator.compare);
-    $("f-cat").innerHTML = cats.length
+    htmlDe($("f-cat")).innerHTML = cats.length
       ? cats.map((cat) => `<button type="button" class="fchip cat ${CAT_CLS[cat] || ""}" data-cat="${esc(cat)}" aria-pressed="${state.categorias.has(cat)}">${esc(cat)} <span class="n">${nCupons(catCount[cat] || 0)}</span></button>`).join("")
       : '<span class="n">Nenhuma categoria ainda.</span>';
     const count = (skip, pred) => state.cupons.filter((c) => passes(c, skip) && matchesSearch(c, words) && pred(c)).length;
     $("f-ganhe").querySelectorAll("button").forEach((b) => {
-      b.setAttribute("aria-pressed", String(state.ganhe === b.dataset.ganhe));
-      b.querySelector(".n").innerHTML = nCupons(count("ganhe", (c) => c.ganhe === b.dataset.ganhe));
+      setAttr(b, "aria-pressed", String(state.ganhe === b.dataset.ganhe));
+      htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("ganhe", (c) => c.ganhe === b.dataset.ganhe));
     });
     $("f-regras").querySelectorAll("button").forEach((b) => {
-      b.setAttribute("aria-pressed", String(state.regras === b.dataset.regras));
-      b.querySelector(".n").innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
+      setAttr(b, "aria-pressed", String(state.regras === b.dataset.regras));
+      htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
     });
     const t = today();
     // "Vale agora" e Data se excluem (tocar num desliga o outro): cada contagem ignora o filtro que vai sair
@@ -1172,18 +1189,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     renderPerto(count);
     const quandoPred = { agora: valeAgora, feriados: (c) => c.feriados === true && !planoVencido(c, t) };
     $("f-quando").querySelectorAll("button").forEach((b) => {
-      b.setAttribute("aria-pressed", String(state.quando === b.dataset.quando));
+      setAttr(b, "aria-pressed", String(state.quando === b.dataset.quando));
       const fn = () => count("quando", quandoPred[b.dataset.quando]);
-      b.querySelector(".n").innerHTML = nCupons(b.dataset.quando === "agora" ? semFiltro("data", fn) : fn());
+      htmlDe(b.querySelector(".n")).innerHTML = nCupons(b.dataset.quando === "agora" ? semFiltro("data", fn) : fn());
     });
     const cidCount = {};
     for (const c of state.cupons) if (passes(c, "cidade") && matchesSearch(c, words)) for (const cid of cidadesDe(c)) cidCount[cid] = (cidCount[cid] || 0) + 1;
     const cidades = [...new Set(state.cupons.flatMap(cidadesDe))].sort(collator.compare);
-    $("f-cidade").innerHTML = cidades.length
+    htmlDe($("f-cidade")).innerHTML = cidades.length
       ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${nCupons(cidCount[cid] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
     // datas: hoje e os próximos 6 dias, marcando feriados e datas comemorativas
-    $("f-data").innerHTML = Array.from({ length: 7 }, (_, i) => addDays(t, i)).map((iso) => {
+    htmlDe($("f-data")).innerHTML = Array.from({ length: 7 }, (_, i) => addDays(t, i)).map((iso) => {
       const f = FERIADOS[iso], dc = DATAS_COMEMORATIVAS[iso];
       const vis = rotuloDia(iso) + (f ? ` · feriado${f.onde ? ` em ${f.onde.join(", ")}` : ""}` : dc ? ` · ${dc}` : "");
       const fala = falaDia(iso).replace(/^./, (x) => x.toUpperCase()) + (f ? `, feriado: ${f.nome}${f.onde ? `, só em ${listaE(f.onde)}` : ""}` : dc ? `, ${dc}` : "");
@@ -1191,7 +1208,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }).join("");
     // dias da semana, na ordem do app (domingo primeiro)
     const hk = hojeKey();
-    $("f-dia").innerHTML = DIAS.map((d) => {
+    htmlDe($("f-dia")).innerHTML = DIAS.map((d) => {
       const n = count("dia", (c) => !!horDe(c)[d]);
       return `<button type="button" class="fchip" data-dia="${d}" aria-pressed="${state.dias.has(d)}">${duplo(DIAS_CURTO[d], DIAS_NOME[d] + (d === hk ? ", hoje" : ""))} <span class="n">${nCupons(n)}</span></button>`;
     }).join("");
@@ -1208,13 +1225,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const bairros = Object.keys(bInfo)
       .filter((k) => !state.cidades.size || state.cidades.has(bInfo[k].cidade) || state.bairros.has(k))
       .sort((a, b) => collator.compare(bInfo[a].bairro, bInfo[b].bairro) || collator.compare(bInfo[a].cidade || "", bInfo[b].cidade || ""));
-    $("f-bairro").innerHTML = bairros.length
+    htmlDe($("f-bairro")).innerHTML = bairros.length
       ? bairros.map((k) => `<button type="button" class="fchip" data-bairro="${esc(k)}" aria-pressed="${state.bairros.has(k)}">${esc(bInfo[k].bairro)}${bInfo[k].cidade ? ` <span class="cid"><span class="sr-only">, </span>${esc(bInfo[k].cidade)}</span>` : ""} <span class="n">${nCupons(bCount[k] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
     const tipoCount = {};
     for (const c of state.cupons) if (passes(c, "tipo") && matchesSearch(c, words)) for (const t of c.categoriasApp || []) tipoCount[t] = (tipoCount[t] || 0) + 1;
     const tipos = [...new Set(state.cupons.flatMap((c) => c.categoriasApp || []))].sort(collator.compare);
-    $("f-tipo").innerHTML = tipos.length
+    htmlDe($("f-tipo")).innerHTML = tipos.length
       ? tipos.map((t) => `<button type="button" class="fchip" data-tipo="${esc(t)}" aria-pressed="${state.tipos.has(t)}">${esc(t)} <span class="n">${nCupons(tipoCount[t] || 0)}</span></button>`).join("")
       : '<span class="fnote">Nenhuma categoria do app cadastrada ainda.</span>';
     const comodCount = {};
@@ -1224,7 +1241,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     for (const c of state.cupons) for (const t of comodSet(c)) (comodProgs[t] ||= new Set()).add(c.programa);
     const progsComCupom = PROGRAMAS.filter((p) => state.cupons.some((c) => c.programa === p.id));
     const comods = [...new Set(state.cupons.flatMap((c) => [...comodSet(c)]))].sort((a, b) => pos(a) - pos(b) || collator.compare(a, b));
-    $("f-comod").innerHTML = comods.length
+    htmlDe($("f-comod")).innerHTML = comods.length
       ? comods.map((t) => {
         // programas em que o app informa essa comodidade; se não forem todos, o chip diz quais
         const ps = PROGRAMAS.filter((p) => comodProgs[t]?.has(p.id));
@@ -1241,14 +1258,24 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (state.phase === "ready" && state.copiaDe !== null) msg = `Cópia da carteira${state.copiaDe ? ` de ${fmtDate(state.copiaDe)}` : ""}, só para consulta. Favoritos e cupons usados podem ter mudado depois. Quem tem acesso à carteira vê a versão atualizada entrando no claude.ai antes de abrir o link.`;
     else if (state.phase === "ready" && state.slow) msg = "Sem resposta do servidor há alguns segundos. A lista pode estar desatualizada.";
     else if (state.phase === "ready" && state.readOnly) msg = "Você está vendo a carteira em modo leitura. Só a dona ou o dono pode favoritar e marcar cupons como usados.";
-    el.hidden = !msg;
-    el.textContent = msg;
+    setHidden(el, !msg);
+    htmlDe(el).textContent = msg;
   }
 
   /* Cartões reaproveitados: o HTML de cada cartão é gerado de novo, mas o elemento só é recriado quando
      esse HTML muda. Cartões que não mudaram continuam no lugar (mantêm foco e não refazem layout). */
   const _cartoes = new Map(); // "<nível do título>:<id>" -> { html, el }
   const _tpl = document.createElement("template");
+  /* Lotes: a página mostra 40 cartões por vez e um botão "Mostrar mais". Com os 577 de uma vez, a árvore
+     de acessibilidade passava de 30 mil nós, e o TalkBack no Chrome travava. Sem carregamento automático
+     ao rolar: cartões entrando acima do ponto em que o leitor está desorientam. */
+  const LOTE = 40;
+  let assinaturaLista = "";
+  function assinatura() { // o que define a lista; marcar como usado ou favoritar não muda o lote
+    return JSON.stringify([state.q.trim(), state.status, state.fav, state.sort, [...state.programas], [...state.categorias], state.ganhe,
+      state.regras, state.quando, state.data, [...state.cidades], [...state.tipos], [...state.comods], [...state.dias], [...state.bairros],
+      state.raio, state.perto ? [state.perto.lat, state.perto.lng] : null]);
+  }
   let gridDeCartoes = false; // a grade contém só cartões (ou grupos de cartões) montados abaixo
   function cartaoEl(c, hl = 3) {
     const k = `${hl}:${c.id}`, html = ticketHtml(c, hl);
@@ -1271,16 +1298,23 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }
   }
 
+  function renderMais(total, mostrados) {
+    const resta = total - mostrados;
+    setHidden($("mais"), !(state.phase === "ready" && resta > 0));
+    if (resta > 0) htmlDe($("mais-btn")).innerHTML = `Mostrar mais ${Math.min(LOTE, resta)}<span class="sr-only"> cupons</span> <span class="n">(${mostrados} de ${total})</span>`;
+  }
+
   function renderGrid() {
     const grid = $("grid");
     const rc = $("result-count");
-    $("result-clear").hidden = !(state.phase === "ready" && anyNarrowing()) || !!state.grupo;
-    $("grupo-sair").hidden = !(state.phase === "ready" && state.grupo);
+    setHidden($("result-clear"), !(state.phase === "ready" && anyNarrowing()) || !!state.grupo);
+    setHidden($("grupo-sair"), !(state.phase === "ready" && state.grupo));
 
-    grid.setAttribute("aria-busy", String(state.phase === "loading"));
+    setAttr(grid, "aria-busy", String(state.phase === "loading"));
     if (state.phase === "loading") {
-      rc.textContent = state.slow ? "Os cupons ainda não chegaram. Verifique a conexão." : "Carregando cupons…";
-      grid.className = "grid";
+      renderMais(0, 0);
+      htmlDe(rc).textContent = state.slow ? "Os cupons ainda não chegaram. Verifique a conexão." : "Carregando cupons…";
+      if (grid.className !== "grid") grid.className = "grid";
       gridDeCartoes = false;
       grid.innerHTML = state.slow
         ? `<div class="empty"><h3>Ainda carregando</h3><p>Os cupons ficam guardados na sua conta do claude.ai. Se a conexão estiver lenta, eles aparecem aqui assim que o servidor responder.</p></div>`
@@ -1288,25 +1322,32 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       return;
     }
     if (state.phase === "nodb" || state.phase === "error") {
-      rc.textContent = "Cupons indisponíveis nesta visualização";
-      grid.className = "grid";
+      renderMais(0, 0);
+      htmlDe(rc).textContent = "Cupons indisponíveis nesta visualização";
+      if (grid.className !== "grid") grid.className = "grid";
       gridDeCartoes = false;
       grid.innerHTML = `<div class="empty"><h3>Entre na sua conta</h3><p>Os cupons e as marcações de favorito ficam guardados no claude.ai. Abra esta página logado na sua conta para ver a carteira.</p></div>`;
       return;
     }
     if (!state.cupons.length) {
-      rc.textContent = "Nenhum cupom cadastrado";
-      grid.className = "grid";
+      renderMais(0, 0);
+      htmlDe(rc).textContent = "Nenhum cupom cadastrado";
+      if (grid.className !== "grid") grid.className = "grid";
       gridDeCartoes = false;
       grid.innerHTML = `<div class="empty"><h3>Carteira vazia</h3><p>Mande ao Claude os prints da aba Cupons do Poa em Dobro, Tour Grande Poa ou Canoas em Dobro e eles aparecem aqui.</p></div>`;
       return;
     }
 
     const list = visible();
+    const sig = assinatura();
+    if (sig !== assinaturaLista) { assinaturaLista = sig; state.limite = LOTE; }
+    // "Ver juntos" mostra o grupo inteiro (é pequeno); fora dele, só o lote
+    const shown = state.grupo ? list : list.slice(0, state.limite);
+    renderMais(list.length, shown.length);
     const statusTxt = { disponiveis: "disponíveis", usados: "usados", todos: "no total" }[state.status];
     const base = state.cupons.filter((c) => state.status === "todos" || (state.status === "usados" ? c.usado : !c.usado)).length;
     const gc = state.grupo && state.cupons.find((x) => x.id === state.grupo);
-    rc.innerHTML = gc
+    htmlDe(rc).innerHTML = gc
       ? `<b>${list.length}</b> cupons de ${esc(gc.nome)} e do mesmo lugar nos outros programas, com os usados`
       : (anyNarrowing()
       ? `<b>${list.length}</b> de ${base} cupons ${statusTxt}`
@@ -1314,7 +1355,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     announce(rc.textContent);
 
     if (!list.length) {
-      grid.className = "grid";
+      if (grid.className !== "grid") grid.className = "grid";
       const usedEmpty = state.status === "usados" && !anyNarrowing();
       gridDeCartoes = false;
       grid.innerHTML = usedEmpty
@@ -1326,8 +1367,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (state.sort === "categoria" || state.sort === "programa") {
       const key = state.sort === "categoria" ? (c) => c.categoria || "Sem categoria" : (c) => PROG[c.programa]?.nome || c.programa;
       const groups = new Map();
-      for (const c of list) { const k = key(c); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); }
-      grid.className = "grid grouped";
+      for (const c of shown) { const k = key(c); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); }
+      if (grid.className !== "grid grouped") grid.className = "grid grouped";
       if (!gridDeCartoes) grid.innerHTML = "";
       // seções reaproveitadas pelo nome do grupo; os cartões, pelo id
       const secoes = new Map([...grid.querySelectorAll(":scope > section.group")].map((sec) => [sec.dataset.grupo, sec]));
@@ -1343,9 +1384,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         return sec;
       }));
     } else {
-      grid.className = "grid";
+      if (grid.className !== "grid") grid.className = "grid";
       if (!gridDeCartoes) grid.innerHTML = "";
-      reconcilia(grid, list.map((c) => cartaoEl(c)));
+      reconcilia(grid, shown.map((c) => cartaoEl(c)));
     }
     gridDeCartoes = true;
   }
@@ -1636,6 +1677,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     let id = d.closest(".ticket")?.dataset.id; if (!id) return;
     if (d.dataset.outros) id = "outros:" + id;
     d.open ? state.abertos.add(id) : state.abertos.delete(id);
+    // ao abrir, monta o conteúdo no lugar (sem trocar o cartão, para o foco e o leitor de tela não pularem)
+    const corpo = d.querySelector(":scope > .det-body");
+    if (d.open && corpo && !corpo.childElementCount) {
+      const card = d.closest(".ticket"), c = state.cupons.find((x) => x.id === card.dataset.id); if (!c) return;
+      const hl = card.querySelector(".tname")?.tagName === "H4" ? 4 : 3;
+      const html = ticketHtml(c, hl);
+      _tpl.innerHTML = html;
+      const novo = _tpl.content.firstElementChild.querySelector(`details${d.dataset.outros ? ".outros" : ":not(.outros)"} > .det-body`);
+      if (novo) corpo.replaceWith(novo);
+      const e = _cartoes.get(`${hl}:${c.id}`);
+      if (e && e.el === card) e.html = html; // o cartão na tela agora é igual a este HTML
+    }
   }, true);
   function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.raio = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
   function clearAll() { clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; savePrefs(); render(); }
@@ -1691,12 +1744,27 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const id = state.grupo; state.grupo = null;
     if (foco) focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="grupo"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
   }
+  $("mais-btn").addEventListener("click", () => {
+    const antes = state.limite, lista = visible();
+    state.limite += LOTE;
+    // o foco vai para o primeiro cupom novo, para o leitor de tela continuar a lista dali
+    const prox = lista[antes];
+    focoPendente = prox ? [`.ticket[data-id="${CSS.escape(prox.id)}"] .tname`, "#mais-btn"] : ["#result-count"];
+    render();
+  });
   $("grupo-sair").addEventListener("click", () => { saiGrupo(true); render(); });
   for (const el of [$("programs"), document.querySelector(".toolbar"), $("filters")]) {
     el.addEventListener("click", (e) => { if (state.grupo && e.target.closest("button, select")) saiGrupo(false); }, true);
     el.addEventListener("change", () => saiGrupo(false), true);
   }
   $("q").addEventListener("input", () => saiGrupo(false), true);
+
+  // A barra de busca fica fixa no topo; sem isto, o item que recebe foco (teclado ou TalkBack) pode
+  // rolar para baixo dela e ficar escondido. A altura muda com a largura da tela (até três linhas no celular).
+  const barra = document.querySelector(".toolbar");
+  const ajustaRolagem = () => { document.documentElement.style.scrollPaddingTop = `${Math.ceil(barra.getBoundingClientRect().height) + 8}px`; };
+  if (window.ResizeObserver) new ResizeObserver(ajustaRolagem).observe(barra);
+  ajustaRolagem();
 
   render();
   boot();

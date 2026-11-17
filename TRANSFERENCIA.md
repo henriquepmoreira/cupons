@@ -38,6 +38,21 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 
 - **Conexão com o banco:** usa `window.claude.use("db")` e `collection("cupons").onSnapshot(...)`. Grava com `doc(id).update(patch)`: a tela muda na hora e o snapshot confirma depois. Há mensagens próprias para modo leitura, espaço de dados esgotado e falha de rede. Aberta fora do claude.ai, a página não tem banco e mostra um aviso.
 - **`PROGRAMAS` no JS:** cada programa tem id, nome, classe de cor, cidade padrão (Poa → Porto Alegre, Tour → RS, Canoas → Canoas) e `validade` (último dia do plano, `AAAA-MM-DD`, ou `null`). Um programa novo precisa de uma entrada aqui, além do arquivo de dados.
+- **Acessibilidade e TalkBack (17/11/2026).** O TalkBack no Chrome travava com a página aberta. Medido com CDP (`Accessibility.getFullAXTree`) e `MutationObserver`:
+
+  | | antes | depois |
+  |---|---|---|
+  | nós de acessibilidade | 32.928 | 2.377 |
+  | nós no DOM | 59.619 | 1.591 |
+  | favoritar: nós criados / removidos | 800 / 800 | 3 / 2 |
+  | favoritar, até a tela atualizar (CPU 4×) | ~1,7 s | ~35 ms |
+
+  - **Lotes de 40** (`LOTE`, `state.limite`, `#mais-btn`): o botão "Mostrar mais 40 (40 de 577)" põe o foco no primeiro cupom novo. Sem carregamento automático ao rolar (cartões entrando acima do ponto do leitor desorientam). O lote volta a 40 quando muda o que define a lista (`assinatura()`: busca, filtros, ordem, situação, ponto de partida); favoritar, marcar como usado, atualização do banco e "Ver juntos" (que mostra o grupo inteiro) mantêm o lote. Nas ordens agrupadas, o lote vale para a lista inteira.
+  - **Painéis montados ao abrir:** "Regras, horários e endereço" e "Também em…" ficam com `.det-body` vazio até serem abertos; o evento `toggle` monta o conteúdo no lugar (sem trocar o cartão) e atualiza o cache do cartão.
+  - **Escritas só quando mudam:** cabeçalho, controles, aviso e barra de resultado usam `htmlDe(el).innerHTML = …`/`.textContent = …`, `setAttr` e `setHidden`, que não tocam o DOM quando o valor é o mesmo. Use-os em código novo fora da grade.
+  - **Foco escondido sob a barra fixa:** `scroll-padding-top` acompanha a altura da `.toolbar` (`ResizeObserver`). Antes, navegando para trás, metade dos itens focados ficava sob a barra.
+  - axe-core 4.10 (WCAG 2.2 AA + boas práticas), temas claro e escuro, 412 px: lista com lotes, Filtros com Perto de/raio/Data, cartão com os dois painéis abertos: nenhuma violação.
+  - O teste com o TalkBack de verdade precisa ser feito no celular; aqui só dá para medir a árvore que ele recebe.
 - **Desempenho (17/11/2026):** medido com a CPU 4× mais lenta (Playwright + `Emulation.setCPUThrottlingRate`), do toque até a tela atualizar: favoritar, atualização do banco e cada letra da busca caíram de 1,6–1,8 s para 150–260 ms, e cada favorito ou atualização do banco passou de 800 nós criados e 800 removidos para 16.
   - `cartaoEl` + `reconcilia`: o HTML de cada cartão é gerado de novo, mas o elemento só é recriado quando esse HTML muda (cache `_cartoes`, chave `<nível do título>:<id>`); os demais ficam no lugar, com foco e painéis abertos. Vale também para "Por categoria"/"Por programa" (seções reaproveitadas pelo nome do grupo). Estados vazios e de carregamento ainda usam `innerHTML` e zeram `gridDeCartoes`.
   - **Não use `content-visibility: auto` nos cartões.** Foi testado e retirado: no Chrome, os cartões fora da tela ficam vazios na árvore de acessibilidade (577 artigos sem nome, só 6 botões de favorito), e o TalkBack veria a lista acabar na tela atual. Para conferir acessibilidade, leia a árvore com CDP (`Accessibility.getFullAXTree`); `ariaSnapshot` e `textContent` leem o DOM e não mostram esse problema.
