@@ -80,7 +80,7 @@ Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a te
 
 ## Canoas em Dobro
 
-São 103 cupons: 101 de 34 prints da aba Cupons e 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger). A lista começa no Kampeki Sushi (topo confirmado) e **ainda não termina**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
+São 134 cupons: 100 de 34 prints da aba Cupons (a Família Kabana saiu do programa e foi apagada), 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger) e 32 já usados, vistos em prints de 17/11 (ver "Cupons já usados"). Na captura original a lista parecia **não terminar**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
 
 - Não há pontos de anúncio sem emenda: em todos os prints o cupom seguinte aparece no rodapé do anterior.
 - **Dois cupons do Urban 1736** e **dois do Comidas de Boteco**, com ofertas diferentes, são registrados como cupons separados.
@@ -92,12 +92,12 @@ São 103 cupons: 101 de 34 prints da aba Cupons e 2 vistos no vídeo de 12/11 (P
 
 Uma gravação de tela (15 partes de 90 s, enviadas em três lotes: 00–04, 05–09 e 10–14) abriu os cupons 1 a 100 da lista, do Kampeki Sushi ao Grano Forneria. São 98 cupons com detalhes, todos conferidos em imagem.
 
-- **Sem detalhes:** Família Kabana (sumiu da lista), o segundo Urban 1736 (aparece na lista, entre The Big Mamma e O Artesão, mas não foi aberto) e os cupons depois do Grano Forneria (Paradouro Café, Guido Café & Cia, The West Burger e o que vier depois).
+- **Sem detalhes:** o segundo Urban 1736 (aparece na lista, entre The Big Mamma e O Artesão, mas não foi aberto) e os cupons depois do Grano Forneria (Paradouro Café, Guido Café & Cia, The West Burger e o que vier depois).
 - **Mudanças vistas no vídeo:** o Shrek Lanches agora oferece um cachorro-quente salsicha (antes, um xis salada); o Guido Café & Cia ganhou oferta (qualquer doce do cardápio + um café com leite, igual ou de menor valor).
 - **A barra de categorias do app**, rolada até o fim, mostra as mesmas categorias de `categoriasApp`: Hamburgueria, Italiano, Restaurante, Oriental, Bar, Culinária Internacional, Culinária Regional… Saudável, Carnes, ParkShopping Canoas, Stop Food Park e Garden Containers.
 - **Aviso momentâneo não importado:** o Grano Forneria mostrava "O estabelecimento não está atendendo ao tour hoje".
 
-- **Família Kabana Pizzaria não aparece mais na lista do app:** o Numa Bar vai direto para o Balanceado. Ela não estava marcada como usada. Continua na carteira, sem detalhes, até alguém confirmar se saiu do programa.
+- **Família Kabana Pizzaria não aparece mais na lista do app:** o Numa Bar vai direto para o Balanceado. Saiu do programa (confirmado em 17/11/2026) e foi apagada da carteira.
 - **Tela de detalhe do Canoas:** nome, categorias do app (`categoriasApp`), unidade, tabela com Manhã/Tarde e Noite, ícone de feriados, etiquetas (só aparecem "Espaço Kids" e "Aceita Pet") e "Regras do estabelecimento". As "Regras de utilização" são iguais em todos os cupons e não foram copiadas.
 - **Feriados:** os 34 mostram "Não Aceita". **Datas comemorativas:** o app não mostra ícone; as regras gerais dizem que nenhum cupom vale em datas comemorativas (Carnaval, Páscoa, Dia das Mães, Dia dos Namorados, Dia dos Pais, Natal e Ano Novo), então ficou `false` em todos.
 - **Horários:** as duas colunas viram faixas no mesmo formato do Tour (`"11:30 - 15:00; 17:00 - 22:00"`). Dia com "-" nas duas colunas não vale.
@@ -122,13 +122,23 @@ As gravações de tela abriram todos os cupons da lista, do Sabor de Luna à Fer
 - **Endereços com erro do app, normalizados:** Barranquinho e O Burguês aparecem como "Porto Alegre / AC", e Startt & Brothers como "Porto Ale / RS"; ficaram Porto Alegre.
 - **Emendas confirmadas:** Lucho Burger → Bistrô do Mercado e Joe Hamburgueria → D'Juca Confeitaria (a lista mostra os dois cartões juntos).
 - **Visita que juntou dois cupons:** Bierkeller e Hanko Sushi (separados pelos quadros).
-- **Lista continua depois do Di Toni:** o vídeo de 16/11 mostra, sem abrir, mais cupons que ainda não estão na carteira: Galeto Mamma Mia, Pampa Burger, Applebee's, Legado Sakaes, SK8 Burger, Niki Lanches, Soberano, Ventralis BBQ e Burger, Coccaderia.Co, Rocambolo, Maitê Caino Doceria e possivelmente outros (a lista carrega mais ao rolar).
+- **Depois do Di Toni:** o vídeo de 16/11 mostra, sem abrir, mais cupons. Os prints de 17/11 confirmaram que são cupons já usados (ver "Cupons já usados").
+
+## Cupons já usados (prints de 17/11/2026)
+
+Dois zips com 44 prints mostraram os cupons já usados nos três apps. No Poa e no Canoas, os usados ficam no fim da lista, com a foto em preto e branco. No Tour, os prints são da lista de vouchers usados (as fotos ficam coloridas). Cada cupom foi registrado com a oferta, o tipo de benefício e o coração do print, `usado: true` e `usadoEm` vazio (a data não aparece no app). Esses cupons não têm detalhes.
+
+- **Poa em Dobro:** 29 cupons novos, do Galeto Mamma Mia ao De Rua Burger, na ordem do app (ordem 282–310). O Di Toni ganhou a oferta (um item selecionado, igual ou de menor valor). O Joe Hamburgueria já tinha sido marcado como usado na página em 16/11.
+- **Canoas em Dobro:** 32 cupons novos depois do The West Burger, do Zanardi Padaria ao Amo Café (ordem 103–134). Paradouro Café, Guido Café & Cia e The West Burger também estão usados; por isso não abriam no vídeo. A lista do Canoas agora está completa: o "pelo menos mais um cartão" depois do The West Burger eram os usados.
+- **Tour Grande Poa:** 32 vouchers novos (ordem 204–235). Chiquinho Havan e Cachorro do Bigode, que já estavam na carteira, foram marcados como usados; Manos Fast Food já tinha sido marcado na página em 16/11 e o Don Carlone em 11/11. O Ah! Casa usado oferece "um salgado ou doce", diferente do voucher que está na carteira ("qualquer prato participante"), então entrou como outro cupom. O "Woking Thai Food - …" usado não mostra a unidade inteira e não foi casado com nenhum dos três Woking da carteira.
+- **Nomes cortados no app:** Pastel com Borda C…, Village Grill Restau… (Poa); Zanardi Padaria &…, El Mago Parrilla y B…, BBQ Pizzas Artesa…, Salvador Bar e Cozi… (Canoas); Fiesckis Pizzas Cano…, Wish Burguer - Can…, Quiero Café - ParkShopping Can…, Helena Burger Cano… (Tour). Completados pelo logo: Cantina Famiglia Lando, La Bella Donna Pizzaria, Ventralis BBQ e Burger, Boxfim 24 de Outubro, Louis Hamburgueria.
+- **Família Kabana Pizzaria:** saiu do programa (confirmado em 17/11) e foi apagada do arquivo e do banco. Os cupons seguintes do Canoas andaram uma posição.
 
 ## Pendências da fase 1 (Poa em Dobro)
 
-São 281 cupons: 280 vindos de 99 prints enviados em sete lotes, mais o Céu Zona Sul, achado no vídeo. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
+São 310 cupons: 280 vindos de 99 prints enviados em sete lotes, o Céu Zona Sul, achado no vídeo, e 29 já usados, vistos em prints de 17/11. Cada lote vinha antes do anterior na lista do app, então as posições ficaram: lote 7 = 1–8, lote 6 = 9–52, lote 5 = 53–98, lote 4 = 99–144, lote 3 = 145–189, lote 2 = 190–235, lote 1 = 236–280.
 
-- **Di Toni:** já foi usado (marcado como usado na carteira, sem data). A oferta não foi registrada.
+- **Di Toni:** já foi usado (sem data). A oferta veio dos prints de 17/11: um item selecionado, igual ou de menor valor.
 - **Lacunas resolvidas:** em treze pontos o print terminava num anúncio. Os vídeos de detalhe abriram os cupons um a um, na ordem da lista, e nenhum ficou de fora nesses pontos (o único cupom novo, o Céu Zona Sul, apareceu em outro lugar):
   - Restaurante Hotel Intercity → Restaurante Madregaia
   - Confeitaria Princesa → Cheirin Bão
@@ -144,7 +154,7 @@ São 281 cupons: 280 vindos de 99 prints enviados em sete lotes, mais o Céu Zon
   - Saori → Kampeki
   - Chic Brigadeiro → Fornellone
 
-  O fim (depois do Di Toni) não está confirmado. O Sabor de Luna é o primeiro cupom da lista (confirmado pelo vídeo de 12/11). As emendas Freddo → Iaiá Bistrô, Comfy Pizza Napoletana → A Costela Burger e Kioske do Pirata → Pradie Bakery estão confirmadas.
+  O fim está confirmado: depois do Di Toni vêm só cupons já usados. O Sabor de Luna é o primeiro cupom da lista (confirmado pelo vídeo de 12/11). As emendas Freddo → Iaiá Bistrô, Comfy Pizza Napoletana → A Costela Burger e Kioske do Pirata → Pradie Bakery estão confirmadas.
 - **Nomes cortados no app e ainda incompletos:** "Machry Armazém e…" e "Ponto Zero Bar e C…" (o logo não mostra o resto). Estão registrados como Machry Armazém e Ponto Zero Bar. (Raw Restaurante e Café foi completado pela tela de detalhe.)
 - **Nomes cortados no app e completados a partir do logo:** Ratskeller Restaurante, Ciao Pizzeria Napoletana, Don Francesco Pastelaria, Salvador Carlos Gomes, Doralice Cantinho Saudável, Comfy Pizza Napoletana, La Chiviteria Restaurante (o "Restaurante" é dedução a partir de "Resta…"), Chica Maria Cocina y Bar, Churrascaria O Espeto de Ouro, Startt & Brothers Café, O Burguês Hamburgueria, Restaurante Hotel Intercity, Restaurante Madregaia, Biergarten Cervejaria, Usina de Massas Pocket, Famiglia Facin Casa Nápoles, Restaurante Figueiras, Rooster Crispy Kitchen, Edu_ Terrário Urbano, Primeiro Reino Burger, Mimô Brownie & Bistrô, Garibaldi Bar e Assado, Med Gastro Giardino, Quincho Parrilla y Bar, Du Nordeste Bom Fim, Johnny & Julie Doceria, Squisito Fatta a Mano, Confeitaria Dona Inês, Pueblo Casa Mexicana, Lê Bru Confeitaria, Marquês Empório Parrilla, Parrilla Hecho a Mano, Fornellone Ristorante, El Guerrero Mexican Food, Alcabar da Fábrica, Markt Mac and Cheese, Shakespeare Casa de Chá, Pipoca de Ipanema Gourmet, Bella Gula MedCenter.
 - **Pequenas correções de grafia no texto do app:** "lIncendie" → "Incendie", "burguer"/"hamburguer" → "burger"/"hambúrguer" (exceto em nomes de estabelecimento), "amendoas" → "amêndoas", "cheeseou" → "cheese ou", "um experiência" → "uma experiência", "uma arepas" → "uma arepa", "Zaituna Arabe" → "Zaituna Árabe", "El Patron" → "El Patrón" (como no logo), "menu koreano" → "menu coreano", "300gr" → "300 g", "um Iscas" → "iscas".
