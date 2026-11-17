@@ -4,7 +4,7 @@
 Uso: python3 scripts/geocodificar.py [data/geo.json]
 
 Lê data/*.json, junta os endereços únicos (unidade e outrasUnidades) e grava data/geo.json:
-    { "<endereco>|<bairro>|<cidade>": {"lat": -30.0, "lng": -51.2, "precisao": "endereco"|"rua"|"bairro"} }
+    { "<endereco>|<bairro>|<cidade>": {"lat": -30.0, "lng": -51.2, "precisao": "endereco"|"rua"|"bairro"|"cidade"} }
 
 Endereços já presentes no arquivo não são consultados de novo; rode outra vez depois de importar
 cupons novos. Respeita a política do Nominatim: uma consulta por segundo, User-Agent próprio.
@@ -13,8 +13,11 @@ O OpenStreetMap quase não tem número de casa na região: sem número, ele devo
 da rua, às vezes a quilômetros (avenidas longas). Por isso, nesta ordem:
   1. rua e número, aceito como "endereco" só se o resultado tiver o número da casa;
   2. "rua, bairro, cidade", aceito como "rua" se o resultado estiver nesse bairro;
-  3. a rua sem bairro, aceita como "rua" se cair a até 1,5 km do centro do bairro;
-  4. o centro do bairro ("bairro").
+  3. a rua sem bairro, aceita como "rua" se cair a até 1,5 km do centro do bairro (ou se o mapa não
+     conhecer o bairro, quando não há como conferir);
+  4. o centro do bairro ("bairro");
+  5. o centro da cidade ("cidade"), para ruas e bairros que o mapa não tem.
+Grafias do app que diferem do mapa ficam em CORRECOES.
 """
 import glob, json, math, re, sys, time, unicodedata, urllib.parse, urllib.request
 
@@ -39,6 +42,12 @@ def rua_numero(endereco):
         return m.group(1).strip(" ,"), m.group(2)
     return e.split(",")[0].strip(), None
 
+
+# grafia do app -> grafia do OpenStreetMap
+CORRECOES = {
+    "Rua Ildo Menegueti": "Rua Ildo Meneghetti",
+    "Avenida das Nações Unidas": "Avenida Nações Unidas",
+}
 
 ultima = 0.0
 
@@ -98,6 +107,7 @@ def geocodifica(u):
     cidade, bairro = u["cidade"], u.get("bairro")
     if u.get("endereco"):
         rua, num = rua_numero(u["endereco"])
+        rua = CORRECOES.get(rua, rua)
         if num:
             r = busca(street=f"{num} {rua}", city=cidade, state="RS")
             if r and r["end"].get("house_number"):
@@ -106,15 +116,25 @@ def geocodifica(u):
             r = busca(q=f"{rua}, {bairro}, {cidade}, RS")
             if r and no_bairro(r, bairro):
                 return r, "rua"
-        r = busca(street=rua, city=cidade, state="RS")
+        r = busca(street=rua, city=cidade, state="RS") or busca(q=f"{rua}, {cidade}, RS")
         c = centro_bairro(bairro, cidade)
-        if r and (not bairro or (c and km(r, c) <= 1.5) or no_bairro(r, bairro)):
+        if r and (not bairro or not c or km(r, c) <= 1.5 or no_bairro(r, bairro)):
             return r, "rua"
         if c:
             return c, "bairro"
-        return (r, "rua") if r and not bairro else (None, None)
-    c = centro_bairro(bairro, cidade)
-    return (c, "bairro") if c else (None, None)
+    else:
+        c = centro_bairro(bairro, cidade)
+        if c:
+            return c, "bairro"
+    r = centro_cidade(cidade)
+    return (r, "cidade") if r else (None, None)
+
+
+def centro_cidade(cidade):
+    k = ("", cidade)
+    if k not in centros:
+        centros[k] = busca(city=cidade, state="RS")
+    return centros[k]
 
 
 def main():

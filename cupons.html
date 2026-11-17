@@ -840,7 +840,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (_dist.ref !== state.perto || _dist.geo !== state.geo) _dist = { ref: state.perto, geo: state.geo, mapa: new Map() };
     if (_dist.mapa.has(c.id)) return _dist.mapa.get(c.id);
     let best = null;
-    for (const g of coordsDe(c)) { const km = kmEntre(state.perto, g); if (!best || km < best.km) best = { km, aprox: g.precisao === "bairro" }; }
+    for (const g of coordsDe(c)) { const km = kmEntre(state.perto, g); if (!best || km < best.km) best = { km, aprox: g.precisao === "bairro" || g.precisao === "cidade" }; }
     _dist.mapa.set(c.id, best);
     return best;
   }
@@ -856,7 +856,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const k = `${u.cidade}|${u.bairro}`;
       const a = soma.get(k) || { lat: 0, lng: 0, n: 0, bairro: u.bairro, cidade: u.cidade, pesoBairro: 0 };
       // o centro do bairro (precisão "bairro") só entra quando o bairro não tem endereço exato
-      const w = g.precisao === "bairro" ? 0.001 : 1;
+      const w = g.precisao === "bairro" || g.precisao === "cidade" ? 0.001 : 1;
       a.lat += g.lat * w; a.lng += g.lng * w; a.n += w;
       soma.set(k, a);
     }
@@ -1147,7 +1147,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     htmlDe($("perto-nota")).textContent = !state.geo
       ? (state.geoFalhou ? "As coordenadas dos endereços não carregaram nesta visualização." : "Carregando as coordenadas dos endereços…")
       : state.perto
-      ? `Distâncias em linha reta a partir de ${state.perto.rotulo}, até a unidade mais perto de cada cupom. “≈” quer dizer que o endereço foi achado só pelo bairro. Cupons sem endereço ficam no fim da ordem “Mais perto” e fora do raio.`
+      ? `Distâncias em linha reta a partir de ${state.perto.rotulo}, até a unidade mais perto de cada cupom. “≈” quer dizer que o endereço foi achado só pelo bairro ou pela cidade. Cupons sem endereço ficam no fim da ordem “Mais perto” e fora do raio.`
       : "Use sua localização ou escolha um bairro para ordenar do mais perto ao mais longe e filtrar pela distância.";
   }
 
