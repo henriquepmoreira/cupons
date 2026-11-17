@@ -247,6 +247,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   background: var(--surface); border-radius: var(--r-ticket); box-shadow: var(--shadow);
   min-height: 168px;
 }
+/* cartões fora da tela não são diagramados nem pintados (577 cartões pesam no celular);
+   o tamanho estimado mantém a barra de rolagem estável */
+.ticket { content-visibility: auto; contain-intrinsic-size: auto 240px; }
 .ticket::before, .ticket::after {
   content: ""; position: absolute; left: 74px; width: 16px; height: 16px; border-radius: 50%;
   background: var(--bg); translate: -50% 0; z-index: 1;
@@ -850,11 +853,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   }
 
   /* ---------- derivações ---------- */
+  const _hay = new WeakMap(); // texto de busca de cada cupom; o objeto muda a cada atualização do banco, e o cache junto
   function matchesSearch(c, words) {
     if (!words.length) return true;
-    const us = unidadesDe(c).flatMap((u) => [u.bairro, u.cidade, u.endereco]);
-    const hay = norm([c.nome, c.item, c.categoria, PROG[c.programa]?.nome, c.ganhe ? GANHE_TXT[c.ganhe] : "",
-      ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" ")].join(" "));
+    let hay = _hay.get(c);
+    if (hay === undefined) {
+      const us = unidadesDe(c).flatMap((u) => [u.bairro, u.cidade, u.endereco]);
+      hay = norm([c.nome, c.item, c.categoria, PROG[c.programa]?.nome, c.ganhe ? GANHE_TXT[c.ganhe] : "",
+        ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" ")].join(" "));
+      _hay.set(c, hay);
+    }
     return words.every((w) => hay.includes(w));
   }
   function passes(c, skip) {
@@ -1138,6 +1146,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("filters-badge").hidden = n === 0;
     $("filters-badge").innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
     $("q-clear").hidden = !state.q;
+    for (const b of document.querySelectorAll("[data-atalho]")) b.setAttribute("aria-pressed", String(state.comods.has(b.dataset.atalho)));
+    // o resto do painel (chips e contagens) só é montado com Filtros aberto: são dezenas de passadas pelos cupons
+    if (!state.filtersOpen) return;
 
     // categorias, com contagem respeitando os demais filtros
     const words = norm(state.q).split(/\s+/).filter(Boolean);
@@ -1213,7 +1224,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const comodProgs = {};
     for (const c of state.cupons) for (const t of comodSet(c)) (comodProgs[t] ||= new Set()).add(c.programa);
     const progsComCupom = PROGRAMAS.filter((p) => state.cupons.some((c) => c.programa === p.id));
-    for (const b of document.querySelectorAll("[data-atalho]")) b.setAttribute("aria-pressed", String(state.comods.has(b.dataset.atalho)));
     const comods = [...new Set(state.cupons.flatMap((c) => [...comodSet(c)]))].sort((a, b) => pos(a) - pos(b) || collator.compare(a, b));
     $("f-comod").innerHTML = comods.length
       ? comods.map((t) => {
@@ -1236,6 +1246,32 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     el.textContent = msg;
   }
 
+  /* Cartões reaproveitados: o HTML de cada cartão é gerado de novo, mas o elemento só é recriado quando
+     esse HTML muda. Cartões que não mudaram continuam no lugar (mantêm foco e não refazem layout). */
+  const _cartoes = new Map(); // "<nível do título>:<id>" -> { html, el }
+  const _tpl = document.createElement("template");
+  let gridDeCartoes = false; // a grade contém só cartões (ou grupos de cartões) montados abaixo
+  function cartaoEl(c, hl = 3) {
+    const k = `${hl}:${c.id}`, html = ticketHtml(c, hl);
+    let e = _cartoes.get(k);
+    if (!e || e.html !== html) {
+      _tpl.innerHTML = html;
+      e = { html, el: _tpl.content.firstElementChild };
+      _cartoes.set(k, e);
+    }
+    return e.el;
+  }
+  // deixa exatamente estes filhos em pai, nesta ordem, mexendo só no que mudou
+  function reconcilia(pai, filhos) {
+    const novos = new Set(filhos);
+    for (const ch of [...pai.children]) if (!novos.has(ch)) ch.remove();
+    let ref = pai.firstElementChild;
+    for (const n of filhos) {
+      if (n === ref) { ref = ref.nextElementSibling; continue; }
+      pai.insertBefore(n, ref);
+    }
+  }
+
   function renderGrid() {
     const grid = $("grid");
     const rc = $("result-count");
@@ -1246,6 +1282,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (state.phase === "loading") {
       rc.textContent = state.slow ? "Os cupons ainda não chegaram. Verifique a conexão." : "Carregando cupons…";
       grid.className = "grid";
+      gridDeCartoes = false;
       grid.innerHTML = state.slow
         ? `<div class="empty"><h3>Ainda carregando</h3><p>Os cupons ficam guardados na sua conta do claude.ai. Se a conexão estiver lenta, eles aparecem aqui assim que o servidor responder.</p></div>`
         : '<div class="ghost" aria-hidden="true"></div><div class="ghost" aria-hidden="true"></div><div class="ghost" aria-hidden="true"></div>';
@@ -1254,12 +1291,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (state.phase === "nodb" || state.phase === "error") {
       rc.textContent = "Cupons indisponíveis nesta visualização";
       grid.className = "grid";
+      gridDeCartoes = false;
       grid.innerHTML = `<div class="empty"><h3>Entre na sua conta</h3><p>Os cupons e as marcações de favorito ficam guardados no claude.ai. Abra esta página logado na sua conta para ver a carteira.</p></div>`;
       return;
     }
     if (!state.cupons.length) {
       rc.textContent = "Nenhum cupom cadastrado";
       grid.className = "grid";
+      gridDeCartoes = false;
       grid.innerHTML = `<div class="empty"><h3>Carteira vazia</h3><p>Mande ao Claude os prints da aba Cupons do Poa em Dobro, Tour Grande Poa ou Canoas em Dobro e eles aparecem aqui.</p></div>`;
       return;
     }
@@ -1278,6 +1317,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (!list.length) {
       grid.className = "grid";
       const usedEmpty = state.status === "usados" && !anyNarrowing();
+      gridDeCartoes = false;
       grid.innerHTML = usedEmpty
         ? `<div class="empty"><h3>Nenhum cupom usado</h3><p>Quando usar um cupom, toque em “Marcar como usado”. Ele sai da lista de disponíveis e fica guardado aqui com a data.</p></div>`
         : `<div class="empty"><h3>Nada encontrado</h3><p>Nenhum cupom combina com a busca e os filtros atuais.</p><button type="button" class="linkbtn" data-act="clear-all">Limpar busca e filtros</button></div>`;
@@ -1289,13 +1329,26 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const groups = new Map();
       for (const c of list) { const k = key(c); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); }
       grid.className = "grid grouped";
-      grid.innerHTML = [...groups].map(([k, items]) =>
-        `<section class="group" aria-label="${esc(k)}"><h3 class="group-title">${esc(k)} <span>${nCupons(items.length)}</span></h3><div class="group-grid">${items.map((c) => ticketHtml(c, 4)).join("")}</div></section>`
-      ).join("");
+      if (!gridDeCartoes) grid.innerHTML = "";
+      // seções reaproveitadas pelo nome do grupo; os cartões, pelo id
+      const secoes = new Map([...grid.querySelectorAll(":scope > section.group")].map((sec) => [sec.dataset.grupo, sec]));
+      reconcilia(grid, [...groups].map(([k, items]) => {
+        let sec = secoes.get(k);
+        if (!sec) {
+          _tpl.innerHTML = `<section class="group" aria-label="${esc(k)}"><h3 class="group-title">${esc(k)} <span></span></h3><div class="group-grid"></div></section>`;
+          sec = _tpl.content.firstElementChild;
+          sec.dataset.grupo = k;
+        }
+        sec.querySelector(".group-title span").innerHTML = nCupons(items.length);
+        reconcilia(sec.querySelector(".group-grid"), items.map((c) => cartaoEl(c, 4)));
+        return sec;
+      }));
     } else {
       grid.className = "grid";
-      grid.innerHTML = list.map((c) => ticketHtml(c)).join("");
+      if (!gridDeCartoes) grid.innerHTML = "";
+      reconcilia(grid, list.map((c) => cartaoEl(c)));
     }
+    gridDeCartoes = true;
   }
 
   /* ---------- foco e anúncios (leitores de tela) ----------
