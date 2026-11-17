@@ -329,6 +329,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .outros li { display: grid; gap: 1px; font-size: 13px; }
 .outros li .mini { color: var(--muted); font-size: 12.5px; }
 .outros li .st-usado { color: var(--fav); }
+.outros li .dif { color: var(--p-canoas); font-weight: 600; }
+.outros > summary .sug { display: block; margin: 3px 0 0 1em; font-weight: 500; color: var(--ok); }
 .resultbar .grupo-sair { white-space: nowrap; }
 .hor { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
 .hor td, .hor th { padding: 2px 0; vertical-align: top; }
@@ -924,21 +926,52 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 </article>`;
   }
 
+  // mesma unidade: alguma unidade dos dois cupons fica no mesmo bairro da mesma cidade
+  const chavesUnidade = (c) => new Set(unidadesDe(c).map((u) => (u.bairro && u.cidade ? norm(`${u.cidade}|${u.bairro}`) : null)).filter(Boolean));
+  const mesmaUnidade = (a, b) => { const kb = chavesUnidade(b); return [...chavesUnidade(a)].some((k) => kb.has(k)); };
+  // oferta comparada pelas palavras que importam ("um prato X com Y" = "X + Y") e pelo tipo de benefício
+  const PALAVRAS_VAZIAS = new Set(["um", "uma", "uns", "umas", "o", "a", "os", "as", "de", "do", "da", "dos", "das", "e", "com", "no", "na", "em", "ou", "prato", "pratos"]);
+  const chaveOferta = (x) => (x.item ? norm(x.item).replace(/[^a-z0-9 ]+/g, " ").split(/\s+/).filter((w) => w && !PALAVRAS_VAZIAS.has(w)).sort().join(" ") : "?") + "|" + (x.ganhe || "");
+  const mesmaOferta = (a, b) => !!a.item && !!b.item && chaveOferta(a) === chaveOferta(b);
+  // qual usar primeiro, entre os disponíveis da mesma unidade: o do plano que vence antes (diferença de 7 dias ou mais)
+  function sugestaoUso(c, outros) {
+    if (c.usado) return null;
+    const cands = [c, ...outros.filter((x) => !x.usado && mesmaUnidade(c, x))];
+    if (cands.length < 2) return null;
+    const venc = (x) => PROG[x.programa]?.validade || "9999-12-31";
+    cands.sort((a, b) => venc(a).localeCompare(venc(b)));
+    const [prim, seg] = cands;
+    const dif = venc(prim) === "9999-12-31" || venc(seg) === "9999-12-31" ? 0 : diasEntre(venc(prim), venc(seg));
+    const ofertasDif = cands.some((x) => !mesmaOferta(x, c));
+    if (dif < 7) return ofertasDif ? { vis: "Os planos vencem quase juntos: escolha pela oferta.", fala: "Os planos vencem quase juntos: escolha pela oferta." } : null;
+    const quando = `vence em ${fmtDate(venc(prim))}, ${dif} dias antes`;
+    const extra = ofertasDif ? " As ofertas são diferentes." : "";
+    if (prim === c) {
+      const t = `Use este primeiro: o ${PROG[c.programa].nome} ${quando} do ${PROG[seg.programa].nome}.${extra}`;
+      return { vis: t, fala: t };
+    }
+    const t = `Use primeiro o do ${PROG[prim.programa].nome}: ${quando} deste.${extra}`;
+    return { vis: t, fala: t };
+  }
+
   function outrosHtml(c) {
     const outros = outrosProgramas(c);
     if (!outros.length) return "";
     const resumo = resumoOutros(outros);
-    const vis = resumo.map((r) => `${r.nome} (${r.st})`).join(" · ");
-    const fala = `Também em ${listaE(resumo.map((r) => `${r.nome}, ${r.st}`))}`;
+    const algumDif = outros.some((x) => !mesmaOferta(x, c));
+    const vis = resumo.map((r) => `${r.nome} (${r.st})`).join(" · ") + (algumDif ? " · ofertas diferentes" : "");
+    const fala = `Também em ${listaE(resumo.map((r) => `${r.nome}, ${r.st}`))}${algumDif ? ", com ofertas diferentes" : ""}`;
+    const sug = sugestaoUso(c, outros);
     const itens = [...outros].sort((a, b) => PROG[a.programa].i - PROG[b.programa].i || (a.ordem ?? 999) - (b.ordem ?? 999)).map((x) => {
       const oferta = x.item ? `Na compra de ${x.item} ganhe ${GANHE_TXT[x.ganhe] || "outro igual"}.` : (x.pendente || "Oferta não cadastrada.");
       const st = x.usado ? `<span class="st-usado">usado${x.usadoEm ? ` em ${esc(fmtDate(x.usadoEm))}` : ""}</span>` : "disponível";
       return `<li><span><span class="pdot ${PROG[x.programa].cls}" aria-hidden="true"></span><b>${esc(x.nome)}</b><span class="sr-only">,</span> · ${esc(PROG[x.programa].nome)}</span>
-        <span class="mini">${esc(ondeFica(x))} · ${st}</span><span class="mini">${esc(oferta)}</span></li>`;
+        <span class="mini">${esc(ondeFica(x))}${mesmaUnidade(c, x) ? " (mesma unidade)" : ""} · ${st}</span>
+        <span class="mini">${mesmaOferta(x, c) ? "Mesma oferta: " : '<span class="dif">Oferta diferente:</span> '}${esc(oferta)}</span></li>`;
     }).join("");
     const total = outros.length + 1;
     return `<details class="det outros"${state.abertos.has("outros:" + c.id) ? " open" : ""} data-outros="${esc(c.id)}">
-      <summary>${duplo(`Também em ${vis}`, fala)}</summary>
+      <summary>${duplo(`Também em ${vis}`, fala)}${sug ? `<span class="sug">${esc(sug.vis)}</span>` : ""}</summary>
       <div class="det-body"><ul>${itens}</ul>
       ${state.grupo ? "" : `<button type="button" class="linkbtn" data-act="grupo">Ver os ${total} juntos<span class="sr-only">: ${esc(c.nome)} em todos os programas</span></button>`}</div>
     </details>`;

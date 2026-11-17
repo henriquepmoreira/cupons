@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 24, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 25, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -48,6 +48,8 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - Cartão: `<details class="det outros" data-outros>` com resumo por programa ("1 disponível", "já usado", "todos usados") e, aberto, nome, unidade, situação e oferta de cada um. O estado aberto fica em `state.abertos` com a chave `outros:<id>`.
   - "Ver os N juntos" põe `state.grupo = id`: a lista mostra só o grupo, com usados, ignorando busca e filtros. Sai com "Voltar à lista" (foco volta ao botão) ou com qualquer clique em programa, barra ou filtros, ou digitando na busca. Não fica salvo.
   - Marcar como usado: o aviso diz "Ainda tem no Tour Grande Poa e no Canoas em Dobro." quando o grupo tem disponíveis em outros programas.
+  - **Sugestão de uso (versão 25):** `mesmaUnidade` = alguma unidade dos dois no mesmo `cidade|bairro`. Entre os disponíveis da mesma unidade, `sugestaoUso` aponta o do plano que vence antes, se a diferença for de 7 dias ou mais ("Use primeiro o do Tour Grande Poa: vence em 05/03/27, 31 dias antes deste."); com diferença menor e ofertas diferentes, diz "escolha pela oferta". Em 17/11: 128 cartões com sugestão.
+  - `mesmaOferta` compara as palavras do item sem acento, sinais e palavras vazias (um, de, com, prato…), ordenadas, mais o `ganhe`. Cada item da lista diz "Mesma oferta" ou "Oferta diferente", e o resumo ganha "· ofertas diferentes". Diferenças pequenas de texto contam como diferentes (ex.: "(exceto massas artesanais)").
 - **Validade, feriados e datas comemorativas (versão 21, 17/11/2026):**
   - `validade`: Poa = `2027-04-05` e Canoas = `2027-04-08` (informadas pelo usuário em 17/11/2026); Tour = `2027-03-05` (rodapé do detalhe: "TOUR VÁLIDO ATÉ 05/03/2027"). O topo mostra os dias que faltam e o ritmo (disponíveis ÷ dias restantes, contando o último). Depois da data, os cartões do programa mostram "Plano vencido" e saem de Data, Vale agora e Aceita em feriados.
   - `FERIADOS`: nacionais, RS (20/09) e Porto Alegre (02/02 Navegantes e 27/05 Corpus Christi, com `onde: ["Porto Alegre"]`, pela Lei Municipal 4.453/78 citada no calendário 2027 do TRT4), até o fim de 2027. `onde` é comparado com as cidades das unidades do cupom (ou a cidade padrão do programa). Carnaval é ponto facultativo e ficou de fora. Feriados municipais de Canoas e de outras cidades não entraram, porque as fontes divergem. **Para 2028 é preciso estender a lista.**
@@ -208,4 +210,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 28. validade dos planos, feriados e datas comemorativas, filtro "Data" (versão 21)
 29. `2d57205` validade do Poa (05/04/2027) e do Canoas (08/04/2027) (versão 22)
 30. `1070743` aviso de mesmo lugar em outro programa e "Ver juntos" (versão 23)
-31. (este commit) comodidades: aviso "só Tour" e atalhos Pet e Kids; rolagem lateral no celular corrigida (versão 24)
+31. `47ff31f` comodidades: aviso "só Tour" e atalhos Pet e Kids; rolagem lateral no celular corrigida (versão 24)
+32. (este commit) sugestão de qual cupom usar e comparação de ofertas no aviso de mesmo lugar (versão 25)

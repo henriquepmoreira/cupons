@@ -17,7 +17,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Link de mapa para cada estabelecimento
 - Validade de cada plano no topo, com os dias que faltam e quantos cupons por dia e por semana dão conta dos disponíveis (Poa em Dobro até 05/04/2027, Tour Grande Poa até 05/03/2027, Canoas em Dobro até 08/04/2027)
 - Feriados e datas comemorativas: cupons com `feriados: false` ou `datasComemorativas: false` aparecem como "Não vale hoje (feriado: …)" nesses dias, e o topo avisa os feriados dos próximos 7 dias com quantos cupons eles bloqueiam
-- Mesmo lugar em outro programa: o cartão avisa "Também em Tour Grande Poa (1 disponível) · …", lista os outros cupons (unidade, situação e oferta) e tem "Ver os N juntos", que mostra só esse grupo, com os usados. Ao marcar um como usado, o aviso diz em quais programas ainda tem
+- Mesmo lugar em outro programa: o cartão avisa "Também em Tour Grande Poa (1 disponível) · …", lista os outros cupons (unidade, situação e oferta) e tem "Ver os N juntos", que mostra só esse grupo, com os usados. Ao marcar um como usado, o aviso diz em quais programas ainda tem. Quando a mesma unidade está em dois planos, o cartão sugere qual usar primeiro (o do plano que vence antes) e marca "mesma oferta" ou "oferta diferente" em cada um
 - Filtro "Data" para planejar: filtra os cupons que valem numa data dos próximos 7 dias (com feriados e validade) e mostra no cartão o horário dessa data
 - Acessível a leitores de tela (TalkBack, VoiceOver, NVDA): o foco não se perde ao filtrar, favoritar ou marcar como usado, o total de cupons é anunciado, e cada botão diz de qual cupom é
 
