@@ -183,4 +183,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 22. `b718de0` detalhes dos cupons 185 a 280 do Poa, Céu Zona Sul novo, 12 cupons com várias unidades, cópia sem login atualizada (versão 16)
 23. `b797ea7` cupons já usados dos três programas (prints de 17/11), Família Kabana apagada, cópia sem login atualizada (versão 17)
 24. `905db77` Woking Thai Food - Canoas usado no Tour, segundo Urban 1736 apagado do Canoas (erro do app), cópia sem login atualizada (versão 18)
-25. (este commit) Cachorro do Bigode usado separado do Cachorro do Bigode - Cristo Redentor (disponível), cópia sem login atualizada (versão 19)
+25. `f28a8f2` Cachorro do Bigode usado separado do Cachorro do Bigode - Cristo Redentor (disponível), cópia sem login atualizada (versão 19)
+26. (este commit) camadas do Google My Maps (`scripts/gerar-mapa.py` e `mapa/*.csv`)

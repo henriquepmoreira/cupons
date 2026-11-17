@@ -124,6 +124,16 @@ As gravações de tela abriram todos os cupons da lista, do Sabor de Luna à Fer
 - **Visita que juntou dois cupons:** Bierkeller e Hanko Sushi (separados pelos quadros).
 - **Depois do Di Toni:** o vídeo de 16/11 mostra, sem abrir, mais cupons. Os prints de 17/11 confirmaram que são cupons já usados (ver "Cupons já usados").
 
+## Mapa no Google My Maps (`mapa/`)
+
+`python3 scripts/gerar-mapa.py` gera um CSV por programa em `mapa/`. Cada CSV vira uma camada no Google My Maps: [google.com/maps/d](https://www.google.com/maps/d/) > Criar um novo mapa > Adicionar camada > Importar > escolher o CSV > marcar **Endereço** para posicionar os marcadores > **Nome** como título. O próprio My Maps transforma os endereços em pontos.
+
+- Entra cada unidade com endereço: a principal e as de `outrasUnidades` (cupons com várias unidades aparecem com o bairro no nome). Os cupons usados vistos só na lista do app não têm endereço e ficam de fora.
+- A coluna **Endereço** é uma versão limpa para a busca (rua, número, bairro, cidade, RS). O endereço como está no app fica em **Endereço no app**, e lojas, shoppings e salas em **Complemento**.
+- Outras colunas: Programa, Oferta, Situação (Disponível/Usado), Favorito, Categoria, Dias e horários, Unidade. No My Maps dá para estilizar a camada por qualquer uma delas (por exemplo, cor por Situação ou por Categoria).
+- Os dados vêm de `data/*.json`. Favoritos e usados marcados na página depois da última sincronização não aparecem; sincronize os arquivos com o banco e gere de novo.
+- Alguns endereços não têm número no app (Galeria Mercado Público, Rua dos Andradas, Largo Glênio Peres, Rua Dom Sebastião, Rua Olavo Barreto Viana); o My Maps põe o ponto no meio da rua ou pede para escolher.
+
 ## Cupons já usados (prints de 17/11/2026)
 
 Dois zips com 44 prints mostraram os cupons já usados nos três apps. No Poa e no Canoas, os usados ficam no fim da lista, com a foto em preto e branco. No Tour, os prints são da lista de vouchers usados (as fotos ficam coloridas). Cada cupom foi registrado com a oferta, o tipo de benefício e o coração do print, `usado: true` e `usadoEm` vazio (a data não aparece no app). Esses cupons não têm detalhes.
