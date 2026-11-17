@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 18, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 19, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -85,7 +85,7 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 | programa | cupons | favoritos | usados | pendências |
 |---|---|---|---|---|
 | Poa em Dobro | 310 | 198 | 31 (Di Toni, Joe Hamburgueria em 16/11 e 29 vistos nos prints de 17/11) | detalhes de todos os cupons disponíveis até a Ferradura; Céu Zona Sul entrou como cupom novo (223); lista completa (o que vem depois do Di Toni são os usados); 2 nomes cortados nos usados |
-| Tour Grande Poa | 236 | 150 | 37 (Don Carlone 11/11, Manos Fast Food 16/11, Chiquinho Havan, Cachorro do Bigode e 33 vistos nos prints de 17/11, entre eles o Woking Thai Food - Canoas) | detalhes completos dos 203 disponíveis da captura; os usados novos não têm detalhes |
+| Tour Grande Poa | 237 | 151 | 37 (Don Carlone 11/11, Manos Fast Food 16/11, Chiquinho Havan e 34 vistos nos prints de 17/11, entre eles o Woking Thai Food - Canoas e o Cachorro do Bigode; o Cachorro do Bigode - Cristo Redentor continua disponível) | detalhes completos dos 203 disponíveis da captura; os usados novos não têm detalhes |
 | Canoas em Dobro | 133 | 96 | 35 (Paradouro, Guido, The West Burger e 32 vistos nos prints de 17/11) | lista completa; Família Kabana (saiu do programa) e segundo Urban 1736 (erro do app) apagados; detalhes de todos os disponíveis (1–98) |
 
 ## 6. O que falta fazer (por prioridade)
@@ -182,4 +182,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 21. `641af64` detalhes dos cupons 89 a 184 do Poa, 13 cupons com várias unidades, cópia sem login atualizada (versão 15)
 22. `b718de0` detalhes dos cupons 185 a 280 do Poa, Céu Zona Sul novo, 12 cupons com várias unidades, cópia sem login atualizada (versão 16)
 23. `b797ea7` cupons já usados dos três programas (prints de 17/11), Família Kabana apagada, cópia sem login atualizada (versão 17)
-24. (este commit) Woking Thai Food - Canoas usado no Tour, segundo Urban 1736 apagado do Canoas (erro do app), cópia sem login atualizada (versão 18)
+24. `905db77` Woking Thai Food - Canoas usado no Tour, segundo Urban 1736 apagado do Canoas (erro do app), cópia sem login atualizada (versão 18)
+25. (este commit) Cachorro do Bigode usado separado do Cachorro do Bigode - Cristo Redentor (disponível), cópia sem login atualizada (versão 19)
