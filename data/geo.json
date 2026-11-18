@@ -54,6 +54,11 @@
 "lng": -51.163007,
 "precisao": "bairro"
 },
+"Av. Farroupilha Nº 3989|Marechal Rondon|Canoas": {
+"lat": -29.90735,
+"lng": -51.164784,
+"precisao": "rua"
+},
 "Av. Getúlio Vargas, Nº 1157|Menino Deus|Porto Alegre": {
 "lat": -30.057406,
 "lng": -51.222777,
@@ -162,6 +167,11 @@
 "Avenida Assis Brasil, Nº 4320|São Sebastião|Porto Alegre": {
 "lat": -30.008942,
 "lng": -51.144376,
+"precisao": "endereco"
+},
+"Avenida Açucena Nº 1000|Estância Velha|Canoas": {
+"lat": -29.919004,
+"lng": -51.155451,
 "precisao": "endereco"
 },
 "Avenida Açucena Nº 1258|Estância Velha|Canoas": {
