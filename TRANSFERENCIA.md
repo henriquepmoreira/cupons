@@ -184,6 +184,15 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 6. **Avisos com data:** várias regras do Tour citam datas que já passaram ("Dia dos Namorados", "nesse domingo 08/11"). Estão transcritas como o app mostrava em 12/11. Se o usuário mandar telas novas, atualize.
 7. **Contradição no app:** o Mr. Pretzels mostra ✓ em feriados e datas comemorativas, mas a regra dele diz que não vale nesses dias. Ficou como o app mostra.
 
+8. **Melhorias de desempenho e UX propostas e ainda não feitas** (lista de 18/11; já feitos: barra enxuta, tempo estimado, site publicado do branch padrão, "Valendo agora", "Perto de mim", offline e app na Tela de Início). Em ordem de quanto rendem para o esforço:
+   1. **"Marcar na carteira ↗" no site do Pages.** Lá, "Marcar como usado" fica desativado; trocar por um link que abre a página do claude.ai (https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc) e pôr o mesmo link no aviso do topo.
+   2. **Fontes mais leves.** Hoje são três famílias do Google (Archivo com eixo de largura e pesos 500–900, Figtree 400–700, IBM Plex Mono 500–600) e o texto "pula" quando elas chegam. Reduzir a uma ou duas, só com os pesos usados, deixa a primeira tela mais rápida no 4G, inclusive na primeira visita ao site, antes de o service worker guardar tudo.
+   3. **Cópia dos cupons menor.** `docs/snapshot.json` tem cerca de 520 KB. Sem o que a lista não mostra dos cupons usados (regras e horários) e com nomes de campo mais curtos, deve cair para menos da metade (`scripts/gerar-snapshot.py`; a página lê a cópia em `carregaCopia`).
+   4. **Primeira tela já ordenada também no claude.ai.** A lista guardada no navegador aparece antes do banco, mas a ordem por distância espera as coordenadas; guardar a ordem e o ponto de partida (Casa, Perto de mim) para desenhar já ordenado.
+   5. **Mapa com os cupons, no site do Pages.** Cupons filtrados como pontos (tiles do OpenStreetMap), com a pessoa no centro; tocar num ponto abre o cartão. No claude.ai os tiles externos tendem a ser bloqueados.
+   6. **"+ Adicionar lugar" na própria página (artifact).** Colar a coordenada do Google Maps e dar um nome ("Trabalho", "Academia"); grava em `data/users/<id>/lugares` com `update`. Hoje só a Casa existe, gravada pelo Claude. A coordenada continua só na área privada.
+   7. **Etiqueta "abre em breve".** Por exemplo "abre às 18h30 (em 40 min)" nos cupons que ainda não valem, e uma linha "Daqui a pouco" no bloco "Valendo agora".
+
 ## 7. Como o usuário manda as informações
 
 - **Prints:** lotes de imagens ou zip. Um zip de quase 30 MB passou.
@@ -295,4 +304,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 54. (d7393b9) bloco "Valendo agora" no topo da lista (3 testes novos, 67 no total); site do Pages com service worker (offline, abre na hora, troca a cópia quando há nova) e app na Tela de Início (manifesto e ícones em `scripts/site/`); testado localmente offline; versão 41 publicada.
 55. (9ccdce7) atalho "Perto de mim" na barra (1 teste novo, 68 no total); versão 42 publicada e site `docs/` regenerado.
 56. (650572e) barra enxuta (Filtros, Perto de mim, Vale agora, Favoritos numa linha; Situação, Ordenar e Compacta no topo do painel Filtros; "Agora, perto" e atalhos Pet/Kids removidos, Pet e Kids continuam nas comodidades), tempo estimado junto da distância (a pé até 1,5 km, de carro acima), testes ajustados (70); versão 43 publicada; PR para o branch padrão, para o Pages publicar de lá ([henriquepmoreira/cupons#1](https://github.com/henriquepmoreira/cupons/pull/1), juntado em 18/11 com merge commit).
-57. (este commit) `CLAUDE.md` curto na raiz: toda sessão nova lê sozinha e é mandada ler este arquivo antes de começar.
+57. (153d39e) `CLAUDE.md` curto na raiz: toda sessão nova lê sozinha e é mandada ler este arquivo antes de começar.
+58. (este commit) melhorias de desempenho e UX propostas e ainda não feitas registradas na seção 6, item 8.
