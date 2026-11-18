@@ -1,7 +1,7 @@
 // "Perto de mim": localização do navegador, bairro como ponto de partida, raio e preferência salva.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, texto, textos, numero, espera, focado } = require("./lib/pagina");
+const { abrir, fechar, aba, texto, textos, numero, espera, focado } = require("./lib/pagina");
 
 after(fechar);
 const PRACA_DA_MATRIZ = { latitude: -30.0333, longitude: -51.2303 };
@@ -23,7 +23,7 @@ test("o raio filtra e os chips crescem com a distância", async () => {
   const pg = await abrir({ localizacao: PRACA_DA_MATRIZ });
   await pg.selectOption("#sort", "perto");
   await pg.waitForTimeout(1500);
-  await pg.click("#filters-toggle");
+  await aba(pg, "onde");
   const ns = (await textos(pg, "#f-raio button .n")).map(numero);
   assert.equal(ns.length, 4);
   for (let i = 1; i < ns.length; i++) assert.ok(ns[i] >= ns[i - 1]);
@@ -43,7 +43,7 @@ test("sem permissão de localização, abre Filtros e foca o seletor de bairro",
 
 test("bairro como ponto de partida fica salvo para a próxima visita", async () => {
   const pg = await abrir();
-  await pg.click("#filters-toggle");
+  await aba(pg, "onde");
   const valor = await pg.$$eval("#perto-bairro option", (os) => os.find((o) => o.textContent === "Moinhos de Vento").value);
   await pg.selectOption("#perto-bairro", valor);
   await espera(pg);
@@ -56,7 +56,7 @@ test("bairro como ponto de partida fica salvo para a próxima visita", async () 
 
 test("sem geo.json, o grupo Perto de explica e fica desativado", async () => {
   const pg = await abrir({ geo: false });
-  await pg.click("#filters-toggle");
+  await aba(pg, "onde");
   assert.match(await texto(pg, "#perto-nota"), /não carregaram/);
   assert.equal(await pg.$eval("#perto-gps", (b) => b.disabled), true);
 });

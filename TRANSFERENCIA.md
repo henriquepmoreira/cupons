@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 31, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 32, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -22,6 +22,11 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 2. **Não use `set` em documento que já existe.** O `set` troca o documento inteiro e apaga favorito ou usado marcados na página. O `gerar-seed.py` gera `set`, então só serve para cupons novos. Para mudar campos, use `update` só com os campos alterados. Para gravar muitos, use `batch` (até 50 escritas por vez, aplicadas juntas).
 3. **Toda escrita precisa de `if_version`** igual à versão da última leitura. Hoje as versões variam: Poa de 1 a 8 conforme o cupom, Tour 2 ou 3, Canoas 2 (os 98 com detalhes e o Guido) ou 1 (cupons criados por último). Desde 17/11 os cupons usados novos estão na versão 1 e os do Canoas que andaram de posição na 3. Não adivinhe, leia antes. Se a versão não bater, o batch inteiro é recusado e nada é gravado.
 4. **Para republicar a página numa sessão nova:** primeiro `Artifact` com `action: read` e a URL. Depois publique com `file_path: /home/user/cupons/cupons.html` **e** `url`. Sem `url`, nasce um artifact novo, com outro link. Não passe `capabilities`: as atuais são mantidas sozinhas (`db` com regra na raiz `read: view`, `write: owner`, e `user`). Passar `{}` apaga essas permissões.
+   **Passo a passo de cada publicação (desde 18/11/2026):**
+   1. `cd tests && npm test` (página, geocodificador e sincronização).
+   2. Exporte o banco (`ArtifactData` list, `query {"limit": 1000}`, `out_dir <pasta>`), rode `python3 scripts/sincronizar.py <pasta>/cupons` e confira que não sobrou diferença (marcas da página vão para os arquivos com `--marcas-para-arquivos`; campos dos arquivos viram patches para o banco).
+   3. Gere a cópia sem login: `python3 scripts/gerar-snapshot.py <pasta>/cupons <saida>/snapshot.json`.
+   4. Publique com `files: {"geo.json": "data/geo.json", "snapshot.json": "<saida>/snapshot.json"}`. Publicar só o `cupons.html` mantém os arquivos anteriores no artifact, e a cópia sem login fica para trás.
 5. **Mudar o banco não exige republicar; mudar o `cupons.html` exige.**
 6. **Cupons usados vão para o fim da lista do app**, com a foto em preto e branco no Poa e no Canoas (no Tour, ficam numa lista própria de vouchers usados). Ao casar prints ou vídeos com a lista pela ordem, pule os usados.
 7. **Dia que falta nos horários do app quer dizer que o cupom não vale nesse dia.** Conferi isso em imagem dezenas de vezes. Não complete dias faltantes.
@@ -53,6 +58,10 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - **Foco escondido sob a barra fixa:** `scroll-padding-top` acompanha a altura da `.toolbar` (`ResizeObserver`). Antes, navegando para trás, metade dos itens focados ficava sob a barra.
   - axe-core 4.10 (WCAG 2.2 AA + boas práticas), temas claro e escuro, 412 px: lista com lotes, Filtros com Perto de/raio/Data, cartão com os dois painéis abertos: nenhuma violação.
   - O teste com o TalkBack de verdade precisa ser feito no celular; aqui só dá para medir a árvore que ele recebe.
+- **Painel de filtros em abas (versão 32, 18/11/2026):** três abas com `role=tablist` (Quando: quando usar, data, dias, turno; O quê: categorias, categoria no app, benefício, regras, comodidades; Onde: cidade, shopping, bairro, perto de). Setas, Home e End trocam de aba (ativação automática); a aba aberta fica nas preferências (`abaFiltros`) e cada uma mostra quantos filtros estão ativos nela. "Perto de mim" sem localização abre a aba Onde.
+  - **Linha "Filtros ativos"** (`#ativos`, `filtrosAtivos()`, `removeFiltro()`), acima da lista e visível com o painel fechado: um botão por filtro ("Noite ×", lido "Noite: remover filtro"). Remover leva o foco ao filtro vizinho ou, se era o último, ao total de resultados (`#result-count` agora tem `tabindex="-1"`). Busca, programas e favoritos não entram, porque já ficam visíveis na barra.
+  - Filtro novo = entrada em `filtrosAtivos()` e `removeFiltro()`, além do grupo na aba certa.
+- **Sincronização com o banco (18/11/2026):** `scripts/sincronizar.py` compara a exportação do banco com `data/*.json`. favorito/usado/usadoEm vêm do banco (`--marcas-para-arquivos` grava nos arquivos); o resto vem dos arquivos e vira um patch por cupom mais `writes.json` (sem `if_version`, porque a exportação não traz versões: leia cada cupom com `get` antes do batch). Testes em `tests/test_sincronizar.py`. Em 18/11: banco e arquivos iguais (680 cupons).
 - **Filtros dos apps (versão 31, 17/11/2026).** Comparados com os prints dos painéis "Filtros" dos três apps; o que faltava entrou:
   - "Aceita em" virou conjunto (`state.aceita`: `feriados`, `datas`; os dois juntos exigem os dois; plano vencido não conta). A preferência antiga `quando: "feriados"` é convertida.
   - Turno (`state.turnos`, `TURNOS`, `valeNoTurno`): manhã (6h–11h), almoço (11h–15h), tarde (15h–18h), noite (18h–23h), madrugada (23h–6h). Vale se alguma faixa do cupom cruza o turno, na data de "Data", nos dias de "Dias da semana" ou em qualquer dia.
@@ -248,3 +257,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 38. (este commit) segunda unidade do Ah! Casa (Marechal Rondon) e do Camarão Express (Estância Velha), versão 29
 39. (este commit) unidades de Coccaderia.Co (4), Milky Moo, Mr. Pretzels e Poke Delícia - São Leo; comodidades por unidade na página e no filtro; versão 30
 40. (este commit) filtros dos apps: turno, aceita em datas comemorativas, shopping/centro comercial; versão 31
+41. (este commit) painel de filtros em abas com linha de filtros ativos, `scripts/sincronizar.py`, cópia sem login regenerada; versão 32

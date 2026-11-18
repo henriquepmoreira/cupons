@@ -1,7 +1,7 @@
 // Comodidades (aviso "só Tour", atalhos Pet e Kids) e largura no celular.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, texto, numero, espera } = require("./lib/pagina");
+const { abrir, fechar, aba, texto, numero, espera } = require("./lib/pagina");
 
 after(fechar);
 
@@ -16,7 +16,7 @@ test("atalhos Pet e Kids ligam os mesmos chips das comodidades", async () => {
   await pg.click("#kids-toggle");
   await espera(pg);
   assert.ok(numero(await texto(pg, "#result-count")) < pet, "Pet e Kids juntos exigem os dois");
-  await pg.click("#filters-toggle");
+  await aba(pg, "oque");
   await pg.click('#f-comod button[data-comod="Espaço Kids"]');
   await espera(pg);
   assert.equal(await pg.$eval("#kids-toggle", (b) => b.getAttribute("aria-pressed")), "false", "desmarcar o chip desliga o atalho");
@@ -46,7 +46,7 @@ test("comodidades por unidade: o filtro vale se alguma unidade tem, e os detalhe
   await pg.fill("#q", "coccaderia");
   await pg.waitForTimeout(200);
   const card = '.ticket[data-id="tour-grande-poa--coccaderia"]';
-  await pg.click("#filters-toggle");
+  await aba(pg, "oque");
   await pg.click('#f-comod button[data-comod="Consumo no local"]');
   await espera(pg);
   assert.equal(await pg.$$eval(card, (x) => x.length), 1, "a unidade principal é só para levar, mas as outras têm consumo no local");
@@ -61,7 +61,7 @@ test("comodidades por unidade: o filtro vale se alguma unidade tem, e os detalhe
 
 test("shopping: deduzido do endereço de cada unidade, aparece no cartão e na busca", async () => {
   const pg = await abrir();
-  await pg.click("#filters-toggle");
+  await aba(pg, "onde");
   const chips = await pg.$$eval("#f-shopping button", (bs) => bs.map((b) => b.dataset.shopping));
   for (const s of ["BarraShoppingSul", "Iguatemi", "ParkShopping Canoas", "Cais Embarcadero", "Mercado Público"]) assert.ok(chips.includes(s), s);
   await pg.click('#f-shopping button[data-shopping="Iguatemi"]');
@@ -111,4 +111,45 @@ test('preferência antiga "Aceita em feriados" continua marcada', async () => {
   const pg = await abrir({ prefs: { quando: "feriados" } });
   await pg.click("#filters-toggle");
   assert.equal(await pg.$eval('#f-quando [data-aceita="feriados"]', (b) => b.getAttribute("aria-pressed")), "true");
+});
+
+test("abas do painel: setas trocam de aba, cada aba mostra quantos filtros estão ativos", async () => {
+  const pg = await abrir();
+  await aba(pg, "quando");
+  assert.equal(await pg.$eval("#painel-quando", (e) => e.hidden), false);
+  assert.equal(await pg.$eval("#painel-onde", (e) => e.hidden), true);
+  await pg.focus("#aba-quando");
+  await pg.keyboard.press("ArrowRight");
+  await espera(pg);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "aba-oque");
+  assert.equal(await pg.$eval("#aba-oque", (b) => b.getAttribute("aria-selected")), "true");
+  assert.equal(await pg.$eval("#painel-oque", (e) => e.hidden), false);
+  await pg.keyboard.press("ArrowLeft");
+  await pg.keyboard.press("ArrowLeft"); // volta ao fim
+  await espera(pg);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "aba-onde");
+  await pg.click('#f-shopping button[data-shopping="Iguatemi"]');
+  await pg.click('#f-cidade button[data-cidade="Porto Alegre"]');
+  await espera(pg);
+  assert.equal(await pg.$eval("#aba-onde .badge", (b) => b.hidden), false);
+  assert.match(await texto(pg, "#aba-onde .badge"), /2/);
+  assert.equal(await pg.$eval("#aba-quando .badge", (b) => b.hidden), true);
+});
+
+test("linha de filtros ativos: mostra com o painel fechado, o × remove e o foco vai para o vizinho", async () => {
+  const pg = await abrir({ prefs: { turnos: ["noite"], shoppings: ["Iguatemi"], comods: ["Espaço Kids"] } });
+  assert.equal(await pg.$eval("#filters", (e) => e.hidden), true, "painel fechado");
+  const chips = async () => pg.$$eval("#ativos .ativo", (bs) => bs.map((b) => b.dataset.remove));
+  assert.deepEqual(await chips(), ["comod:Espaço Kids", "turno:noite", "shopping:Iguatemi"]);
+  assert.match(await texto(pg, '#ativos [data-remove="turno:noite"]'), /^Noite×: remover filtro$/);
+  const antes = numero(await texto(pg, "#result-count"));
+  await pg.click('#ativos [data-remove="turno:noite"]');
+  await espera(pg);
+  assert.deepEqual(await chips(), ["comod:Espaço Kids", "shopping:Iguatemi"]);
+  assert.equal((await pg.evaluate(() => document.activeElement.dataset.remove)), "shopping:Iguatemi");
+  assert.ok(numero(await texto(pg, "#result-count")) >= antes);
+  await pg.click('#ativos [data-remove="*"]');
+  await espera(pg);
+  assert.equal(await pg.$eval("#ativos", (e) => e.hidden), true);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
 });

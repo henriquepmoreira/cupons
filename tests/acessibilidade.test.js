@@ -5,7 +5,7 @@
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
-const { abrir, fechar, espera, busca, arvoreAcessibilidade, cartoes } = require("./lib/pagina");
+const { abrir, fechar, aba, espera, busca, arvoreAcessibilidade, cartoes } = require("./lib/pagina");
 
 after(fechar);
 
@@ -72,12 +72,17 @@ for (const tema of ["light", "dark"]) {
   test(`axe sem violações, tema ${tema === "light" ? "claro" : "escuro"}`, { skip: !axe && "rode npm install em tests/" }, async () => {
     const pg = await abrir({ tema, largura: 412, data: "2026-11-19T20:00:00" });
     assert.deepEqual(await violacoes(pg), [], "lista inicial");
-    await pg.click("#filters-toggle");
+    await aba(pg, "onde");
     await pg.selectOption("#perto-bairro", { index: 3 });
     await pg.click('#f-raio button[data-raio="5"]');
+    await espera(pg, 150);
+    assert.deepEqual(await violacoes(pg), [], "Filtros abertos, aba Onde");
+    await aba(pg, "quando");
     await pg.click("#f-data button:nth-child(2)");
     await espera(pg, 150);
-    assert.deepEqual(await violacoes(pg), [], "Filtros abertos");
+    assert.deepEqual(await violacoes(pg), [], "Filtros abertos, aba Quando, com a linha de filtros ativos");
+    await aba(pg, "oque");
+    assert.deepEqual(await violacoes(pg), [], "Filtros abertos, aba O quê");
     await pg.click("#filters-clear");
     await pg.click("#filters-toggle");
     await busca(pg, "spoleto");

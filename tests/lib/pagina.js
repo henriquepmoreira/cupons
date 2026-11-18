@@ -104,6 +104,12 @@ const cartoes = (pg) => pg.$$eval("#grid .ticket", (t) => t.length);
 const espera = (pg, ms = 80) => pg.waitForTimeout(ms);
 // a busca tem um atraso de 80 ms antes de filtrar
 async function busca(pg, q) { await pg.fill("#q", q); await pg.waitForTimeout(200); }
+// abre o painel Filtros (se fechado) na aba pedida: "quando", "oque" ou "onde"
+async function aba(pg, nome) {
+  if (await pg.$eval("#filters", (e) => e.hidden)) await pg.click("#filters-toggle");
+  await pg.click(`#aba-${nome}`);
+  await pg.waitForTimeout(50);
+}
 async function focado(pg) {
   return pg.evaluate(() => {
     const a = document.activeElement;
@@ -120,4 +126,4 @@ async function arvoreAcessibilidade(pg) {
   return nodes;
 }
 
-module.exports = { abrir, fechar, cupons, texto, textos, numero, cartoes, espera, busca, focado, arvoreAcessibilidade, RAIZ };
+module.exports = { abrir, fechar, cupons, texto, textos, numero, cartoes, espera, busca, aba, focado, arvoreAcessibilidade, RAIZ };

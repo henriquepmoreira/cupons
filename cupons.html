@@ -216,6 +216,24 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .fchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .fchip[aria-pressed="true"] .n { color: inherit; opacity: .7; }
 .filters-foot { display: flex; justify-content: flex-end; }
+.ftabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.ftab {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 10px;
+  border: 0; border-bottom: 3px solid transparent; background: none; font-weight: 600; font-size: 14px; color: var(--muted);
+}
+.ftab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.ftab .badge {
+  min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
+  font-size: 11.5px; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
+}
+.fpanel { display: grid; gap: 14px; }
+.ativos { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 12px; }
+.ativo {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 6px 4px 11px; border-radius: 999px;
+  border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500;
+}
+.ativo .x { font-size: 16px; line-height: 1; padding: 0 4px; opacity: .8; }
+.ativos .linkbtn { padding: 4px 6px; }
 .linkbtn { border: 0; background: none; padding: 4px 0; color: var(--accent); font-weight: 600; font-size: 13.5px; }
 
 /* ---------- resultado ---------- */
@@ -478,90 +496,102 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 </div>
 
 <section class="wrap filters" id="filters" hidden aria-label="Filtros">
-  <div class="fgroup">
-    <h2 id="f-cat-h">Categoria</h2>
-    <div class="fchips" id="f-cat" role="group" aria-labelledby="f-cat-h"></div>
+  <div class="ftabs" role="tablist" aria-label="Grupos de filtros">
+    <button type="button" class="ftab" role="tab" id="aba-quando" data-aba="quando" aria-controls="painel-quando" aria-selected="false" tabindex="-1">Quando <span class="badge" hidden></span></button>
+    <button type="button" class="ftab" role="tab" id="aba-oque" data-aba="oque" aria-controls="painel-oque" aria-selected="false" tabindex="-1">O quê <span class="badge" hidden></span></button>
+    <button type="button" class="ftab" role="tab" id="aba-onde" data-aba="onde" aria-controls="painel-onde" aria-selected="false" tabindex="-1">Onde <span class="badge" hidden></span></button>
   </div>
-  <div class="fgroup">
-    <h2 id="f-tipo-h">Categoria no app</h2>
-    <div class="fchips" id="f-tipo" role="group" aria-labelledby="f-tipo-h"></div>
-    <p class="fnote">Como o app mostra na tela do cupom (ex.: Culinária Internacional, Saudável, ParkShopping Canoas). Só no Poa em Dobro e no Canoas em Dobro; o Tour não mostra categoria na tela do cupom.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-ganhe-h">O que você ganha</h2>
-    <div class="fchips" id="f-ganhe" role="group" aria-labelledby="f-ganhe-h">
-      <button type="button" class="fchip" data-ganhe="igual_ou_menor">Outro igual ou de menor valor <span class="n"></span></button>
-      <button type="button" class="fchip" data-ganhe="igual">Outro igual <span class="n"></span></button>
+  <div class="fpanel" role="tabpanel" id="painel-quando" aria-labelledby="aba-quando" hidden>
+    <div class="fgroup">
+      <h2 id="f-quando-h">Quando usar</h2>
+      <div class="fchips" id="f-quando" role="group" aria-labelledby="f-quando-h">
+        <button type="button" class="fchip" data-quando="agora">Vale agora <span class="n"></span></button>
+        <button type="button" class="fchip" data-aceita="feriados">Aceita em feriados <span class="n"></span></button>
+        <button type="button" class="fchip" data-aceita="datas">Aceita em datas comemorativas <span class="n"></span></button>
+      </div>
+      <p class="fnote">"Vale agora" considera só os cupons com dias e horários cadastrados. "Aceita em…" segue o ✓ do app; marcando os dois, o cupom precisa aceitar os dois.</p>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-data-h">Data</h2>
+      <div class="fchips" id="f-data" role="group" aria-labelledby="f-data-h"></div>
+      <p class="fnote">Hoje e os próximos 6 dias. Leva em conta feriados, datas comemorativas e a validade do plano, e o cartão passa a mostrar o horário da data escolhida.</p>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-dia-h">Dias da semana</h2>
+      <div class="fchips" id="f-dia" role="group" aria-labelledby="f-dia-h"></div>
+      <p class="fnote">Mostra os cupons que valem em pelo menos um dos dias marcados. Só conta os cupons com dias e horários cadastrados.</p>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-turno-h">Turno</h2>
+      <div class="fchips" id="f-turno" role="group" aria-labelledby="f-turno-h"></div>
+      <p class="fnote">Cupons que valem em algum momento da faixa, na data escolhida em "Data", nos dias marcados em "Dias da semana" ou, sem nenhum dos dois, em qualquer dia.</p>
     </div>
   </div>
-  <div class="fgroup">
-    <h2 id="f-regras-h">Regras</h2>
-    <div class="fchips" id="f-regras" role="group" aria-labelledby="f-regras-h">
-      <button type="button" class="fchip" data-regras="simples">Sem regras extras <span class="n"></span></button>
-      <button type="button" class="fchip" data-regras="ver">Pede para ver regras <span class="n"></span></button>
+  <div class="fpanel" role="tabpanel" id="painel-oque" aria-labelledby="aba-oque" hidden>
+    <div class="fgroup">
+      <h2 id="f-cat-h">Categoria</h2>
+      <div class="fchips" id="f-cat" role="group" aria-labelledby="f-cat-h"></div>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-tipo-h">Categoria no app</h2>
+      <div class="fchips" id="f-tipo" role="group" aria-labelledby="f-tipo-h"></div>
+      <p class="fnote">Como o app mostra na tela do cupom (ex.: Culinária Internacional, Saudável, ParkShopping Canoas). Só no Poa em Dobro e no Canoas em Dobro; o Tour não mostra categoria na tela do cupom.</p>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-ganhe-h">O que você ganha</h2>
+      <div class="fchips" id="f-ganhe" role="group" aria-labelledby="f-ganhe-h">
+        <button type="button" class="fchip" data-ganhe="igual_ou_menor">Outro igual ou de menor valor <span class="n"></span></button>
+        <button type="button" class="fchip" data-ganhe="igual">Outro igual <span class="n"></span></button>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-regras-h">Regras</h2>
+      <div class="fchips" id="f-regras" role="group" aria-labelledby="f-regras-h">
+        <button type="button" class="fchip" data-regras="simples">Sem regras extras <span class="n"></span></button>
+        <button type="button" class="fchip" data-regras="ver">Pede para ver regras <span class="n"></span></button>
+      </div>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-comod-h">Comodidades e diferenciais</h2>
+      <div class="fchips" id="f-comod" role="group" aria-labelledby="f-comod-h"></div>
+      <p class="fnote">Mostra os cupons que têm todas as marcadas. O Poa em Dobro e o Canoas em Dobro só informam Aceita Pet e Espaço Kids; as outras comodidades vêm só do Tour. Pet e Kids também ficam na barra de cima.</p>
     </div>
   </div>
-  <div class="fgroup">
-    <h2 id="f-quando-h">Quando usar</h2>
-    <div class="fchips" id="f-quando" role="group" aria-labelledby="f-quando-h">
-      <button type="button" class="fchip" data-quando="agora">Vale agora <span class="n"></span></button>
-      <button type="button" class="fchip" data-aceita="feriados">Aceita em feriados <span class="n"></span></button>
-      <button type="button" class="fchip" data-aceita="datas">Aceita em datas comemorativas <span class="n"></span></button>
+  <div class="fpanel" role="tabpanel" id="painel-onde" aria-labelledby="aba-onde" hidden>
+    <div class="fgroup">
+      <h2 id="f-cidade-h">Cidade</h2>
+      <div class="fchips" id="f-cidade" role="group" aria-labelledby="f-cidade-h"></div>
     </div>
-    <p class="fnote">"Vale agora" considera só os cupons com dias e horários cadastrados. "Aceita em…" segue o ✓ do app; marcando os dois, o cupom precisa aceitar os dois.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-data-h">Data</h2>
-    <div class="fchips" id="f-data" role="group" aria-labelledby="f-data-h"></div>
-    <p class="fnote">Hoje e os próximos 6 dias. Leva em conta feriados, datas comemorativas e a validade do plano, e o cartão passa a mostrar o horário da data escolhida.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-dia-h">Dias da semana</h2>
-    <div class="fchips" id="f-dia" role="group" aria-labelledby="f-dia-h"></div>
-    <p class="fnote">Mostra os cupons que valem em pelo menos um dos dias marcados. Só conta os cupons com dias e horários cadastrados.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-turno-h">Turno</h2>
-    <div class="fchips" id="f-turno" role="group" aria-labelledby="f-turno-h"></div>
-    <p class="fnote">Cupons que valem em algum momento da faixa, na data escolhida em "Data", nos dias marcados em "Dias da semana" ou, sem nenhum dos dois, em qualquer dia.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-comod-h">Comodidades e diferenciais</h2>
-    <div class="fchips" id="f-comod" role="group" aria-labelledby="f-comod-h"></div>
-    <p class="fnote">Mostra os cupons que têm todas as marcadas. O Poa em Dobro e o Canoas em Dobro só informam Aceita Pet e Espaço Kids; as outras comodidades vêm só do Tour. Pet e Kids também ficam na barra de cima.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-cidade-h">Cidade</h2>
-    <div class="fchips" id="f-cidade" role="group" aria-labelledby="f-cidade-h"></div>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-shopping-h">Shopping e centro comercial</h2>
-    <div class="fchips" id="f-shopping" role="group" aria-labelledby="f-shopping-h"></div>
-    <p class="fnote">Deduzido do endereço de cada unidade (ex.: Av. Diário de Notícias, 300 = BarraShoppingSul). Cupons com várias unidades contam se alguma fica no lugar.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-bairro-h">Região (bairro)</h2>
-    <div class="fchips" id="f-bairro" role="group" aria-labelledby="f-bairro-h"></div>
-    <p class="fnote">Com uma cidade marcada, mostra só os bairros dela. Só conta os cupons com endereço cadastrado.</p>
-  </div>
-  <div class="fgroup">
-    <h2 id="f-perto-h">Perto de</h2>
-    <div class="perto-ctl">
-      <button type="button" class="fchip" id="perto-gps" aria-pressed="false">Minha localização</button>
-      <select id="perto-bairro" aria-label="Perto de um bairro"><option value="">Ou escolha um bairro…</option></select>
+    <div class="fgroup">
+      <h2 id="f-shopping-h">Shopping e centro comercial</h2>
+      <div class="fchips" id="f-shopping" role="group" aria-labelledby="f-shopping-h"></div>
+      <p class="fnote">Deduzido do endereço de cada unidade (ex.: Av. Diário de Notícias, 300 = BarraShoppingSul). Cupons com várias unidades contam se alguma fica no lugar.</p>
     </div>
-    <div class="fchips" id="f-raio" role="group" aria-label="Distância máxima"></div>
-    <p class="fnote" id="perto-nota"></p>
+    <div class="fgroup">
+      <h2 id="f-bairro-h">Região (bairro)</h2>
+      <div class="fchips" id="f-bairro" role="group" aria-labelledby="f-bairro-h"></div>
+      <p class="fnote">Com uma cidade marcada, mostra só os bairros dela. Só conta os cupons com endereço cadastrado.</p>
+    </div>
+    <div class="fgroup">
+      <h2 id="f-perto-h">Perto de</h2>
+      <div class="perto-ctl">
+        <button type="button" class="fchip" id="perto-gps" aria-pressed="false">Minha localização</button>
+        <select id="perto-bairro" aria-label="Perto de um bairro"><option value="">Ou escolha um bairro…</option></select>
+      </div>
+      <div class="fchips" id="f-raio" role="group" aria-label="Distância máxima"></div>
+      <p class="fnote" id="perto-nota"></p>
+    </div>
   </div>
   <div class="filters-foot"><button type="button" class="linkbtn" id="filters-clear">Limpar filtros</button></div>
 </section>
 
 <main class="wrap">
   <div class="resultbar">
-    <p id="result-count">Carregando cupons…</p>
+    <p id="result-count" tabindex="-1">Carregando cupons…</p>
     <button type="button" class="linkbtn" id="result-clear" hidden>Limpar busca e filtros</button>
     <button type="button" class="linkbtn grupo-sair" id="grupo-sair" hidden>Voltar à lista</button>
   </div>
+  <div class="ativos" id="ativos" role="group" aria-label="Filtros ativos" hidden></div>
   <p class="notice" id="notice" role="status" hidden></p>
   <h2 class="sr-only" id="lista-h">Cupons</h2>
   <div class="grid" id="grid" role="region" aria-labelledby="lista-h" aria-busy="true">
@@ -647,6 +677,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     perto: null, // ponto de partida: { lat, lng, rotulo, tipo: "gps" | "bairro", chave }
     pertoPendente: null, // bairro salvo nas preferências, aplicado quando geo.json chegar
     raio: null, // distância máxima em km
+    abaFiltros: "quando", // aba aberta no painel de filtros
     limite: 40, // quantos cartões aparecem (lotes de LOTE); volta ao primeiro lote quando a lista muda
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
@@ -676,6 +707,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       state.tipos = new Set(p.tipos || []);
       state.comods = new Set(p.comods || []);
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
+      if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
       if ([1, 2, 5, 10].includes(p.raio)) state.raio = p.raio;
     }
   } catch (_) {}
@@ -684,7 +716,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        abaFiltros: state.abaFiltros, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -1238,6 +1270,55 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       : "Use sua localização ou escolha um bairro para ordenar do mais perto ao mais longe e filtrar pela distância.";
   }
 
+  /* ---------- abas do painel e linha de filtros ativos ---------- */
+  const ROTULO_DIA = { dom: "Domingo", seg: "Segunda", ter: "Terça", qua: "Quarta", qui: "Quinta", sex: "Sexta", sab: "Sábado" };
+  // cada filtro ativo: [aba, chave para remover, texto]
+  function filtrosAtivos() {
+    const xs = [];
+    for (const x of state.categorias) xs.push(["oque", `cat:${x}`, x]);
+    for (const x of state.tipos) xs.push(["oque", `tipo:${x}`, `App: ${x}`]);
+    if (state.ganhe) xs.push(["oque", "ganhe:", state.ganhe === "igual" ? "Outro igual" : "Igual ou de menor valor"]);
+    if (state.regras) xs.push(["oque", "regras:", state.regras === "ver" ? "Pede para ver regras" : "Sem regras extras"]);
+    for (const x of state.comods) xs.push(["oque", `comod:${x}`, x]);
+    if (state.quando === "agora") xs.push(["quando", "agora:", "Vale agora"]);
+    for (const x of state.aceita) xs.push(["quando", `aceita:${x}`, x === "feriados" ? "Aceita em feriados" : "Aceita em datas comemorativas"]);
+    if (state.data) xs.push(["quando", "data:", rotuloDia(state.data)]);
+    for (const x of state.dias) xs.push(["quando", `dia:${x}`, ROTULO_DIA[x]]);
+    for (const x of state.turnos) xs.push(["quando", `turno:${x}`, TURNOS.find((t) => t[0] === x)?.[1] || x]);
+    for (const x of state.cidades) xs.push(["onde", `cidade:${x}`, x]);
+    for (const x of state.shoppings) xs.push(["onde", `shopping:${x}`, x]);
+    for (const x of state.bairros) xs.push(["onde", `bairro:${x}`, x.split("|")[1] || x]);
+    if (state.raio && state.perto) xs.push(["onde", "raio:", `Até ${state.raio} km`]);
+    return xs;
+  }
+  function removeFiltro(chave) {
+    const i = chave.indexOf(":"), tipo = chave.slice(0, i), v = chave.slice(i + 1);
+    const sets = { cat: state.categorias, tipo: state.tipos, comod: state.comods, aceita: state.aceita, dia: state.dias, turno: state.turnos, cidade: state.cidades, shopping: state.shoppings, bairro: state.bairros };
+    if (sets[tipo]) sets[tipo].delete(v);
+    else if (tipo === "ganhe") state.ganhe = null;
+    else if (tipo === "regras") state.regras = null;
+    else if (tipo === "agora") state.quando = null;
+    else if (tipo === "data") state.data = null;
+    else if (tipo === "raio") state.raio = null;
+  }
+  function renderAtivos(xs) {
+    const el = $("ativos");
+    setHidden(el, !(state.phase === "ready" && xs.length && !state.grupo));
+    htmlDe(el).innerHTML = xs.map(([, k, t]) => `<button type="button" class="ativo" data-remove="${esc(k)}">${esc(t)}<span class="x" aria-hidden="true">×</span><span class="sr-only">: remover filtro</span></button>`).join("")
+      + (xs.length > 1 ? '<button type="button" class="linkbtn" data-remove="*">Limpar filtros</button>' : "");
+  }
+  function renderAbas(xs) {
+    for (const b of document.querySelectorAll(".ftab")) {
+      const a = b.dataset.aba, sel = a === state.abaFiltros, n = xs.filter((x) => x[0] === a).length;
+      setAttr(b, "aria-selected", String(sel));
+      setAttr(b, "tabindex", sel ? "0" : "-1");
+      const badge = b.querySelector(".badge");
+      setHidden(badge, n === 0);
+      htmlDe(badge).innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
+      setHidden($(`painel-${a}`), !sel);
+    }
+  }
+
   function renderControls() {
     $("status").querySelectorAll("button").forEach((b) => setAttr(b, "aria-pressed", String(b.dataset.status === state.status)));
     setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
@@ -1250,6 +1331,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     htmlDe($("filters-badge")).innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
     setHidden($("q-clear"), !state.q);
     for (const b of document.querySelectorAll("[data-atalho]")) setAttr(b, "aria-pressed", String(state.comods.has(b.dataset.atalho)));
+    const ativos = filtrosAtivos();
+    renderAtivos(ativos);
+    renderAbas(ativos);
     // o resto do painel (chips e contagens) só é montado com Filtros aberto: são dezenas de passadas pelos cupons
     if (!state.filtersOpen) return;
 
@@ -1494,7 +1578,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
      Cada render recria botões com innerHTML. Sem isto, o foco do TalkBack cai no topo da página
      depois de cada filtro, favorito ou "usado". Guardamos uma descrição do elemento focado e
      devolvemos o foco ao equivalente recriado. */
-  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-raio", "data-aceita", "data-turno", "data-shopping", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
+  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-raio", "data-aceita", "data-turno", "data-shopping", "data-aba", "data-remove", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
   let focoPendente = null; // lista de seletores; o primeiro que existir recebe o foco
   function descreveFoco() {
     const el = document.activeElement;
@@ -1666,6 +1750,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   });
   function falhaLocalizacao(msg) {
     state.filtersOpen = true;
+    state.abaFiltros = "onde";
     render();
     toast(`${msg} Escolha um bairro em Filtros, no grupo Perto de.`);
     $("perto-bairro").scrollIntoView({ block: "center" });
@@ -1736,6 +1821,28 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const b = e.target.closest("button[data-quando]"); if (!b) return;
     state.quando = state.quando === b.dataset.quando ? null : b.dataset.quando;
     if (state.quando === "agora") state.data = null; // "agora" já é hoje
+    savePrefs(); render();
+  });
+  // abas: clique ou setas (ativação automática, como no padrão de abas da WAI-ARIA)
+  const abas = () => [...document.querySelectorAll(".ftab")];
+  function escolheAba(a, foco) { state.abaFiltros = a; savePrefs(); render(); if (foco) $(`aba-${a}`).focus(); }
+  document.querySelector(".ftabs").addEventListener("click", (e) => { const b = e.target.closest(".ftab"); if (b) escolheAba(b.dataset.aba, false); });
+  document.querySelector(".ftabs").addEventListener("keydown", (e) => {
+    const lista = abas(), i = lista.findIndex((b) => b.dataset.aba === state.abaFiltros);
+    const alvo = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: lista.length - 1 }[e.key];
+    if (alvo === undefined) return;
+    e.preventDefault();
+    escolheAba(lista[(alvo + lista.length) % lista.length].dataset.aba, true);
+  });
+  $("ativos").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-remove]"); if (!b) return;
+    if (b.dataset.remove === "*") { clearFilters(); focoPendente = ["#result-count"]; }
+    else {
+      const todos = [...$("ativos").querySelectorAll(".ativo")], i = todos.indexOf(b);
+      const vizinho = todos[i + 1] || todos[i - 1];
+      removeFiltro(b.dataset.remove);
+      focoPendente = [vizinho ? `#ativos [data-remove="${CSS.escape(vizinho.dataset.remove)}"]` : "#result-count"];
+    }
     savePrefs(); render();
   });
   $("f-turno").addEventListener("click", (e) => {
