@@ -1,0 +1,43 @@
+# Testes da página (Playwright + node:test) e dos scripts (unittest) a cada push e pull request.
+# Os mesmos que `cd tests && npm test` roda na sessão (detalhes em tests/README.md).
+name: Testes
+
+on:
+  push:
+    branches: ["claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TZ: UTC # os testes fixam data e hora locais; a sessão da nuvem também roda em UTC
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Dependências (axe-core e Playwright com o Chromium)
+        working-directory: tests
+        run: |
+          npm ci
+          # na sessão da nuvem o Playwright já vem instalado; aqui entra na mesma versão
+          npm install --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Testes
+        working-directory: tests
+        run: npm test
