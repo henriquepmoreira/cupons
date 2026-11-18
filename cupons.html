@@ -296,6 +296,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   position: relative; display: grid; grid-template-columns: 74px minmax(0, 1fr);
   background: var(--surface); border-radius: var(--r-ticket); box-shadow: var(--shadow);
   min-height: 168px;
+  /* o layout de dentro do cartão não mexe no resto da página: favoritar, abrir um painel ou expandir
+     recalcula só ele (sem paint: os furos do picote saem 8 px para fora do cartão) */
+  contain: layout style;
 }
 /* Sem content-visibility nos cartões: no Chrome, cartões fora da tela ficam vazios na árvore de
    acessibilidade (o TalkBack veria a lista acabar na tela atual). Conferido em 17/11/2026. */
@@ -348,10 +351,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   flex: none; width: 40px; height: 40px; margin: -6px -6px 0 0; border-radius: 50%; border: 0; background: transparent;
   display: grid; place-items: center; color: var(--muted);
 }
-.heart svg { width: 24px; height: 24px; transition: transform .15s ease; }
-.heart[aria-pressed="true"] { color: var(--fav); }
-.heart[aria-pressed="true"] svg path { fill: currentColor; }
-.heart:hover svg { transform: scale(1.08); }
+/* Ícones do cartão como máscara num pseudo-elemento: um objeto de layout em vez de dois (svg + path),
+   em cada um dos 40 cartões do lote. A cor vem de currentColor, como antes. */
+.heart::before, .expandir::before, .usebtn[data-act="use"]::before {
+  content: ""; display: block; width: 24px; height: 24px; background: currentColor;
+  -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat;
+  transition: transform .15s ease;
+}
+.heart { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7-4.3-9-8.7C1.6 8.3 3.6 5 6.9 5c2 0 3.3 1.1 5.1 3 1.8-1.9 3.1-3 5.1-3 3.3 0 5.3 3.3 3.9 6.6-2 4.4-9 8.7-9 8.7Z' fill='none' stroke='black' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.heart[aria-pressed="true"] { color: var(--fav); --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7-4.3-9-8.7C1.6 8.3 3.6 5 6.9 5c2 0 3.3 1.1 5.1 3 1.8-1.9 3.1-3 5.1-3 3.3 0 5.3 3.3 3.9 6.6-2 4.4-9 8.7-9 8.7Z' fill='black' stroke='black' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.heart:hover::before { transform: scale(1.08); }
 .heart:disabled { cursor: default; }
 
 .tfoot { margin-top: auto; padding-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -410,8 +419,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
 /* lista compacta: uma linha por cupom; o botão de expandir mostra o cartão completo (regras, mapa, usar) */
 .expandir { display: none; flex: none; width: 40px; height: 40px; margin: -6px -6px 0 -4px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); place-items: center; }
-.expandir svg { transition: transform .15s ease; }
-.expandir[aria-expanded="true"] svg { transform: rotate(180deg); }
+.expandir { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.expandir::before { width: 18px; height: 18px; }
+.usebtn[data-act="use"] { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.usebtn[data-act="use"]::before { width: 14px; height: 14px; }
+.expandir[aria-expanded="true"]::before { transform: rotate(180deg); }
+/* alto contraste do Windows: o fundo seria trocado pela cor da página e o ícone sumiria */
+@media (forced-colors: active) { .heart::before, .expandir::before, .usebtn[data-act="use"]::before { forced-color-adjust: none; background: ButtonText; } }
 .grid.compacto .expandir { display: grid; }
 .grid.compacto, .grid.compacto .group-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .grid.compacto .ticket:not(.expandido) { grid-template-columns: minmax(0, 1fr); min-height: 0; }
@@ -501,12 +515,16 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   .controls #fav-toggle { padding: 0 11px; }
   /* os quatro dividem a linha: cabem inteiros de 320 px para cima (antes o coração ficava cortado em 320 e 360 px) */
   .controls { gap: 6px; margin-right: 0; padding-right: 0; }
-  .controls > .chipbtn { flex: 1 0 auto; justify-content: center; padding: 0 9px; }
+  /* encolhem em vez de transbordar se a fonte do aparelho for mais larga (o rótulo cede primeiro) */
+  .controls > .chipbtn { flex: 1 1 auto; min-width: 0; justify-content: center; padding: 0 9px; }
+  .controls > .chipbtn > span:not(.badge):not(.sr-only) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .controls > #fav-toggle { flex: 0 0 auto; }
   @media (max-width: 350px) {
     .controls { gap: 5px; }
     .controls > .chipbtn { padding: 0 6px; gap: 4px; }
     .controls > #fav-toggle { padding: 0 8px; }
+    /* só o texto em Perto e Agora: sobra folga mesmo com uma fonte do sistema mais larga (sem as do Google) */
+    #perto-toggle svg, #agora-toggle svg { display: none; }
   }
   /* a barra fixa some ao rolar para baixo e volta ao rolar para cima (mais lista na tela);
      sem desfoque por trás, que custa um redesenho a cada quadro da rolagem nos celulares mais simples */
@@ -900,7 +918,6 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (use.length === 1) return use[0].slice(0, 2);
     return (use[0][0] + use[1][0]);
   }
-  const heartSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7-4.3-9-8.7C1.6 8.3 3.6 5 6.9 5c2 0 3.3 1.1 5.1 3 1.8-1.9 3.1-3 5.1-3 3.3 0 5.3 3.3 3.9 6.6-2 4.4-9 8.7-9 8.7Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>';
 
   const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
   const DIAS_NOME = { dom: "Domingo", seg: "Segunda", ter: "Terça", qua: "Quarta", qui: "Quinta", sex: "Sexta", sab: "Sábado" };
@@ -1369,8 +1386,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
-      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}>${heartSvg}</button>
-      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}></button>
+      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"></button>
     </div>
     ${offer}
     ${loc}
@@ -1380,7 +1397,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <div class="tfoot">
       ${c.usado
         ? `<button type="button" class="usebtn" data-act="unuse" aria-label="Voltar para disponíveis: ${esc(c.nome)}"${ro}>Voltar para disponíveis</button>`
-        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Marcar como usado</button>`}
+        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}>Marcar como usado</button>`}
       <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" aria-label="Ver ${esc(c.nome)} no mapa (abre em outra aba)">Mapa <span aria-hidden="true">↗</span></a>
       ${c.usado && c.usadoEm ? `<span class="usedate">usado ${esc(fmtDate(c.usadoEm))}</span>` : ""}
     </div>

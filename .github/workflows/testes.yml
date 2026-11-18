@@ -22,13 +22,13 @@ jobs:
     env:
       TZ: UTC # os testes fixam data e hora locais; a sessão da nuvem também roda em UTC
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: tests/package-lock.json
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
       - name: Dependências (axe-core e Playwright com o Chromium)
