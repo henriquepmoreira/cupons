@@ -803,7 +803,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     raio: null, // distância máxima em km
     abaFiltros: "quando", // aba aberta no painel de filtros
     planosAbertos: false, // detalhe dos planos no topo
-    compacto: false, expandidos: new Set(), // lista compacta e cupons abertos nela
+    compacto: true, expandidos: new Set(), // lista compacta (padrão desde a versão 45) e cupons abertos nela
     limite: 40, // quantos cartões aparecem (lotes de LOTE); volta ao primeiro lote quando a lista muda
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
@@ -835,7 +835,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
       if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
       state.planosAbertos = !!p.planosAbertos;
-      state.compacto = !!p.compacto;
+      // "lista" substituiu "compacto" na versão 45, quando a compacta virou o padrão: a escolha antiga
+      // (que ficava gravada como false para todo mundo) não vale mais
+      state.compacto = p.lista !== "completa";
       if ([1, 2, 5, 10].includes(p.raio)) state.raio = p.raio;
     }
   } catch (_) {}
@@ -844,7 +846,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, compacto: state.compacto, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, lista: state.compacto ? "compacta" : "completa", pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}

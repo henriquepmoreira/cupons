@@ -136,6 +136,19 @@ test("lista compacta: uma linha por cupom, expandir mostra o cartão completo, e
   assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), true, "lembrada depois de recarregar");
 });
 
+test("lista compacta é o padrão, também para quem tinha a escolha antiga gravada; a completa fica lembrada", async () => {
+  for (const prefs of [undefined, { compacto: false, sort: "app" }]) {
+    const pg = await abrir({ compacta: true, prefs });
+    assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), true, `compacta com ${JSON.stringify(prefs)}`);
+    await pg.context().close();
+  }
+  const pg = await abrir({ compacta: true });
+  await compacta(pg); // desliga
+  assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), false);
+  await pg.reload(); await pg.waitForSelector(".ticket"); await pg.waitForTimeout(300);
+  assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), false, "completa lembrada depois de recarregar");
+});
+
 test("nada encontrado: sugere qual filtro tirar e aplica com um toque", async () => {
   const pg = await abrir();
   await aba(pg, "onde");

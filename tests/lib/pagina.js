@@ -73,6 +73,8 @@ async function abrirNavegador() {
  * @param {{em:string, cupons:object[]}} [o.cache]  lista guardada no navegador antes de abrir
  * @param {{lugares: object[]}} [o.lugares]  documento data/users/<id>/lugares ("Meus lugares")
  * @param {boolean} [o.esperarCartoes]  padrão true
+ * @param {boolean} [o.compacta]   abre com a lista compacta, o padrão da página (os testes usam a completa,
+ *                                 que mostra todos os botões do cartão; uma preferência em o.prefs vale mais)
  */
 async function abrir(o = {}) {
   const b = await abrirNavegador();
@@ -90,7 +92,9 @@ async function abrir(o = {}) {
   if (o.ajustar) docs = o.ajustar(docs) || docs;
   await pg.addInitScript(`window.__docs = ${JSON.stringify(docs)};window.__atrasoBanco = ${o.atrasoBanco || 0};window.__semBanco = ${!!o.semBanco};window.__lugares = ${JSON.stringify(o.lugares || null)};${bancoFalso}`);
   if (o.cache) await pg.addInitScript(`try { if (!sessionStorage.getItem("__cache_ok")) { localStorage.setItem("cupons-em-dobro:cache:v1", ${JSON.stringify(JSON.stringify(o.cache))}); sessionStorage.setItem("__cache_ok", "1"); } } catch (_) {}`);
-  if (o.prefs) await pg.addInitScript(`try { localStorage.setItem("cupons-em-dobro:prefs:v1", ${JSON.stringify(JSON.stringify(o.prefs))}); } catch (_) {}`);
+  const prefs = o.compacta ? o.prefs : { lista: "completa", ...(o.prefs || {}) };
+  // só antes da primeira abertura: um recarregar no meio do teste lê o que a página gravou
+  if (prefs) await pg.addInitScript(`try { if (!sessionStorage.getItem("__prefs_ok")) { localStorage.setItem("cupons-em-dobro:prefs:v1", ${JSON.stringify(JSON.stringify(prefs))}); sessionStorage.setItem("__prefs_ok", "1"); } } catch (_) {}`);
   // CUPONS_HTML=<arquivo> roda os testes contra outra versão da página (útil para ver se um teste pega a regressão)
   const html = fs.readFileSync(o.arquivo || process.env.CUPONS_HTML || path.join(RAIZ, "cupons.html"), "utf8");
   await pg.route("https://fonts.googleapis.com/**", (r) => r.abort());
