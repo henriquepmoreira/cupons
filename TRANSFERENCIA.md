@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 32, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 33, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -58,6 +58,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - **Foco escondido sob a barra fixa:** `scroll-padding-top` acompanha a altura da `.toolbar` (`ResizeObserver`). Antes, navegando para trás, metade dos itens focados ficava sob a barra.
   - axe-core 4.10 (WCAG 2.2 AA + boas práticas), temas claro e escuro, 412 px: lista com lotes, Filtros com Perto de/raio/Data, cartão com os dois painéis abertos: nenhuma violação.
   - O teste com o TalkBack de verdade precisa ser feito no celular; aqui só dá para medir a árvore que ele recebe.
+- **"Agora, perto" (versão 33, 18/11/2026):** botão `#agora-perto` na barra. Liga `quando = "agora"` (tira a Data) e `sort = "perto"`, e pede a localização com `pedeLocalizacao(true)`: se ela falhar e já houver ponto de partida (bairro salvo ou localização anterior), usa ele e avisa ("Usando Moinhos de Vento (Porto Alegre)."); sem ponto de partida, abre a aba Onde com o foco no seletor de bairro. Fica pressionado quando os dois estão ligados; tocar de novo desliga os dois e volta à ordem do app.
 - **Painel de filtros em abas (versão 32, 18/11/2026):** três abas com `role=tablist` (Quando: quando usar, data, dias, turno; O quê: categorias, categoria no app, benefício, regras, comodidades; Onde: cidade, shopping, bairro, perto de). Setas, Home e End trocam de aba (ativação automática); a aba aberta fica nas preferências (`abaFiltros`) e cada uma mostra quantos filtros estão ativos nela. "Perto de mim" sem localização abre a aba Onde.
   - **Linha "Filtros ativos"** (`#ativos`, `filtrosAtivos()`, `removeFiltro()`), acima da lista e visível com o painel fechado: um botão por filtro ("Noite ×", lido "Noite: remover filtro"). Remover leva o foco ao filtro vizinho ou, se era o último, ao total de resultados (`#result-count` agora tem `tabindex="-1"`). Busca, programas e favoritos não entram, porque já ficam visíveis na barra.
   - Filtro novo = entrada em `filtrosAtivos()` e `removeFiltro()`, além do grupo na aba certa.
@@ -258,3 +259,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 39. (este commit) unidades de Coccaderia.Co (4), Milky Moo, Mr. Pretzels e Poke Delícia - São Leo; comodidades por unidade na página e no filtro; versão 30
 40. (este commit) filtros dos apps: turno, aceita em datas comemorativas, shopping/centro comercial; versão 31
 41. (este commit) painel de filtros em abas com linha de filtros ativos, `scripts/sincronizar.py`, cópia sem login regenerada; versão 32
+42. (este commit) botão "Agora, perto"; versão 33

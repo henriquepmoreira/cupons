@@ -11,6 +11,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Busca por estabelecimento, prato, categoria ou programa (ignora acentos)
 - Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale agora, aceita em feriados), data (hoje e os próximos 6 dias), dias da semana, comodidades e diferenciais, cidade e bairro
 - Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps, e atalhos "Pet" e "Kids" (os mesmos chips de comodidades)
+- Botão "Agora, perto": liga "Vale agora" e ordena do mais perto ao mais longe num toque; sem localização, usa o bairro escolhido ou abre a aba Onde
 - Comodidades que só um programa informa aparecem marcadas no chip (ex.: "Opções veganas · só Tour"): o Poa e o Canoas só informam Aceita Pet e Espaço Kids
 - Ordenação: ordem do app, nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - A lista aparece em lotes de 40 cartões, com o botão "Mostrar mais" no fim (com os 577 de uma vez, o TalkBack no Chrome travava)

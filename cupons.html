@@ -468,6 +468,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
         Vale agora
       </button>
+      <button type="button" class="chipbtn" id="agora-perto" aria-pressed="false" title="Vale agora, do mais perto ao mais longe de você">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/></svg>
+        <span aria-hidden="true">Agora, perto</span><span class="sr-only">Vale agora, perto de mim</span>
+      </button>
       <button type="button" class="chipbtn" id="pet-toggle" data-atalho="Pet Friendly / Aceita Pet" aria-pressed="false" title="Aceita pet (Pet Friendly)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="5.6" cy="10.4" rx="2" ry="2.5"/><ellipse cx="9.6" cy="5.9" rx="2" ry="2.5"/><ellipse cx="14.4" cy="5.9" rx="2" ry="2.5"/><ellipse cx="18.4" cy="10.4" rx="2" ry="2.5"/><path d="M12 11.2c-3 0-5.8 3.5-5.8 6.1 0 2 1.6 2.8 3.2 2.4 1-.3 1.7-.6 2.6-.6s1.6.3 2.6.6c1.6.4 3.2-.4 3.2-2.4 0-2.6-2.8-6.1-5.8-6.1Z"/></svg>
         <span aria-hidden="true">Pet</span><span class="sr-only">Aceita pet</span>
@@ -1323,6 +1327,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("status").querySelectorAll("button").forEach((b) => setAttr(b, "aria-pressed", String(b.dataset.status === state.status)));
     setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
     setAttr($("agora-toggle"), "aria-pressed", String(state.quando === "agora"));
+    setAttr($("agora-perto"), "aria-pressed", String(state.quando === "agora" && state.sort === "perto"));
     $("sort").value = state.sort;
     setHidden($("filters"), !state.filtersOpen);
     setAttr($("filters-toggle"), "aria-expanded", String(state.filtersOpen));
@@ -1756,8 +1761,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("perto-bairro").scrollIntoView({ block: "center" });
     $("perto-bairro").focus();
   }
-  function pedeLocalizacao() {
-    if (!navigator.geolocation) { falhaLocalizacao("Este navegador não informa a localização."); return; }
+  // sem localização: com ponto de partida já escolhido (bairro ou localização anterior), usa ele; senão abre a aba Onde
+  function semLocalizacao(msg, aproveita) {
+    if (aproveita && state.perto) { state.sort = "perto"; savePrefs(); render(); toast(`${msg} Usando ${state.perto.rotulo === "você" ? "sua última localização" : state.perto.rotulo}.`); }
+    else falhaLocalizacao(msg);
+  }
+  function pedeLocalizacao(aproveita = false) {
+    if (!navigator.geolocation) { semLocalizacao("Este navegador não informa a localização.", aproveita); return; }
     toast("Buscando sua localização…");
     navigator.geolocation.getCurrentPosition((pos) => {
       state.perto = { lat: pos.coords.latitude, lng: pos.coords.longitude, rotulo: "você", tipo: "gps" };
@@ -1766,7 +1776,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       savePrefs(); render();
       toast("Cupons em ordem do mais perto para o mais longe de você.");
     }, (err) => {
-      falhaLocalizacao(err && err.code === 1 ? "A localização foi negada ou não é permitida nesta visualização." : "Não foi possível obter sua localização.");
+      semLocalizacao(err && err.code === 1 ? "A localização foi negada ou não é permitida nesta visualização." : "Não foi possível obter sua localização.", aproveita);
     }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
   }
   $("perto-gps").addEventListener("click", () => {
@@ -1872,6 +1882,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const cid = b.dataset.cidade;
     state.cidades.has(cid) ? state.cidades.delete(cid) : state.cidades.add(cid);
     savePrefs(); render();
+  });
+  // "Agora, perto": liga Vale agora e a ordem por distância num toque; tocar de novo desliga os dois
+  $("agora-perto").addEventListener("click", () => {
+    if (state.quando === "agora" && state.sort === "perto") {
+      state.quando = null; state.sort = "app";
+      savePrefs(); render();
+      return;
+    }
+    state.quando = "agora"; state.data = null; state.sort = "perto";
+    savePrefs(); render();
+    pedeLocalizacao(true);
   });
   $("agora-toggle").addEventListener("click", () => {
     state.quando = state.quando === "agora" ? null : "agora";

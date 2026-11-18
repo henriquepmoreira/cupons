@@ -60,3 +60,40 @@ test("sem geo.json, o grupo Perto de explica e fica desativado", async () => {
   assert.match(await texto(pg, "#perto-nota"), /não carregaram/);
   assert.equal(await pg.$eval("#perto-gps", (b) => b.disabled), true);
 });
+
+test('"Agora, perto": um toque liga Vale agora e ordena por distância; outro toque desliga', async () => {
+  const pg = await abrir({ data: "2026-11-17T12:30:00", localizacao: PRACA_DA_MATRIZ });
+  const total = numero(await texto(pg, "#result-count"));
+  await pg.click("#agora-perto");
+  await pg.waitForTimeout(1500);
+  assert.equal(await pg.$eval("#agora-perto", (b) => b.getAttribute("aria-pressed")), "true");
+  assert.equal(await pg.$eval("#agora-toggle", (b) => b.getAttribute("aria-pressed")), "true");
+  assert.equal(await pg.$eval("#sort", (s) => s.value), "perto");
+  assert.match(await texto(pg, "#result-count"), /do mais perto ao mais longe de você$/);
+  assert.ok(numero(await texto(pg, "#result-count")) < total, "só os que valem agora");
+  const dist = (await textos(pg, "#grid .ticket .loc .dist [aria-hidden]")).map(km);
+  for (let i = 1; i < dist.length; i++) assert.ok(dist[i] >= dist[i - 1] - 0.05);
+  assert.match(await texto(pg, '#ativos [data-remove="agora:"]'), /^Vale agora/);
+  await pg.click("#agora-perto");
+  await espera(pg);
+  assert.equal(await pg.$eval("#agora-perto", (b) => b.getAttribute("aria-pressed")), "false");
+  assert.equal(await pg.$eval("#agora-toggle", (b) => b.getAttribute("aria-pressed")), "false");
+  assert.equal(await pg.$eval("#sort", (s) => s.value), "app");
+  assert.equal(numero(await texto(pg, "#result-count")), total);
+});
+
+test('"Agora, perto" sem localização usa o bairro já escolhido; sem bairro, abre a aba Onde', async () => {
+  let pg = await abrir({ data: "2026-11-17T12:30:00", prefs: { pertoBairro: "Porto Alegre|Moinhos de Vento" } });
+  await pg.click("#agora-perto");
+  await pg.waitForTimeout(800);
+  assert.match(await texto(pg, "#toast-msg"), /Usando Moinhos de Vento \(Porto Alegre\)\.$/);
+  assert.match(await texto(pg, "#result-count"), /mais longe de Moinhos de Vento \(Porto Alegre\)$/);
+  assert.equal(await pg.$eval("#filters", (e) => e.hidden), true, "não abre o painel");
+  await pg.context().close();
+  pg = await abrir({ data: "2026-11-17T12:30:00" });
+  await pg.click("#agora-perto");
+  await pg.waitForTimeout(800);
+  assert.equal(await pg.$eval("#filters", (e) => e.hidden), false);
+  assert.equal(await pg.$eval("#aba-onde", (b) => b.getAttribute("aria-selected")), "true");
+  assert.equal((await focado(pg)).id, "perto-bairro");
+});
