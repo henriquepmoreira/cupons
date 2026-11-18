@@ -147,6 +147,16 @@ As gravações de tela abriram todos os cupons da lista, do Sabor de Luna à Fer
 - **Visita que juntou dois cupons:** Bierkeller e Hanko Sushi (separados pelos quadros).
 - **Depois do Di Toni:** o vídeo de 16/11 mostra, sem abrir, mais cupons. Os prints de 17/11 confirmaram que são cupons já usados (ver "Cupons já usados").
 
+## Site no GitHub Pages (`docs/`)
+
+Dentro do claude.ai a página não recebe a localização do aparelho. A pasta `docs/` é a mesma página servida pelo GitHub Pages, num endereço https próprio, onde o navegador entrega o GPS: "Mais perto", "Agora, perto" e o raio partem de onde a pessoa está.
+
+- `python3 scripts/gerar-site.py <exportação do banco>/cupons` gera `docs/index.html` (o `cupons.html` dentro de um documento completo), `docs/geo.json`, `docs/snapshot.json` e `docs/.nojekyll`.
+- Fora do claude.ai não há banco: o site mostra a cópia (`snapshot.json`), só para consulta. Favoritar e marcar como usado continuam no artifact. "Meus lugares" (área privada do banco) não aparece no site.
+- O site é público para quem tiver o endereço (no GitHub Enterprise pode ser privado): entram a lista, os favoritos e os usados. Nada de `data/users` entra. A página tem `noindex` para buscadores.
+- Para ligar: Settings → Pages → Build and deployment → Source "Deploy from a branch" → escolher o branch e a pasta `/docs`. Em repositório privado, o Pages exige plano pago.
+- Atualize junto com cada republicação do artifact (mesma exportação do banco), para as duas cópias andarem juntas.
+
 ## Meus lugares (ponto de partida pessoal)
 
 A página não recebe a localização do aparelho dentro do claude.ai (nem no app do iOS nem no navegador; a capacidade não existe para esta conta). Para não depender só do centro do bairro, "Perto de" mostra primeiro o grupo **Meus lugares**, com pontos exatos (ex.: Casa).
