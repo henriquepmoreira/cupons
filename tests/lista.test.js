@@ -281,6 +281,53 @@ test("computador: a barra fixa nunca some", async () => {
   await pg.context().close();
 });
 
+test("lista nova: os primeiros cartões aparecem na hora e o resto do lote logo depois, na ordem certa", async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  const imediato = await pg.evaluate(() => {
+    const s = document.getElementById("sort");
+    s.value = "az"; s.dispatchEvent(new Event("change", { bubbles: true }));
+    return document.querySelectorAll("#grid .ticket").length;
+  });
+  assert.ok(imediato < 40, `primeira etapa com ${imediato} cartões (antes eram os 40 de uma vez)`);
+  await espera(pg, 150);
+  const nomes = await textos(pg, "#grid .ticket .tname");
+  assert.equal(nomes.length, 40, "o lote inteiro entra logo depois");
+  const ordenados = [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base", numeric: true }));
+  assert.deepEqual(nomes, ordenados, "na ordem certa");
+});
+
+test("lista nova: um redesenho no meio (banco, favorito) monta a lista inteira na hora", async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  const n = await pg.evaluate(() => {
+    const s = document.getElementById("sort");
+    s.value = "az"; s.dispatchEvent(new Event("change", { bubbles: true }));
+    window.__snap();
+    return document.querySelectorAll("#grid .ticket").length;
+  });
+  assert.equal(n, 40);
+  await espera(pg, 150);
+  assert.equal(await cartoes(pg), 40, "o resto atrasado não duplica nem tira cartões");
+});
+
+test('"Voltar ao topo" aparece depois de duas telas, some com aviso na tela e leva o foco ao título', async () => {
+  const pg = await abrir();
+  const visivel = () => pg.$eval("#topo", (b) => !b.hidden && getComputedStyle(b).display !== "none");
+  assert.equal(await visivel(), false, "no começo da página não aparece");
+  await pg.click("#mais-btn"); await espera(pg, 100);
+  await pg.evaluate(() => scrollTo(0, innerHeight * 3)); await espera(pg, 100);
+  assert.equal(await visivel(), true, "depois de duas telas aparece");
+  await pg.$eval("#toast", (t) => { t.hidden = false; });
+  assert.equal(await visivel(), false, "some enquanto há aviso no mesmo canto");
+  await pg.$eval("#toast", (t) => { t.hidden = true; });
+  await pg.click("#topo");
+  await pg.waitForFunction(() => scrollY === 0, null, { timeout: 3000 });
+  assert.equal(await pg.evaluate(() => document.activeElement.tagName), "H1", "foco no título");
+  await espera(pg, 100);
+  assert.equal(await visivel(), false, "no topo, o botão some");
+});
+
 // bloco "Valendo agora" (topo da lista)
 const LUGARES_AGORA = { lugares: [{ id: "casa", nome: "Casa", lat: -30.0256, lng: -51.2085 }] };
 
