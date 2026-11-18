@@ -2,19 +2,19 @@
 // Datas fixas: 20/11/2026 é feriado (Consciência Negra, sexta); o Tour vence em 05/03/2027.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, texto, textos, numero, espera } = require("./lib/pagina");
+const { abrir, fechar, aba, fecharFiltros, texto, textos, numero, espera } = require("./lib/pagina");
 
 after(fechar);
 
 const chipsData = async (pg) => {
-  await pg.click("#filters-toggle");
+  await aba(pg, "quando");
   const r = await pg.$$eval("#f-data button", (bs) => bs.map((b) => ({
     data: b.dataset.data,
     visual: b.querySelector("[aria-hidden]")?.textContent || "",
     fala: b.querySelector(".sr-only")?.textContent || "",
     n: Number(b.querySelector(".n").textContent.match(/\d+/)[0]),
   })));
-  await pg.click("#filters-toggle");
+  await fecharFiltros(pg);
   return r;
 };
 
@@ -61,9 +61,11 @@ test("escolher uma data filtra e mostra o horário daquele dia", async () => {
   const tags = await textos(pg, ".tag.hoje [aria-hidden]");
   assert.ok(tags.length > 0 && tags.every((t) => t.startsWith("Amanhã")), "etiquetas seguem a data escolhida");
   // "Vale agora" e Data se excluem
+  await fecharFiltros(pg);
   await pg.click("#agora-toggle");
   await espera(pg);
-  assert.equal(await pg.$$eval("#f-data [aria-pressed=true]", (x) => x.length), 0);
+  assert.equal(await pg.$$eval('#ativos [data-remove="data:"]', (x) => x.length), 0, "a data saiu dos filtros ativos");
+  assert.equal(await pg.$$eval('#ativos [data-remove="agora:"]', (x) => x.length), 1);
 });
 
 test("depois da validade, o plano aparece como vencido", async () => {

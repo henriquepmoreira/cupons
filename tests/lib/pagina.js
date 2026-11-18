@@ -110,6 +110,11 @@ async function aba(pg, nome) {
   await pg.click(`#aba-${nome}`);
   await pg.waitForTimeout(50);
 }
+// fecha o painel Filtros pelo × (no celular ele cobre a página e o botão Filtros fica inerte)
+async function fecharFiltros(pg) {
+  if (!(await pg.$eval("#filters", (e) => e.hidden))) await pg.click("#filters-close");
+  await pg.waitForTimeout(50);
+}
 async function focado(pg) {
   return pg.evaluate(() => {
     const a = document.activeElement;
@@ -126,4 +131,4 @@ async function arvoreAcessibilidade(pg) {
   return nodes;
 }
 
-module.exports = { abrir, fechar, cupons, texto, textos, numero, cartoes, espera, busca, aba, focado, arvoreAcessibilidade, RAIZ };
+module.exports = { abrir, fechar, cupons, texto, textos, numero, cartoes, espera, busca, aba, fecharFiltros, focado, arvoreAcessibilidade, RAIZ };

@@ -224,7 +224,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .fchip.cat::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--cb); border: 1px solid var(--ci); }
 .fchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .fchip[aria-pressed="true"] .n { color: inherit; opacity: .7; }
-.filters-foot { display: flex; justify-content: flex-end; }
+.filters-foot { display: flex; justify-content: flex-end; align-items: center; gap: 12px; }
+.filters-foot .ver { height: 40px; padding: 0 16px; background: var(--ink); color: var(--bg); border-color: var(--ink); font-size: 14px; }
+.filters-head { display: none; }
+.ftitle { margin: 0; font-family: var(--f-display); font-stretch: 78%; font-weight: 800; font-size: 24px; text-transform: uppercase; }
+.ftitle:focus { outline: none; }
+.fechar { width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--ink); font-size: 24px; line-height: 1; }
 .ftabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
 .ftab {
   flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 10px;
@@ -420,7 +425,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
 /* ---------- toast ---------- */
 .toast {
-  position: fixed; left: 50%; translate: -50% 0; z-index: 20;
+  position: fixed; left: 50%; translate: -50% 0; z-index: 40; /* acima da tela de filtros */
   bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   max-width: min(520px, calc(100% - 32px)); display: flex; align-items: center; gap: 14px;
   padding: 11px 12px 11px 16px; border-radius: 12px; background: var(--ink); color: var(--bg);
@@ -432,6 +437,15 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   .programs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); padding-right: 16px; }
   .programs::-webkit-scrollbar { display: none; }
   .prog-pill { flex: none; }
+  /* Filtros em tela cheia no celular, por cima da lista, como um diálogo (cabeçalho e rodapé fixos) */
+  .filters:not([hidden]) {
+    position: fixed; inset: 0; z-index: 30; margin: 0; max-width: none; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--bg); padding-top: env(safe-area-inset-top, 0px); padding-bottom: 0; align-content: start;
+  }
+  .filters-head { display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 8px 0; }
+  .filters .ftabs { position: sticky; top: 60px; z-index: 2; background: var(--bg); }
+  .filters-foot { position: sticky; bottom: 0; z-index: 2; background: var(--bg); border-top: 1px solid var(--line); justify-content: space-between; padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .filters-foot .ver { flex: 1; max-width: 70%; height: 46px; font-size: 15px; }
   /* barra fixa: busca + uma linha de botões que rola de lado (antes eram até 5 linhas presas no topo) */
   .controls { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); padding-right: 16px; }
   .controls::-webkit-scrollbar { display: none; }
@@ -513,7 +527,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   </div>
 </div>
 
-<section class="wrap filters" id="filters" hidden aria-label="Filtros">
+<section class="wrap filters" id="filters" hidden aria-labelledby="filters-titulo">
+  <div class="filters-head">
+    <h2 class="ftitle" id="filters-titulo" tabindex="-1">Filtros</h2>
+    <button type="button" class="fechar" id="filters-close" aria-label="Fechar filtros">×</button>
+  </div>
   <div class="ftabs" role="tablist" aria-label="Grupos de filtros">
     <button type="button" class="ftab" role="tab" id="aba-quando" data-aba="quando" aria-controls="painel-quando" aria-selected="false" tabindex="-1">Quando <span class="badge" hidden></span></button>
     <button type="button" class="ftab" role="tab" id="aba-oque" data-aba="oque" aria-controls="painel-oque" aria-selected="false" tabindex="-1">O quê <span class="badge" hidden></span></button>
@@ -600,7 +618,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       <p class="fnote" id="perto-nota"></p>
     </div>
   </div>
-  <div class="filters-foot"><button type="button" class="linkbtn" id="filters-clear">Limpar filtros</button></div>
+  <div class="filters-foot">
+    <button type="button" class="linkbtn" id="filters-clear">Limpar filtros</button>
+    <button type="button" class="usebtn ver" id="filters-ver">Ver cupons</button>
+  </div>
 </section>
 
 <main class="wrap">
@@ -1381,6 +1402,31 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }
   }
 
+  /* No celular, Filtros vira um diálogo em tela cheia: o resto da página fica inerte (foco preso no diálogo,
+     leitor de tela também), a rolagem da página trava e Esc fecha. */
+  const mqCelular = window.matchMedia("(max-width: 560px)");
+  let filtrosModal = false;
+  function aplicaModoFiltros() {
+    const modal = state.filtersOpen && mqCelular.matches;
+    if (modal === filtrosModal) return;
+    filtrosModal = modal;
+    const f = $("filters");
+    if (modal) { f.setAttribute("role", "dialog"); f.setAttribute("aria-modal", "true"); } else { f.removeAttribute("role"); f.removeAttribute("aria-modal"); }
+    for (const el of [document.querySelector(".masthead"), document.querySelector(".toolbar"), document.querySelector("main")]) el.inert = modal;
+    document.documentElement.style.overflow = modal ? "hidden" : "";
+  }
+  function abreFiltros() {
+    state.filtersOpen = true;
+    if (state.abaFiltros === "onde") garanteGeo();
+    render();
+    if (filtrosModal) $("filters-titulo").focus();
+  }
+  function fechaFiltros(foco = "#filters-toggle") {
+    state.filtersOpen = false;
+    focoPendente = [foco];
+    render();
+  }
+
   function renderControls() {
     $("status").querySelectorAll("button").forEach((b) => setAttr(b, "aria-pressed", String(b.dataset.status === state.status)));
     setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
@@ -1388,6 +1434,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     setAttr($("agora-perto"), "aria-pressed", String(state.quando === "agora" && state.sort === "perto"));
     $("sort").value = state.sort;
     setHidden($("filters"), !state.filtersOpen);
+    aplicaModoFiltros();
     setAttr($("filters-toggle"), "aria-expanded", String(state.filtersOpen));
     const n = activeFilterCount();
     setHidden($("filters-badge"), n === 0);
@@ -1604,6 +1651,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (sig !== assinaturaLista) { assinaturaLista = sig; state.limite = LOTE; }
     // "Ver juntos" mostra o grupo inteiro (é pequeno); fora dele, só o lote
     const shown = state.grupo ? list : list.slice(0, state.limite);
+    htmlDe($("filters-ver")).innerHTML = list.length ? `Ver ${list.length} ${list.length === 1 ? "cupom" : "cupons"}` : "Nenhum cupom";
     renderMais(list.length, shown.length);
     const statusTxt = { disponiveis: "disponíveis", usados: "usados", todos: "no total" }[state.status];
     const base = state.cupons.filter((c) => state.status === "todos" || (state.status === "usados" ? c.usado : !c.usado)).length;
@@ -1820,11 +1868,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     savePrefs(); render();
   });
   $("fav-toggle").addEventListener("click", () => { state.fav = !state.fav; savePrefs(); render(); });
-  $("filters-toggle").addEventListener("click", () => {
-    state.filtersOpen = !state.filtersOpen;
-    if (state.filtersOpen && state.abaFiltros === "onde") garanteGeo();
-    render();
+  $("filters-toggle").addEventListener("click", () => (state.filtersOpen ? fechaFiltros() : abreFiltros()));
+  $("filters-close").addEventListener("click", () => fechaFiltros());
+  $("filters-ver").addEventListener("click", () => {
+    fechaFiltros("#result-count");
+    $("result-count").scrollIntoView({ block: "start" });
   });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && state.filtersOpen) { e.preventDefault(); fechaFiltros(); } });
+  mqCelular.addEventListener("change", () => render());
   $("sort").addEventListener("change", (e) => {
     if (e.target.value === "perto") garanteGeo();
     state.sort = e.target.value;

@@ -1,7 +1,7 @@
 // Comodidades (aviso "só Tour", atalhos Pet e Kids) e largura no celular.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, aba, texto, numero, espera } = require("./lib/pagina");
+const { abrir, fechar, aba, fecharFiltros, texto, numero, espera } = require("./lib/pagina");
 
 after(fechar);
 
@@ -50,7 +50,7 @@ test("comodidades por unidade: o filtro vale se alguma unidade tem, e os detalhe
   await pg.click('#f-comod button[data-comod="Consumo no local"]');
   await espera(pg);
   assert.equal(await pg.$$eval(card, (x) => x.length), 1, "a unidade principal é só para levar, mas as outras têm consumo no local");
-  await pg.click("#filters-toggle");
+  await fecharFiltros(pg);
   await pg.click(`${card} .det:not(.outros) summary`);
   await espera(pg);
   const blocos = await pg.$$eval(`${card} .det-body > div`, (ds) => ds.filter((d) => d.querySelector("h4")?.textContent.startsWith("Unidade")).map((d) => [...d.querySelectorAll(".tag")].map((t) => t.textContent)));
@@ -180,4 +180,37 @@ test("tocar num chip mantém o mesmo botão (foco e leitor de tela ficam nele)",
   await espera(pg);
   assert.equal(await pg.evaluate(() => document.activeElement === window.__chip && document.contains(window.__chip)), true);
   assert.equal(await pg.evaluate(() => window.__chip.getAttribute("aria-pressed")), "true");
+});
+
+test("no celular, Filtros abre como diálogo: resto inerte, Esc fecha, Ver N cupons leva à lista", async () => {
+  const pg = await abrir({ largura: 390 });
+  await pg.click("#filters-toggle");
+  await espera(pg);
+  assert.equal(await pg.$eval("#filters", (f) => f.getAttribute("role") + "|" + f.getAttribute("aria-modal")), "dialog|true");
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "filters-titulo");
+  assert.equal(await pg.evaluate(() => document.querySelector("main").inert && document.querySelector(".toolbar").inert), true);
+  const cobre = await pg.$eval("#filters", (f) => { const r = f.getBoundingClientRect(); return r.top <= 0 && r.height >= innerHeight - 1; });
+  assert.ok(cobre, "tela cheia");
+  await pg.keyboard.press("Escape");
+  await espera(pg);
+  assert.equal(await pg.$eval("#filters", (f) => f.hidden), true);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "filters-toggle", "foco volta ao botão Filtros");
+  assert.equal(await pg.evaluate(() => document.querySelector("main").inert), false);
+  await aba(pg, "quando");
+  await pg.click('#f-turno button[data-turno="noite"]');
+  await espera(pg);
+  const total = numero(await texto(pg, "#result-count"));
+  assert.equal(await texto(pg, "#filters-ver"), `Ver ${total} cupons`);
+  await pg.click("#filters-ver");
+  await espera(pg);
+  assert.equal(await pg.$eval("#filters", (f) => f.hidden), true);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
+});
+
+test("no computador, Filtros continua no meio da página (sem diálogo)", async () => {
+  const pg = await abrir({ largura: 1100 });
+  await pg.click("#filters-toggle");
+  await espera(pg);
+  assert.equal(await pg.$eval("#filters", (f) => f.hasAttribute("role")), false);
+  assert.equal(await pg.evaluate(() => document.querySelector("main").inert), false);
 });

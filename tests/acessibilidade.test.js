@@ -5,7 +5,7 @@
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
-const { abrir, fechar, aba, espera, busca, arvoreAcessibilidade, cartoes } = require("./lib/pagina");
+const { abrir, fechar, fecharFiltros, aba, espera, busca, arvoreAcessibilidade, cartoes } = require("./lib/pagina");
 
 after(fechar);
 
@@ -87,7 +87,7 @@ for (const tema of ["light", "dark"]) {
     await aba(pg, "oque");
     assert.deepEqual(await violacoes(pg), [], "Filtros abertos, aba O quê");
     await pg.click("#filters-clear");
-    await pg.click("#filters-toggle");
+    await fecharFiltros(pg);
     await busca(pg, "spoleto");
     await pg.click("#grid .ticket .outros summary");
     await pg.click("#grid .ticket .det:not(.outros) summary");
