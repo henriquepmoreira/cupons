@@ -97,3 +97,17 @@ test('"Agora, perto" sem localização usa o bairro já escolhido; sem bairro, a
   assert.equal(await pg.$eval("#aba-onde", (b) => b.getAttribute("aria-selected")), "true");
   assert.equal((await focado(pg)).id, "perto-bairro");
 });
+
+test("geo.json só é baixado quando algo usa distância ou bairro", async () => {
+  const pg = await abrir();
+  const pedidos = [];
+  pg.on("request", (r) => { if (r.url().endsWith("/geo.json")) pedidos.push(r.url()); });
+  await pg.reload();
+  await pg.waitForSelector(".ticket");
+  await pg.waitForTimeout(400);
+  assert.equal(pedidos.length, 0, "abertura comum não baixa as coordenadas");
+  await aba(pg, "onde");
+  await pg.waitForTimeout(300);
+  assert.equal(pedidos.length, 1);
+  assert.ok(await pg.$$eval("#perto-bairro option", (o) => o.length) > 10);
+});

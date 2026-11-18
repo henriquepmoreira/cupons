@@ -2,7 +2,9 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<!-- media="print" não bloqueia a primeira pintura; o script troca para "all" quando a folha chegar -->
+<link rel="stylesheet" id="fontes" media="print" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"></noscript>
 <style>
 /* Layout: carteira de tickets 2×1 — canhoto colorido por categoria, picote, corpo com a oferta; barra de busca fixa no topo. */
 :root {
@@ -622,6 +624,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 <script>
 (() => {
   "use strict";
+  // fontes do Google sem segurar a primeira pintura (o texto usa a fonte do sistema até elas chegarem)
+  const fontes = document.getElementById("fontes");
+  if (fontes) { if (fontes.sheet) fontes.media = "all"; else fontes.addEventListener("load", () => { fontes.media = "all"; }); }
   // o invólucro do artifact não declara idioma; sem isso o TalkBack pode ler em inglês
   document.documentElement.lang = "pt-BR";
 
@@ -1815,8 +1820,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     savePrefs(); render();
   });
   $("fav-toggle").addEventListener("click", () => { state.fav = !state.fav; savePrefs(); render(); });
-  $("filters-toggle").addEventListener("click", () => { state.filtersOpen = !state.filtersOpen; render(); });
+  $("filters-toggle").addEventListener("click", () => {
+    state.filtersOpen = !state.filtersOpen;
+    if (state.filtersOpen && state.abaFiltros === "onde") garanteGeo();
+    render();
+  });
   $("sort").addEventListener("change", (e) => {
+    if (e.target.value === "perto") garanteGeo();
     state.sort = e.target.value;
     savePrefs(); render();
     if (state.sort === "perto" && !state.perto) pedeLocalizacao();
@@ -1826,8 +1836,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     state.abaFiltros = "onde";
     render();
     toast(`${msg} Escolha um bairro em Filtros, no grupo Perto de.`);
-    $("perto-bairro").scrollIntoView({ block: "center" });
-    $("perto-bairro").focus();
+    // o seletor de bairro só fica ativo com as coordenadas carregadas
+    garanteGeo().then(() => { $("perto-bairro").scrollIntoView({ block: "center" }); $("perto-bairro").focus(); });
   }
   // sem localização: com ponto de partida já escolhido (bairro ou localização anterior), usa ele; senão abre a aba Onde
   function semLocalizacao(msg, aproveita) {
@@ -1835,6 +1845,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     else falhaLocalizacao(msg);
   }
   function pedeLocalizacao(aproveita = false) {
+    garanteGeo();
     if (!navigator.geolocation) { semLocalizacao("Este navegador não informa a localização.", aproveita); return; }
     toast("Buscando sua localização…");
     navigator.geolocation.getCurrentPosition((pos) => {
@@ -1863,6 +1874,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     state.raio = state.raio === r ? null : r;
     savePrefs(); render();
   });
+  // geo.json (76 KB) só quando algo usa distância ou bairro de partida: "Mais perto", "Agora, perto", aba Onde,
+  // ou um bairro/ordem salvos da visita anterior
+  let _geo = null;
+  function garanteGeo() { if (!_geo) _geo = carregaGeo(); return _geo; }
   async function carregaGeo() {
     try {
       const r = await fetch("geo.json", { cache: "no-cache" });
@@ -1903,7 +1918,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   });
   // abas: clique ou setas (ativação automática, como no padrão de abas da WAI-ARIA)
   const abas = () => [...document.querySelectorAll(".ftab")];
-  function escolheAba(a, foco) { state.abaFiltros = a; savePrefs(); render(); if (foco) $(`aba-${a}`).focus(); }
+  function escolheAba(a, foco) { state.abaFiltros = a; if (a === "onde") garanteGeo(); savePrefs(); render(); if (foco) $(`aba-${a}`).focus(); }
   document.querySelector(".ftabs").addEventListener("click", (e) => { const b = e.target.closest(".ftab"); if (b) escolheAba(b.dataset.aba, false); });
   document.querySelector(".ftabs").addEventListener("keydown", (e) => {
     const lista = abas(), i = lista.findIndex((b) => b.dataset.aba === state.abaFiltros);
@@ -2077,6 +2092,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   render();
   boot();
-  carregaGeo();
+  if (state.pertoPendente || state.sort === "perto" || state.raio || (state.filtersOpen && state.abaFiltros === "onde")) garanteGeo();
 })();
 </script>
