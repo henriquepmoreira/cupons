@@ -115,7 +115,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 - **Quem tem detalhes:** o Tour inteiro e os cupons 1–98 do Canoas (até o Grano Forneria). O Poa e o resto do Canoas não têm `unidade`, `horarios` etc., então ficam de fora de "Quando", comodidades e cidade.
 - **Regras com várias linhas:** as do Canoas guardam `\n` entre os itens; a página mostra as quebras (`white-space: pre-line`).
 - **Comparação de horários:** é feita como texto `HH:MM`, por isso o zero à esquerda é obrigatório. Desde a versão 5, `valeAgora` entende faixas que passam da meia-noite: Estaleiro 2 Irmãos, 18:00–04:00, conta até 04:00 do dia seguinte.
-- **Partes parciais são escondidas:** `horarios: {}` não mostra tabela, e `feriados: null` não mostra os ícones (é o caso do PopCorn Gourmet).
+- **Partes parciais são escondidas:** `horarios: {}` não mostra tabela, e `feriados: null` não mostra os ícones (era o caso do PopCorn Gourmet até 17/11).
 
 ## 4. Campos
 
@@ -139,14 +139,11 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 1. **Canoas em Dobro:** nada pendente; todos os cupons disponíveis têm detalhes.
 2. **Poa em Dobro:** lista completa (os cupons depois do Di Toni são os usados, registrados em 17/11). As 13 emendas com anúncio foram confirmadas pelos vídeos de detalhe.
-3. **Poa em Dobro, nomes:** completar "Machry Armazém e…", "Ponto Zero Bar e C…" e "Raw Restaurante e…". A tela de detalhe mostra o nome completo.
+3. **Poa em Dobro, nomes:** resolvido em 17/11/2026 (Machry Armazém e Bistrô, Ponto Zero Bar e Cozinha; Raw Restaurante e Café já estava completo).
 4. **Detalhes dos cupons novos do Poa e do resto do Canoas:** os vídeos do Poa de 12/11 vieram em 886 px de largura; converta para 720 px antes do `preparar.sh` (`ffmpeg -i <vídeo> -vf "scale=720:1560,fps=6" -c:v libx264 -crf 23 -an parte_00.mp4`), porque os recortes dos scripts são em coordenadas de 720 px. Os scripts de `scripts/video/canoas/` servem para o Poa (mesmo app, tema escuro). Os vídeos de 16/11 ("tour_parte_00…04", Poa apesar do nome) já vieram em 720 px. Para achar cupons com várias unidades, conte os endereços diferentes no OCR de cada visita. Confira se a oferta do topo da tela bate com o `item` registrado (o Shrek Lanches do Canoas tinha mudado). O `visitas.py` às vezes junta dois cupons numa visita (Fogo + Comfy em 16/11): procure duas moradas diferentes ou dois nomes e separe pelos quadros. Nome de restaurante que começa com "Rua" (Rua Gastronomia) confunde o `montar.py`: corrija a unidade no `manual.json`. Nos cupons com várias unidades, gere uma folha com a tabela de cada unidade e guarde as outras em `outrasUnidades` (`scripts/video/canoas/unidades.py <T> <slug>` gera essa folha). As etiquetas de cada unidade ficam logo abaixo da tabela dela; o OCR erra essas pílulas, então confira em imagem. Confira a ordem das colunas de horário em cada unidade: na unidade São Sebastião do Doce Docê o app mostra a manhã na coluna da noite. regras, unidade, horários, feriados e comodidades vêm de vídeos da tela de detalhe. Para o Canoas, use `scripts/video/canoas/` (o layout é diferente do Tour); o próximo vídeo deve começar no Paradouro Café (cupom 101). Os documentos já existem, então use `update`.
    - **Família Kabana Pizzaria:** saiu do programa; apagada do arquivo e do banco em 17/11/2026.
    - **Painel "Filtros" dos apps:** nunca apareceu aberto nos vídeos. Um print dele mostraria se há filtros que a carteira ainda não tem.
-5. **Tour, pendências menores:**
-   - "Mark - Harmonia, R…" continua cortado, porque a tela de detalhe mostra só "Mark Hamburgueria";
-   - PopCorn Gourmet - Praia de Belas só tem as regras;
-   - Pallina Di Latte não tem dias e horários.
+5. **Tour, pendências menores:** resolvidas em 17/11/2026 por prints (Mark - Harmonia, Roubadinhas e Zona Sul, por dedução; PopCorn Gourmet e Pallina Di Latte completos). Falta só: horários das unidades Auxiliadora e Tristeza do Mark (`outrasUnidades` com `horarios: null`; a página trata isso).
 6. **Avisos com data:** várias regras do Tour citam datas que já passaram ("Dia dos Namorados", "nesse domingo 08/11"). Estão transcritas como o app mostrava em 12/11. Se o usuário mandar telas novas, atualize.
 7. **Contradição no app:** o Mr. Pretzels mostra ✓ em feriados e datas comemorativas, mas a regra dele diz que não vale nesses dias. Ficou como o app mostra.
 
@@ -239,4 +236,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 32. `74fee0a` sugestão de qual cupom usar e comparação de ofertas no aviso de mesmo lugar (versão 25)
 33. perto de mim: `data/geo.json`, `scripts/geocodificar.py`, ordenação "Mais perto" e raio
 34. desempenho (cartões reaproveitados), `content-visibility` retirado, geocodificação por bairro, acessibilidade para o TalkBack (lotes de 40, painéis sob demanda, escritas só quando mudam, foco fora da barra fixa) e `data/geo.json` completo: tudo publicado junto na versão 26
-35. (este commit) testes automáticos em `tests/` (30 da página + 5 do geocodificador)
+35. `e03428e` testes automáticos em `tests/` (30 da página + 5 do geocodificador)
+36. (este commit) prints de 17/11: nomes do Machry, Ponto Zero e Mark - Harmonia; detalhes do PopCorn e do Pallina; unidades extras do Mark e etiqueta para unidades sem horário. **Arquivos atualizados; o banco ainda não** (a gravação espera a confirmação do usuário)

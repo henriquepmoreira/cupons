@@ -1014,6 +1014,11 @@
 "lng": -51.23018,
 "precisao": "bairro"
 },
+"Avenida Praia de Belas Nº 1181, 1º Piso - Área Central|Praia de Belas|Porto Alegre": {
+"lat": -30.049616,
+"lng": -51.228732,
+"precisao": "endereco"
+},
 "Avenida Praia de Belas Nº 3080, Acesso a Passarela|Praia de Belas|Porto Alegre": {
 "lat": -30.047289,
 "lng": -51.227522,
@@ -1218,6 +1223,11 @@
 "lat": -29.920361,
 "lng": -51.181254,
 "precisao": "rua"
+},
+"Avenida Wenceslau Escobar Nº 1823|Tristeza|Porto Alegre": {
+"lat": -30.104828,
+"lng": -51.254413,
+"precisao": "endereco"
 },
 "Avenida Wenceslau Escobar Nº 2050|Tristeza|Porto Alegre": {
 "lat": -30.111343,
@@ -2620,6 +2630,11 @@
 "precisao": "rua"
 },
 "Rua Silva Jardim Nº 130, 14|Auxiliadora|Porto Alegre": {
+"lat": -30.02377,
+"lng": -51.190401,
+"precisao": "rua"
+},
+"Rua Silva Jardim Nº 140|Auxiliadora|Porto Alegre": {
 "lat": -30.02377,
 "lng": -51.190401,
 "precisao": "rua"

@@ -939,6 +939,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (!c.item) tags.push('<span class="tag pend">Oferta pendente</span>');
     const u = c.unidade;
     const uns = unidadesDe(c), outras = c.outrasUnidades || [];
+    const comHorario = uns.filter((x) => x.horarios && Object.keys(x.horarios).length > 0);
     const alvo = state.data || today(); // data das etiquetas e do destaque na tabela de horários
     if (planoVencido(c, today())) {
       tags.unshift(`<span class="tag off">Plano vencido em ${esc(fmtDate(prog.validade))}</span>`);
@@ -946,10 +947,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const v = valeEm(c, alvo), dk = diaKey(alvo), rot = rotuloDia(alvo), fala = falaDia(alvo);
       if (!v.ok) {
         tags.unshift(`<span class="tag off">${duplo(`Não vale ${rot.toLowerCase()}${v.motivo ? ` (${v.motivo})` : ""}`, `Não vale ${fala}${v.motivo ? `, ${v.motivo}` : ""}.`)}</span>`);
+      } else if (comHorario.length > 1) {
+        // várias unidades com horário: dizer em quantas vale; os horários de cada uma ficam nos detalhes
+        const k = comHorario.filter((x) => x.horarios[dk]).length, de = comHorario.length < uns.length ? " com horário cadastrado" : "";
+        tags.unshift(`<span class="tag hoje">${duplo(`${rot} em ${k} de ${comHorario.length} unidades${de}`, `Vale ${fala} em ${k} de ${comHorario.length} unidades${de}. Os horários de cada uma estão nos detalhes.`)}</span>`);
       } else if (outras.length) {
-        // várias unidades: dizer em quantas vale; os horários de cada uma ficam nos detalhes
-        const k = uns.filter((x) => x.horarios?.[dk]).length;
-        tags.unshift(`<span class="tag hoje">${duplo(`${rot} em ${k} de ${uns.length} unidades`, `Vale ${fala} em ${k} de ${uns.length} unidades. Os horários de cada uma estão nos detalhes.`)}</span>`);
+        // várias unidades, mas só uma com horário conhecido (ex.: o app mostra só a primeira): diz qual
+        const b = comHorario[0]?.bairro;
+        tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}${b ? ` (${b})` : ""}`, `Vale ${fala}, ${falaFaixas(v.h)}${b ? `, na unidade ${b}` : ""}. Os horários das outras unidades não estão cadastrados.`)}</span>`);
       } else tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}`, `Vale ${fala}, ${falaFaixas(v.h)}.`)}</span>`);
     }
     const locTxt = outras.length
@@ -969,7 +974,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const endHtml = (x) => `<p>${esc(x.endereco || "")}${x.bairro || x.cidade ? `${x.endereco ? "<br>" : ""}${esc([x.bairro, x.cidade].filter(Boolean).join(" – "))}` : ""}</p>`;
       // com várias unidades conhecidas: um bloco por unidade, cada um com endereço e horários próprios
       const blocoUnidades = outras.length
-        ? uns.map((x, i) => `<div><h4>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : ""}</div>`).join("")
+        ? uns.map((x, i) => `<div><h4>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : '<p class="fnote">Dias e horários desta unidade ainda não cadastrados.</p>'}</div>`).join("")
         : "";
       // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
       const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`

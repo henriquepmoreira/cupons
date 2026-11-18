@@ -75,3 +75,16 @@ test("ordem por categoria agrupa e respeita o lote", async () => {
   assert.equal(await pg.$$eval(".group", (g) => g.length), 0);
   assert.equal(await pg.$$eval("#grid > .ticket", (t) => t.length), 40);
 });
+
+test("várias unidades com só um horário conhecido: a etiqueta diz qual unidade", async () => {
+  const pg = await abrir({ data: "2026-11-17T12:30:00" }); // terça
+  await busca(pg, "harmonia");
+  const card = '.ticket[data-id="tour-grande-poa--mark-harmonia"]';
+  assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Hoje 18:00–23:00 (Praia de Belas)");
+  assert.match(await texto(pg, `${card} .tag.hoje .sr-only`), /na unidade Praia de Belas\. Os horários das outras unidades não estão cadastrados\.$/);
+  assert.match(await texto(pg, `${card} .loc`), /3 unidades/);
+  await pg.click(`${card} .det:not(.outros) summary`);
+  await espera(pg);
+  const notas = await pg.$$eval(`${card} .det-body .fnote`, (xs) => xs.map((x) => x.textContent));
+  assert.equal(notas.filter((t) => t === "Dias e horários desta unidade ainda não cadastrados.").length, 2);
+});
