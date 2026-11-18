@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 40, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 41, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -291,4 +291,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 50. (9e91e32) versão 38 publicada; autorização permanente para republicar registrada na regra 5.
 51. (1b21c46) horários (domingo a quinta, 18:30–23:00) e comodidade do Helena Burger POA por prints de 18/11; banco conferido; versão 39 publicada.
 52. (c28d653) "Meus lugares" em "Perto de" (README, seção própria): lugar Casa gravado em `data/users/me/lugares` (privado; coordenada fora do repositório), página lê com `user.id()` + `onSnapshot`, "Agora, perto" sem GPS usa o primeiro lugar; banco falso dos testes com área privada e 2 testes novos (64 no total); camadas do My Maps (`mapa/*.csv`) regeneradas; versão 40 publicada.
-53. (este commit) site do GitHub Pages em `docs/` (`scripts/gerar-site.py`): a página fora do claude.ai, com GPS do navegador e a cópia dos cupons, só para consulta; testado localmente com localização (Hospital Moinhos → Mr. White a 200 m). O usuário precisa ligar o Pages em Settings → Pages.
+53. (5271a0c) site do GitHub Pages em `docs/` (`scripts/gerar-site.py`): a página fora do claude.ai, com GPS do navegador e a cópia dos cupons, só para consulta; testado localmente com localização (Hospital Moinhos → Mr. White a 200 m). O usuário precisa ligar o Pages em Settings → Pages.
+54. (este commit) bloco "Valendo agora" no topo da lista (3 testes novos, 67 no total); site do Pages com service worker (offline, abre na hora, troca a cópia quando há nova) e app na Tela de Início (manifesto e ícones em `scripts/site/`); testado localmente offline; versão 41 publicada.

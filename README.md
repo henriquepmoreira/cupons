@@ -152,10 +152,16 @@ As gravações de tela abriram todos os cupons da lista, do Sabor de Luna à Fer
 Dentro do claude.ai a página não recebe a localização do aparelho. A pasta `docs/` é a mesma página servida pelo GitHub Pages, num endereço https próprio, onde o navegador entrega o GPS: "Mais perto", "Agora, perto" e o raio partem de onde a pessoa está.
 
 - `python3 scripts/gerar-site.py <exportação do banco>/cupons` gera `docs/index.html` (o `cupons.html` dentro de um documento completo), `docs/geo.json`, `docs/snapshot.json` e `docs/.nojekyll`.
+- **Offline e abertura na hora:** `docs/sw.js` (fonte em `scripts/site/sw.js`) guarda a página, a cópia, as coordenadas, os ícones e as fontes. O site abre com o que está guardado e busca a versão nova em paralelo; cópia nova troca a lista sozinha, página nova mostra um aviso. A página só registra o service worker quando acha `<meta name="cupons-site">`, que só o site tem.
+- **App na Tela de Início:** `manifest.webmanifest`, `apple-touch-icon.png` e `icone-192/512.png` (fontes em `scripts/site/`). No iPhone: Safari → Compartilhar → Adicionar à Tela de Início.
 - Fora do claude.ai não há banco: o site mostra a cópia (`snapshot.json`), só para consulta. Favoritar e marcar como usado continuam no artifact. "Meus lugares" (área privada do banco) não aparece no site.
 - O site é público para quem tiver o endereço (no GitHub Enterprise pode ser privado): entram a lista, os favoritos e os usados. Nada de `data/users` entra. A página tem `noindex` para buscadores.
 - Para ligar: Settings → Pages → Build and deployment → Source "Deploy from a branch" → escolher o branch e a pasta `/docs`. Em repositório privado, o Pages exige plano pago.
 - Atualize junto com cada republicação do artifact (mesma exportação do banco), para as duas cópias andarem juntas.
+
+## Valendo agora (topo da lista)
+
+Na lista sem busca nem filtros, um bloco mostra até 5 cupons disponíveis que valem neste minuto: com ponto de partida (GPS, lugar ou bairro), os mais perto; sem ele, os favoritos que acabam antes (ou todos, se nenhum favorito vale agora). Tocar num item mostra só aquele cupom (e o mesmo lugar nos outros programas), com "Voltar à lista". "Ver todos que valem agora" liga o filtro; "Ordenar pelos mais perto" pede a localização.
 
 ## Meus lugares (ponto de partida pessoal)
 

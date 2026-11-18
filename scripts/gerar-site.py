@@ -33,6 +33,17 @@ DOCS = RAIZ / "docs"
 CABECA = ('<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">'
           '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
           '<meta name="robots" content="noindex">'
+          # a página só registra o service worker (sw.js) quando acha esta marca: no artifact ela não existe
+          '<meta name="cupons-site" content="pages">'
+          # app na Tela de Início (iOS e Android)
+          '<link rel="manifest" href="manifest.webmanifest">'
+          '<link rel="apple-touch-icon" href="apple-touch-icon.png">'
+          '<link rel="icon" type="image/png" sizes="192x192" href="icone-192.png">'
+          '<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">'
+          '<meta name="apple-mobile-web-app-title" content="Cupons">'
+          '<meta name="apple-mobile-web-app-status-bar-style" content="default">'
+          '<meta name="theme-color" content="#ECEFEA" media="(prefers-color-scheme: light)">'
+          '<meta name="theme-color" content="#101311" media="(prefers-color-scheme: dark)">'
           '<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}'
           'body{margin:0;padding:0}[hidden]{display:none!important}</style></head><body>\n')
 RODAPE = "\n</body></html>\n"
@@ -47,7 +58,10 @@ def main(banco: str) -> None:
     shutil.copyfile(RAIZ / "data" / "geo.json", DOCS / "geo.json")
     subprocess.run([sys.executable, str(RAIZ / "scripts" / "gerar-snapshot.py"), banco, str(DOCS / "snapshot.json")], check=True)
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
-    print(f"site em {DOCS}: index.html, geo.json, snapshot.json")
+    # service worker (offline e abertura na hora), manifesto e ícones do app na Tela de Início
+    for nome in ("sw.js", "manifest.webmanifest", "apple-touch-icon.png", "icone-192.png", "icone-512.png"):
+        shutil.copyfile(RAIZ / "scripts" / "site" / nome, DOCS / nome)
+    print(f"site em {DOCS}: index.html, geo.json, snapshot.json, sw.js, manifesto e ícones")
 
 
 if __name__ == "__main__":

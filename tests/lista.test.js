@@ -240,3 +240,44 @@ test("topo compacto no celular: título numa linha e a busca perto do topo", asy
     await pg.context().close();
   }
 });
+
+// bloco "Valendo agora" (topo da lista)
+const LUGARES_AGORA = { lugares: [{ id: "casa", nome: "Casa", lat: -30.0256, lng: -51.2085 }] };
+
+test('"Valendo agora" mostra até 5 cupons que valem neste minuto e abre o escolhido', async () => {
+  const { abrir: abrir2, texto: texto2 } = require("./lib/pagina");
+  const pg = await abrir2({ data: "2026-11-18T12:30:00" });
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), false);
+  const itens = await pg.$$eval("#agora .agora-item", (b) => b.length);
+  assert.ok(itens > 0 && itens <= 5, `itens: ${itens}`);
+  assert.match(await texto2(pg, "#agora-h"), /valendo agora/i);
+  const id = await pg.$eval("#agora .agora-item", (b) => b.dataset.agora);
+  await pg.click("#agora .agora-item");
+  await pg.waitForTimeout(200);
+  assert.equal(await pg.$$eval("#grid .ticket", (t) => t.length) >= 1, true);
+  assert.equal(await pg.$eval("#grid .ticket", (t) => t.dataset.id), id);
+  assert.equal(await pg.$eval("#grupo-sair", (b) => b.hidden), false, "tem Voltar à lista");
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), true, "o bloco some enquanto mostra um cupom");
+  await pg.click("#grupo-sair");
+  await pg.waitForTimeout(200);
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), false);
+  assert.deepEqual(pg.erros, []);
+});
+
+test('"Valendo agora" com ponto de partida lista do mais perto ao mais longe; some com busca', async () => {
+  const { abrir: abrir2, texto: texto2, busca: busca2 } = require("./lib/pagina");
+  const pg = await abrir2({ data: "2026-11-18T12:30:00", lugares: LUGARES_AGORA, prefs: { pertoBairro: "lugar:casa" } });
+  await pg.waitForTimeout(800);
+  assert.match(await texto2(pg, "#agora-h"), /perto de Casa/);
+  const km = await pg.$$eval("#agora .agora-item .km > span[aria-hidden]", (s) => s.map((x) => x.textContent));
+  const n = km.map((s) => { const m = s.match(/([\d,]+)\s*(km|m)/); return Number(m[1].replace(",", ".")) / (m[2] === "m" ? 1000 : 1); });
+  assert.deepEqual(n, [...n].sort((a, b) => a - b), `em ordem: ${km}`);
+  await busca2(pg, "pizza");
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
+});
+
+test('"Valendo agora" fica escondido de madrugada, quando nada vale', async () => {
+  const { abrir: abrir2 } = require("./lib/pagina");
+  const pg = await abrir2({ data: "2026-11-18T05:10:00" });
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
+});
