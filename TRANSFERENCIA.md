@@ -1,6 +1,6 @@
 # Transferência de sessão: Cupons em Dobro
 
-Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro antes de mexer em dados, no banco ou na página. O `README.md` tem os detalhes de cada programa; este arquivo cobre o que é fácil deixar passar.
+Situação em 18/11/2026, no fim da sessão anterior. Leia este arquivo inteiro antes de mexer em dados, no banco ou na página. O `README.md` tem os detalhes de cada programa; este arquivo cobre o que é fácil deixar passar.
 
 ## 1. Onde está tudo
 
@@ -294,4 +294,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 53. (5271a0c) site do GitHub Pages em `docs/` (`scripts/gerar-site.py`): a página fora do claude.ai, com GPS do navegador e a cópia dos cupons, só para consulta; testado localmente com localização (Hospital Moinhos → Mr. White a 200 m). O usuário precisa ligar o Pages em Settings → Pages.
 54. (d7393b9) bloco "Valendo agora" no topo da lista (3 testes novos, 67 no total); site do Pages com service worker (offline, abre na hora, troca a cópia quando há nova) e app na Tela de Início (manifesto e ícones em `scripts/site/`); testado localmente offline; versão 41 publicada.
 55. (9ccdce7) atalho "Perto de mim" na barra (1 teste novo, 68 no total); versão 42 publicada e site `docs/` regenerado.
-56. (este commit) barra enxuta (Filtros, Perto de mim, Vale agora, Favoritos numa linha; Situação, Ordenar e Compacta no topo do painel Filtros; "Agora, perto" e atalhos Pet/Kids removidos, Pet e Kids continuam nas comodidades), tempo estimado junto da distância (a pé até 1,5 km, de carro acima), testes ajustados (70); versão 43 publicada; PR para o branch padrão, para o Pages publicar de lá.
+56. (650572e) barra enxuta (Filtros, Perto de mim, Vale agora, Favoritos numa linha; Situação, Ordenar e Compacta no topo do painel Filtros; "Agora, perto" e atalhos Pet/Kids removidos, Pet e Kids continuam nas comodidades), tempo estimado junto da distância (a pé até 1,5 km, de carro acima), testes ajustados (70); versão 43 publicada; PR para o branch padrão, para o Pages publicar de lá ([henriquepmoreira/cupons#1](https://github.com/henriquepmoreira/cupons/pull/1), juntado em 18/11 com merge commit).
+57. (este commit) `CLAUDE.md` curto na raiz: toda sessão nova lê sozinha e é mandada ler este arquivo antes de começar.
