@@ -1224,6 +1224,11 @@
 "lng": -51.162498,
 "precisao": "endereco"
 },
+"Avenida Venâncio Aires Nº 827|Santana|Porto Alegre": {
+"lat": -30.038944,
+"lng": -51.212364,
+"precisao": "endereco"
+},
 "Avenida Venâncio Aires, Nº 1025|Santana|Porto Alegre": {
 "lat": -30.038965,
 "lng": -51.212485,
@@ -2233,6 +2238,11 @@
 "lat": -29.772248,
 "lng": -51.144082,
 "precisao": "endereco"
+},
+"Rua Irlanda, Nº 165|Marechal Rondon|Canoas": {
+"lat": -29.916015,
+"lng": -51.160086,
+"precisao": "rua"
 },
 "Rua Irmão José Otão, Nº 576|Bom Fim|Porto Alegre": {
 "lat": -30.031455,
