@@ -153,3 +153,20 @@ test("linha de filtros ativos: mostra com o painel fechado, o × remove e o foco
   assert.equal(await pg.$eval("#ativos", (e) => e.hidden), true);
   assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
 });
+
+test("barra fixa no celular: busca + uma linha de botões que rola de lado", async () => {
+  const pg = await abrir({ largura: 390 });
+  const r = await pg.evaluate(() => {
+    const barra = document.querySelector(".toolbar").getBoundingClientRect();
+    const tops = [...document.querySelectorAll(".controls > *")].map((e) => { const r = e.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 6); }); // centro vertical (o grupo de situação é 4 px mais alto)
+    return { altura: barra.height, linhas: new Set(tops).size, ordem: [...document.querySelectorAll(".controls > *")].map((e) => e.id || e.className) };
+  });
+  assert.ok(r.altura < 140, `${r.altura}px`);
+  assert.equal(r.linhas, 1, "todos os botões na mesma linha");
+  assert.deepEqual(r.ordem.slice(0, 3), ["filters-toggle", "sort", "status"]);
+  assert.equal(await pg.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "sem rolagem lateral da página");
+  // o último botão continua alcançável: o foco rola a linha até ele
+  await pg.focus("#kids-toggle");
+  const visivel = await pg.$eval("#kids-toggle", (b) => { const r = b.getBoundingClientRect(); return r.right <= innerWidth && r.left >= 0; });
+  assert.ok(visivel);
+});

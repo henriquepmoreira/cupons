@@ -148,6 +148,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .prog-canoas { --pc: var(--p-canoas); }
 .planos { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 .planos p { margin: 0; }
+.planos-det > summary { cursor: pointer; list-style: none; color: var(--ink); font-weight: 500; padding: 4px 0; min-height: 32px; display: flex; align-items: center; gap: 6px; }
+.planos-det > summary::-webkit-details-marker { display: none; }
+.planos-det > summary::before { content: "▸"; content: "▸" / ""; display: inline-block; width: 1em; color: var(--accent); transition: transform .15s ease; }
+.planos-det[open] > summary::before { transform: rotate(90deg); }
+.planos-det > summary .sep { color: var(--muted); }
+.planos-det > summary .fer { color: var(--p-canoas); }
+.planos-corpo { display: grid; gap: 4px; padding: 2px 0 2px 1em; }
 .planos b { color: var(--ink); font-weight: 600; }
 .pdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pc); margin-right: 7px; vertical-align: .05em; }
 .planos .alerta { color: var(--ink); }
@@ -190,7 +197,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   font-size: 11.5px; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
 }
 .chipbtn .badge[hidden] { display: none; }
-.sort { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 13px; color: var(--muted); }
+.sort { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
 .sort select {
   height: 36px; border-radius: var(--r-ctl); border: 1px solid var(--line); background: var(--surface);
   padding: 0 8px; font-size: 13.5px; font-weight: 600; color: var(--ink); max-width: 100%;
@@ -423,9 +430,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   .programs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); padding-right: 16px; }
   .programs::-webkit-scrollbar { display: none; }
   .prog-pill { flex: none; }
-  .sort { margin-left: 0; flex: 1; min-width: 0; }
+  /* barra fixa: busca + uma linha de botões que rola de lado (antes eram até 5 linhas presas no topo) */
+  .controls { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); padding-right: 16px; }
+  .controls::-webkit-scrollbar { display: none; }
+  /* position: relative prende os textos .sr-only (absolutos) dentro da linha rolável; sem isso a página rola de lado */
+  .controls > * { flex: none; position: relative; }
+  .sort { margin-left: 0; }
   .sort-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .sort select { flex: 1; min-width: 0; }
+  .sort select { max-width: 11em; }
   .stats { gap: 16px; }
   .ticket { grid-template-columns: 62px minmax(0, 1fr); }
   .ticket::before, .ticket::after { left: 62px; }
@@ -454,7 +466,22 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       <input id="q" type="search" placeholder="Busque restaurante, prato ou categoria" autocomplete="off" aria-label="Buscar cupons">
       <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden>×</button>
     </div>
-    <div class="controls">
+    <div class="controls" role="group" aria-label="Filtros rápidos e ordem">
+      <button type="button" class="chipbtn" id="filters-toggle" aria-expanded="false" aria-controls="filters">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        Filtros <span class="badge" id="filters-badge" hidden></span>
+      </button>
+      <label class="sort" for="sort"><span class="sort-lbl">Ordenar</span>
+        <select id="sort">
+          <option value="app">Ordem do app</option>
+          <option value="az">Nome (A–Z)</option>
+          <option value="fav">Favoritos primeiro</option>
+          <option value="categoria">Por categoria</option>
+          <option value="programa">Por programa</option>
+          <option value="recentes">Usados por último</option>
+          <option value="perto">Mais perto</option>
+        </select>
+      </label>
       <div class="seg" role="group" aria-label="Situação do cupom" id="status">
         <button type="button" data-status="disponiveis">Disponíveis</button>
         <button type="button" data-status="usados">Usados</button>
@@ -480,21 +507,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.2" r="2.4"/><path d="M12 9v6M6.8 11.2 12 9.6l5.2 1.6M8.8 21l3.2-6 3.2 6"/></svg>
         <span aria-hidden="true">Kids</span><span class="sr-only">Espaço kids</span>
       </button>
-      <button type="button" class="chipbtn" id="filters-toggle" aria-expanded="false" aria-controls="filters">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-        Filtros <span class="badge" id="filters-badge" hidden></span>
-      </button>
-      <label class="sort" for="sort"><span class="sort-lbl">Ordenar</span>
-        <select id="sort">
-          <option value="app">Ordem do app</option>
-          <option value="az">Nome (A–Z)</option>
-          <option value="fav">Favoritos primeiro</option>
-          <option value="categoria">Por categoria</option>
-          <option value="programa">Por programa</option>
-          <option value="recentes">Usados por último</option>
-          <option value="perto">Mais perto</option>
-        </select>
-      </label>
     </div>
   </div>
 </div>
@@ -682,6 +694,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     pertoPendente: null, // bairro salvo nas preferências, aplicado quando geo.json chegar
     raio: null, // distância máxima em km
     abaFiltros: "quando", // aba aberta no painel de filtros
+    planosAbertos: false, // detalhe dos planos no topo
     limite: 40, // quantos cartões aparecem (lotes de LOTE); volta ao primeiro lote quando a lista muda
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
@@ -712,6 +725,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       state.comods = new Set(p.comods || []);
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
       if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
+      state.planosAbertos = !!p.planosAbertos;
       if ([1, 2, 5, 10].includes(p.raio)) state.raio = p.raio;
     }
   } catch (_) {}
@@ -720,7 +734,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        abaFiltros: state.abaFiltros, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -1223,6 +1237,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const nf = (n) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
     const pl = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
     const linhas = [], semValidade = [];
+    const resumo = []; let porSemana = 0, proximo = null; // para a linha de resumo
     for (const p of PROGRAMAS) {
       if (!state.cupons.some((c) => c.programa === p.id)) continue;
       if (!p.validade) { semValidade.push(p.nome); continue; }
@@ -1231,6 +1246,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const dot = `<span class="pdot ${p.cls}" aria-hidden="true"></span>`;
       if (dias < 0) { linhas.push(`<p>${dot}<b>${esc(p.nome)}</b> venceu em ${esc(fmtDate(p.validade))}.</p>`); continue; }
       const porDia = n / (dias + 1); // o último dia também conta
+      porSemana += porDia * 7;
+      if (!proximo || dias < proximo.dias) proximo = { p, dias };
       const faltam = dias === 0 ? "hoje é o último dia" : dias === 1 ? "falta 1 dia" : `faltam ${dias} dias`;
       const ritmo = n === 0 ? "nenhum cupom disponível"
         : `${pl(n, "cupom disponível", "cupons disponíveis")}, cerca de ${nf(porDia)} por dia (${nf(porDia * 7)} por semana)`;
@@ -1247,8 +1264,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const oque = f ? `feriado${f.onde ? ` em ${listaE(f.onde)}` : ""} (${f.nome}${dc && dc !== f.nome ? ` e ${dc}` : ""})` : `data comemorativa (${dc})`;
       const efeito = bloq ? `: ${pl(bloq, "cupom disponível não vale", "cupons disponíveis não valem")} ${i === 0 ? "hoje" : "nesse dia"}` : "";
       linhas.push(`<p class="alerta">${esc(quando)} é ${esc(oque)}${efeito}.</p>`);
+      if (!resumo.some((r) => r.fer)) resumo.push({ fer: true, txt: i === 0 ? `hoje é ${f ? "feriado" : "data comemorativa"}` : `${f ? "feriado" : dc} ${i === 1 ? "amanhã" : `${DIAS_NOME[diaKey(iso)].toLowerCase()} (${ddmm(iso)})`}` });
     }
-    htmlDe(el).innerHTML = linhas.join("");
+    if (proximo) resumo.unshift({ txt: proximo.dias === 0 ? `${proximo.p.curto} vence hoje` : `${proximo.p.curto} vence em ${proximo.dias} ${proximo.dias === 1 ? "dia" : "dias"}` });
+    if (porSemana > 0) resumo.splice(proximo ? 1 : 0, 0, { txt: `cerca de ${Math.round(porSemana)} cupons por semana` });
+    const sumario = resumo.length
+      ? resumo.map((r) => (r.fer ? `<span class="fer"><span aria-hidden="true">⚑ </span>${esc(r.txt)}</span>` : esc(r.txt))).join('<span class="sep" aria-hidden="true"> · </span><span class="sr-only">, </span>')
+      : "Planos e validade";
+    htmlDe(el).innerHTML = linhas.length
+      ? `<details class="planos-det"${state.planosAbertos ? " open" : ""}><summary id="planos-resumo"><span>${sumario.replace(/^./, (x) => x.toUpperCase())}<span class="sr-only">. Detalhes dos planos</span></span></summary><div class="planos-corpo">${linhas.join("")}</div></details>`
+      : "";
     setHidden(el, !linhas.length);
   }
 
@@ -1855,6 +1880,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }
     savePrefs(); render();
   });
+  $("planos").addEventListener("toggle", (e) => {
+    if (!(e.target instanceof HTMLDetailsElement)) return;
+    state.planosAbertos = e.target.open; savePrefs();
+  }, true);
   $("f-turno").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-turno]"); if (!b) return;
     toggleSet(state.turnos, b.dataset.turno); savePrefs(); render();

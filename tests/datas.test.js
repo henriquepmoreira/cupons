@@ -82,3 +82,19 @@ test('a preferência antiga "Vale hoje" vira a data de hoje', async () => {
   await pg.click("#filters-toggle");
   assert.equal(await pg.$eval('#f-data button[data-data="2026-11-18"]', (b) => b.getAttribute("aria-pressed")), "true");
 });
+
+test("resumo dos planos numa linha, que abre com um toque e fica lembrado", async () => {
+  const pg = await abrir({ data: "2026-11-17T12:30:00" });
+  assert.equal(await pg.$eval("#planos details", (d) => d.open), false);
+  const resumo = await pg.$eval("#planos-resumo", (e) => e.textContent.replace(/\s+/g, " ").trim());
+  assert.match(resumo, /^Tour vence em 108 dias/);
+  assert.match(resumo, /cerca de \d+ cupons por semana/);
+  assert.match(resumo, /feriado sexta \(20\/11\)/);
+  await pg.click("#planos-resumo");
+  await espera(pg);
+  assert.equal(await pg.$eval("#planos details", (d) => d.open), true);
+  await pg.reload();
+  await pg.waitForSelector(".ticket");
+  await pg.waitForTimeout(300);
+  assert.equal(await pg.$eval("#planos details", (d) => d.open), true, "aberto depois de recarregar");
+});

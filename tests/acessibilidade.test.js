@@ -63,6 +63,9 @@ let axe = null;
 try { axe = fs.readFileSync(require.resolve("axe-core/axe.min.js"), "utf8"); } catch (_) {}
 
 async function violacoes(pg) {
+  // no topo da página: com a página rolada, algum chip fica atrás da barra fixa e o axe acusa "target-size".
+  // Item focado escondido pela barra é outro problema, coberto pelo teste "nenhum item focado fica escondido".
+  await pg.evaluate(() => scrollTo(0, 0));
   await pg.addScriptTag({ content: axe });
   return pg.evaluate(async () => (await window.axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"] }))
     .violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(" | ")}`));
