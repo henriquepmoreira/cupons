@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 36, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 37, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -282,5 +282,6 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 43. (este commit) barra fixa numa linha rolável e resumo dos planos recolhível; versão 34
 44. (commits a8807e0, 6e1c3c5, fd770b1 e este) contagens mais rápidas, fontes sem bloquear, coordenadas sob demanda, Filtros em tela cheia no celular, lista compacta, sugestões sem resultado, posição ao recarregar; versão 35
 45. (654b709) lista guardada no navegador (primeira tela na hora), etiqueta "Agora · até / Hoje a partir das / Encerrado hoje", topo compacto no celular, agrupamento mesmo lugar em cache, "Padrão (como no app)" e um × só na busca; versão 36
-46. (este commit) conferência das listas do Canoas e do Tour pelos vídeos de 17/11 (README, "Conferência das listas"): Degustar no Bairro e Helena Burger POA novos, ofertas do Darna (Canoas e Tour) e do Spoleto (Canoas), 138 cupons com nova posição; banco atualizado em três lotes e conferido com `sincronizar.py` (682 cupons, sem diferença). Página não republicada.
-47. (este commit) Guacamole Taqueria, Grano Forneria (Canoas) e Go Coffee São Leopoldo (Tour) apagados, porque saíram do programa (confirmado pelo usuário); lista inteira do Poa e usados do Tour conferidos pelos vídeos de 17/11, sem diferenças; banco conferido com `sincronizar.py` (679 cupons). Página não republicada.
+46. (f07fa00) conferência das listas do Canoas e do Tour pelos vídeos de 17/11 (README, "Conferência das listas"): Degustar no Bairro e Helena Burger POA novos, ofertas do Darna (Canoas e Tour) e do Spoleto (Canoas), 138 cupons com nova posição; banco atualizado em três lotes e conferido com `sincronizar.py` (682 cupons, sem diferença). Página não republicada.
+47. (1418bae) Guacamole Taqueria, Grano Forneria (Canoas) e Go Coffee São Leopoldo (Tour) apagados, porque saíram do programa (confirmado pelo usuário); lista inteira do Poa e usados do Tour conferidos pelos vídeos de 17/11, sem diferenças; banco conferido com `sincronizar.py` (679 cupons). Página não republicada.
+48. (este commit) página republicada (versão 37) só para atualizar a cópia sem login: `snapshot.json` com os 679 cupons de 18/11, gerado da exportação do banco conferida com `sincronizar.py`; `cupons.html` e `geo.json` iguais à versão 36.
