@@ -1,0 +1,12 @@
+{
+  "name": "cupons-testes",
+  "private": true,
+  "description": "Testes da página cupons.html (Playwright + node:test)",
+  "scripts": {
+    "test": "node --test --test-concurrency=2 *.test.js && cd .. && python3 -m unittest tests/test_geocodificar.py",
+    "test:pagina": "node --test --test-concurrency=2 *.test.js"
+  },
+  "devDependencies": {
+    "axe-core": "4.10.2"
+  }
+}

@@ -59,6 +59,8 @@ Para importar um programa novo, crie `data/<programa>.json` e gere os documentos
 python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 ```
 
+Antes de republicar a página, rode os testes: `cd tests && npm install && npm test` (detalhes em `tests/README.md`).
+
 Os scripts que leem gravações de tela (detalhes dos cupons) estão em `scripts/video/`, com instruções no README de lá. O passo a passo para continuar o trabalho numa sessão nova está em `TRANSFERENCIA.md`.
 
 ## Tour Grande Poa

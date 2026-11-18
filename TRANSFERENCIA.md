@@ -188,9 +188,8 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 ## 9. Ambiente
 
 - **Ferramentas disponíveis na nuvem:** `ffmpeg`, Pillow, `node` e Chromium com Playwright. O `tesseract` **não** veio instalado na sessão de 12/11 à noite: `apt-get install -y tesseract-ocr tesseract-ocr-por` (se falhar, rode `apt-get update` antes). Sem ele, o `preparar.sh` gera os quadros mas o OCR sai vazio, sem erro.
-- **Teste local da página:** o `window.claude` falso precisa de `use("user")` com `isOwner()` e `can()`, e o snapshot precisa de `metadata: { fromCache: false }`.
 - **A pasta temporária (scratchpad) é apagada entre sessões.** Por isso os scripts foram para o repositório.
-- **Testar a página localmente:** carregue `cupons.html` no Playwright com um `window.claude.use` falso, que devolva um objeto `collection(...)` com `onSnapshot` entregando os cupons de `data/*.json` (com `id = <programa>--<slug>` e `programa`). Esse arquivo de teste não ficou no repositório. Antes de publicar, rode `node --check` no script extraído do HTML.
+- **Testes automáticos:** `cd tests && npm install && npm test` (uns 20 s). Rode antes de republicar a página. Cobrem datas e feriados, mesmo lugar, filtros, Perto de mim, lotes, acessibilidade (árvore do Chrome e axe-core) e desempenho com CPU 4× mais lenta, além do `geocodificar.py`. Detalhes e o banco falso em `tests/README.md`. Para um teste novo, confira com `CUPONS_HTML=<versão quebrada>` que ele falha de verdade.
 - **Organização dos arquivos de trabalho:** use uma pasta por lote (por exemplo `t2/` e `t3/` na sessão anterior). Os vídeos ficam numa pasta própria, e os scripts recebem a pasta como argumento.
 
 ## 10. Fatos dos apps que ajudam
@@ -240,3 +239,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 32. `74fee0a` sugestão de qual cupom usar e comparação de ofertas no aviso de mesmo lugar (versão 25)
 33. perto de mim: `data/geo.json`, `scripts/geocodificar.py`, ordenação "Mais perto" e raio
 34. desempenho (cartões reaproveitados), `content-visibility` retirado, geocodificação por bairro, acessibilidade para o TalkBack (lotes de 40, painéis sob demanda, escritas só quando mudam, foco fora da barra fixa) e `data/geo.json` completo: tudo publicado junto na versão 26
+35. (este commit) testes automáticos em `tests/` (30 da página + 5 do geocodificador)
