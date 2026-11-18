@@ -611,7 +611,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const COMOD_ORDEM = ["Acessibilidade", "Estacionamento conveniado", "Estacionamento gratuito", "Opções veganas", "Opções vegetarianas",
     "Opções sem glúten", "Consumo no local", "Pet Friendly / Aceita Pet", "Aceita Take Away", "Exclusivo Takeaway", "Espaço Kids"];
   const comodKey = (t) => (t === "Pet Friendly" || t === "Aceita Pet" ? "Pet Friendly / Aceita Pet" : t);
-  const comodSet = (c) => new Set((c.comodidades || []).map(comodKey));
+  // comodidades do cupom e, quando o app mostra por unidade, as de cada unidade (vale se alguma unidade tem)
+  const comodSet = (c) => new Set([...(c.comodidades || []), ...(c.outrasUnidades || []).flatMap((u) => u.comodidades || [])].map(comodKey));
+  const comodPorUnidade = (c) => (c.outrasUnidades || []).some((u) => Array.isArray(u.comodidades));
   const GANHE_TXT = { igual_ou_menor: "outro igual ou de menor valor", igual: "outro igual" };
   const PREFS_KEY = "cupons-em-dobro:prefs:v1";
 
@@ -973,8 +975,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const temH = (h) => !!h && Object.keys(h).length > 0;
       const endHtml = (x) => `<p>${esc(x.endereco || "")}${x.bairro || x.cidade ? `${x.endereco ? "<br>" : ""}${esc([x.bairro, x.cidade].filter(Boolean).join(" – "))}` : ""}</p>`;
       // com várias unidades conhecidas: um bloco por unidade, cada um com endereço e horários próprios
+      // comodidades por unidade (ex.: Coccaderia.Co: uma unidade só para levar); a primeira usa as do cupom
+      const porUnidade = comodPorUnidade(c);
+      const listaComod = (xs) => xs.length ? `<ul class="tags" role="list" aria-label="Comodidades" style="list-style:none;margin:6px 0 0;padding:0">${xs.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul>` : "";
       const blocoUnidades = outras.length
-        ? uns.map((x, i) => `<div><h4>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : '<p class="fnote">Dias e horários desta unidade ainda não cadastrados.</p>'}</div>`).join("")
+        ? uns.map((x, i) => `<div><h4>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : '<p class="fnote">Dias e horários desta unidade ainda não cadastrados.</p>'}${porUnidade ? listaComod(i === 0 ? c.comodidades || [] : x.comodidades || []) : ""}</div>`).join("")
         : "";
       // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
       const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`
@@ -989,7 +994,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
         ${!outras.length && u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
         ${(c.categoriasApp || []).length ? `<div><h4>Categoria no app</h4><p>${esc(c.categoriasApp.join(" · "))}</p></div>` : ""}
-        ${(c.comodidades || []).length ? `<div><h4 class="sr-only">Comodidades</h4><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
+        ${(c.comodidades || []).length && !porUnidade ? `<div><h4 class="sr-only">Comodidades</h4><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
       `}</div>
     </details>`;
     }

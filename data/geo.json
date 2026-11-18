@@ -349,6 +349,11 @@
 "lng": -51.212344,
 "precisao": "endereco"
 },
+"Avenida Cristóvão Colombo Nº 545, Quiosque 13|Independência|Porto Alegre": {
+"lat": -30.026217,
+"lng": -51.212344,
+"precisao": "endereco"
+},
 "Avenida Cristóvão Colombo Nº 927|Floresta|Porto Alegre": {
 "lat": -30.027037,
 "lng": -51.214839,
@@ -849,6 +854,11 @@
 "lng": -51.1748,
 "precisao": "rua"
 },
+"Avenida Júlio de Castilhos Nº 4, Estação Mercado|Centro Histórico|Porto Alegre": {
+"lat": -30.026506,
+"lng": -51.226346,
+"precisao": "rua"
+},
 "Avenida Júlio de Castilhos, Nº 444|Centro Histórico|Porto Alegre": {
 "lat": -30.027007,
 "lng": -51.228124,
@@ -1029,6 +1039,11 @@
 "lng": -51.228732,
 "precisao": "endereco"
 },
+"Avenida Praia de Belas Nº 1181, Quiosque|Praia de Belas|Porto Alegre": {
+"lat": -30.049616,
+"lng": -51.228732,
+"precisao": "endereco"
+},
 "Avenida Praia de Belas Nº 3080, Acesso a Passarela|Praia de Belas|Porto Alegre": {
 "lat": -30.047289,
 "lng": -51.227522,
@@ -1137,6 +1152,11 @@
 "Avenida Senador Salgado Filho, Nº 9043|Krahe|Viamão": {
 "lat": -30.077334,
 "lng": -51.041769,
+"precisao": "endereco"
+},
+"Avenida Sertório Nº 6767, Complexo Leroy Merlin|Sarandi|Porto Alegre": {
+"lat": -29.998926,
+"lng": -51.14108,
 "precisao": "endereco"
 },
 "Avenida Sertório, Nº 7265|Sarandi|Porto Alegre": {
@@ -1392,6 +1412,11 @@
 "Praça Cônego Marcelino, Nº 25|Cidade Baixa|Porto Alegre": {
 "lat": -30.041724,
 "lng": -51.227733,
+"precisao": "rua"
+},
+"Praça Dom Feliciano Nº 106, Loja|Centro Histórico|Porto Alegre": {
+"lat": -30.029977,
+"lng": -51.22277,
 "precisao": "rua"
 },
 "Praça Doutor Maurício Cardoso, Nº 49|Moinhos de Vento|Porto Alegre": {
@@ -2158,6 +2183,11 @@
 "lat": -29.923497,
 "lng": -51.176305,
 "precisao": "rua"
+},
+"Rua Germano Lang Nº 827|Jardim América|São Leopoldo": {
+"lat": -29.78059,
+"lng": -51.134554,
+"precisao": "endereco"
 },
 "Rua Giordano Bruno Nº 13|Rio Branco|Porto Alegre": {
 "lat": -30.033532,

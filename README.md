@@ -45,7 +45,7 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 | `regras` | string \| null | texto de "Regras e avisos do estabelecimento" |
 | `comodidades` | lista | etiquetas do app (Acessibilidade, Pet Friendly, Opções veganas…) |
 | `maisUnidades` | bool | o app mostra um seletor de unidade; os dados são da unidade que aparece primeiro |
-| `outrasUnidades` | lista | as outras unidades, quando o vídeo mostra todas: `{bairro, endereco, cidade, horarios}` cada (Poa). Os filtros de dia, horário, cidade e bairro valem se qualquer unidade atende |
+| `outrasUnidades` | lista | as outras unidades, quando o vídeo mostra todas: `{bairro, endereco, cidade, horarios, comodidades?}` cada (Poa e Tour). `horarios: null` = horário não conhecido; `comodidades` só quando a unidade tem comodidades diferentes das do cupom (a primeira unidade usa as do cupom). Os filtros de dia, horário, cidade e bairro valem se qualquer unidade atende |
 | `categoriasApp` | lista | categorias que o app mostra abaixo do nome na tela do cupom (Canoas), como "Culinária Internacional" ou "Saudável, ParkShopping Canoas" |
 
 Só a pessoa dona do artifact pode gravar no banco (regra `write: owner`).
@@ -81,7 +81,7 @@ Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a te
 - **Feriados e datas comemorativas:** lidos pela cor do ícone (✓ verde / ✗ vermelho). O Mr. Pretzels mostra ✓ nos dois, mas a regra do próprio estabelecimento diz que não vale em feriados e datas comemorativas; ficou como o app mostra, com a regra no texto.
 - **Comodidades:** inclui a etiqueta "Exclusivo Takeaway" (só para retirada), presente em 17 cupons.
 - **Nomes completos:** o título da tela de detalhe completou 20 nomes que a lista corta (ex.: Empório 22 Wine & Bar, Pallina Di Latte - Shopping João Pessoa, Janela Bar POA - Zona Sul). "Mark - Harmonia, R…" foi completado por dedução em 17/11: a tela de detalhe mostra só "Mark Hamburgueria", mas as regras citam "Zona Sul, Roubadinhas e Parque Harmonia", e o outro cupom do Mark põe as unidades em ordem alfabética no nome ("Auxiliadora, Bom Fim e Cidade Baixa"); daí "Mark - Harmonia, Roubadinhas e Zona Sul".
-- **Mais de uma unidade:** Ah! Casa, Camarão Express, Poke Delícia - São Leo, Coccaderia.Co, Milky Moo, Mr. Pretzels e os dois Mark Hamburgueria têm seletor de unidade. Com prints de 17/11/2026, os dois Mark, o Ah! Casa (+ Marechal Rondon, Av. Farroupilha 3989, Canoas) e o Camarão Express (+ Estância Velha, Av. Açucena 1000, Canoas) têm todas as unidades e horários em `outrasUnidades` (no Ah! Casa e no Camarão, o horário é igual nas duas). Poke Delícia - São Leo, Coccaderia.Co, Milky Moo e Mr. Pretzels continuam só com a unidade que aparece primeiro.
+- **Mais de uma unidade:** Ah! Casa, Camarão Express, Poke Delícia - São Leo, Coccaderia.Co, Milky Moo, Mr. Pretzels e os dois Mark Hamburgueria têm seletor de unidade. Com prints de 17/11/2026, **todos têm as unidades e os horários de cada uma** em `outrasUnidades`: Ah! Casa (+ Marechal Rondon), Camarão Express (+ Estância Velha), Milky Moo (+ Independência), Mr. Pretzels (+ Praia de Belas, das 11:00 às 20:00), Poke Delícia - São Leo (+ Jardim América, São Leopoldo), Coccaderia.Co (+ Estação Mercado, Sarandi/Leroy Merlin e Praça Dom Feliciano, sem domingo) e os dois Mark. No Coccaderia e no Poke Delícia as comodidades mudam por unidade (o Cristal do Coccaderia é só para levar) e ficam em cada unidade; o filtro de comodidades vale se alguma unidade tem.
 - **Detalhes completados por prints de 17/11/2026:** PopCorn Gourmet - Praia de Belas (unidade, horários das 10:00 às 22:00, feriados e datas comemorativas ✓, comodidades) e Pallina Di Latte (horários das 09:10 às 20:30 todos os dias e comodidades).
 - **Os dois cupons do Mark (prints de 17/11/2026), com o horário de cada unidade em `outrasUnidades`:**
   - Mark - Auxiliadora, Bom Fim e Cidade Baixa: Auxiliadora (Av. Mariland 908), Bom Fim (Rua Felipe Camarão 383, mesmo horário) e Cidade Baixa (Rua Joaquim Nabuco 383; na sexta só 12:00–15:00).
@@ -89,7 +89,7 @@ Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a te
   - Se uma unidade vier sem horário (`horarios: null`), a página diz "Hoje 18:00–23:00 (Praia de Belas)" em vez de contar unidades.
 - **Lacunas resolvidas:** os vídeos percorrem a lista sem pular, e a lista entre um cupom e outro mostra os dois cartões lado a lado; as nove emendas suspeitas dos prints estão confirmadas.
 - **Avisos com data:** várias regras falam de datas que já passaram (Dia dos Namorados, "nesse domingo 08/11"); estão transcritas como o app mostra.
-- **Dados do app que parecem errados, transcritos como estão:** Spoleto Bourbon Ipiranga mostra "Bourbon Shopping Novo Hamburgo" no endereço da Av. Ipiranga 5200; Poke Delícia - São Leo mostra a unidade Hamburgo Velho.
+- **Dados do app que parecem errados, transcritos como estão:** Spoleto Bourbon Ipiranga mostra "Bourbon Shopping Novo Hamburgo" no endereço da Av. Ipiranga 5200; Poke Delícia - São Leo mostra primeiro a unidade Hamburgo Velho (Novo Hamburgo); a de São Leopoldo (Jardim América) é a segunda do seletor.
 
 ## Canoas em Dobro
 

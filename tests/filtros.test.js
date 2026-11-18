@@ -40,3 +40,21 @@ test("sem rolagem lateral no celular, com e sem Filtros aberto", async () => {
   await espera(pg);
   assert.equal(await lateral(), false);
 });
+
+test("comodidades por unidade: o filtro vale se alguma unidade tem, e os detalhes mostram cada uma", async () => {
+  const pg = await abrir();
+  await pg.fill("#q", "coccaderia");
+  await pg.waitForTimeout(200);
+  const card = '.ticket[data-id="tour-grande-poa--coccaderia"]';
+  await pg.click("#filters-toggle");
+  await pg.click('#f-comod button[data-comod="Consumo no local"]');
+  await espera(pg);
+  assert.equal(await pg.$$eval(card, (x) => x.length), 1, "a unidade principal é só para levar, mas as outras têm consumo no local");
+  await pg.click("#filters-toggle");
+  await pg.click(`${card} .det:not(.outros) summary`);
+  await espera(pg);
+  const blocos = await pg.$$eval(`${card} .det-body > div`, (ds) => ds.filter((d) => d.querySelector("h4")?.textContent.startsWith("Unidade")).map((d) => [...d.querySelectorAll(".tag")].map((t) => t.textContent)));
+  assert.equal(blocos.length, 4);
+  assert.deepEqual(blocos[0], ["Aceita Take Away", "Exclusivo Takeaway"]);
+  assert.ok(blocos.slice(1).every((b) => b.length === 1 && b[0] === "Consumo no local"));
+});
