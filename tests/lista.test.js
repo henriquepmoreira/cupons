@@ -1,7 +1,7 @@
 // Lotes de 40 cartões, cartões reaproveitados e painéis montados ao abrir.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, texto, espera, busca, focado, cartoes } = require("./lib/pagina");
+const { abrir, fechar, aba, fecharFiltros, texto, numero, espera, busca, focado, cartoes } = require("./lib/pagina");
 
 after(fechar);
 
@@ -105,4 +105,68 @@ test("várias unidades com só um horário conhecido: a etiqueta diz qual unidad
   await espera(pg);
   const notas = await pg.$$eval(`${card} .det-body .fnote`, (xs) => xs.map((x) => x.textContent));
   assert.equal(notas.filter((t) => t === "Dias e horários desta unidade ainda não cadastrados.").length, 2);
+});
+
+test("lista compacta: uma linha por cupom, expandir mostra o cartão completo, e fica lembrada", async () => {
+  const pg = await abrir({ largura: 390 });
+  const alturaNormal = await pg.$eval("#grid .ticket", (t) => t.getBoundingClientRect().height);
+  await pg.click("#compacto-toggle");
+  await espera(pg);
+  assert.equal(await pg.$eval("#compacto-toggle", (b) => b.getAttribute("aria-pressed")), "true");
+  const card = pg.locator("#grid .ticket").first();
+  const alturaCompacta = await card.evaluate((t) => t.getBoundingClientRect().height);
+  assert.ok(alturaCompacta < alturaNormal * 0.6, `${Math.round(alturaCompacta)} px x ${Math.round(alturaNormal)} px`);
+  assert.equal(await card.evaluate((t) => getComputedStyle(t.querySelector(".tfoot")).display), "none");
+  // quantos cupons cabem numa tela, rolando até o começo da lista
+  await pg.evaluate(() => document.querySelector("#grid .ticket").scrollIntoView({ block: "start" }));
+  await pg.waitForTimeout(100);
+  const porTela = await pg.evaluate(() => [...document.querySelectorAll("#grid .ticket")].filter((t) => { const r = t.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }).length);
+  assert.ok(porTela >= 5, `${porTela} cupons inteiros numa tela`);
+  // o mesmo cartão (sem recriar) só troca de classe
+  await card.evaluate((t) => { window.__c = t; });
+  await card.locator('[data-act="expandir"]').click();
+  await espera(pg);
+  assert.equal(await card.evaluate((t) => t.classList.contains("expandido")), true);
+  assert.equal(await card.evaluate((t) => getComputedStyle(t.querySelector(".tfoot")).display !== "none"), true, "Marcar como usado aparece");
+  assert.equal(await pg.evaluate(() => document.activeElement.dataset.act), "expandir");
+  assert.equal(await card.locator('[data-act="expandir"]').getAttribute("aria-expanded"), "true");
+  await pg.reload();
+  await pg.waitForSelector(".ticket");
+  await pg.waitForTimeout(300);
+  assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), true, "lembrada depois de recarregar");
+});
+
+test("nada encontrado: sugere qual filtro tirar e aplica com um toque", async () => {
+  const pg = await abrir();
+  await aba(pg, "onde");
+  await pg.click('#f-shopping button[data-shopping="Iguatemi"]');
+  await aba(pg, "quando");
+  await pg.click('#f-turno button[data-turno="madrugada"]');
+  await fecharFiltros(pg);
+  await pg.fill("#q", "pizza");
+  await pg.waitForTimeout(250);
+  assert.equal(await pg.$$eval("#grid .ticket", (t) => t.length), 0);
+  const sug = await pg.$$eval("#grid .sugestoes button", (bs) => bs.map((b) => [b.dataset.remove, b.textContent.replace(/\s+/g, " ").trim()]));
+  assert.ok(sug.length >= 1);
+  assert.ok(sug.every(([, t]) => /^Sem .+ \d+ cupo(m|ns)$/.test(t)), JSON.stringify(sug));
+  const [chave, texto0] = sug[0];
+  const n = Number(texto0.match(/(\d+) cupo/)[1]);
+  await pg.click(`#grid .sugestoes button[data-remove="${chave}"]`);
+  await espera(pg);
+  assert.equal(numero(await texto(pg, "#result-count")), n);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
+});
+
+test("recarregar a aba volta ao mesmo ponto da lista (mesmos filtros)", async () => {
+  const pg = await abrir({ largura: 390 });
+  await pg.click("#mais-btn");
+  await espera(pg);
+  await pg.evaluate(() => scrollTo(0, 6000));
+  await pg.waitForTimeout(500);
+  const y = await pg.evaluate(() => scrollY);
+  await pg.reload();
+  await pg.waitForSelector(".ticket");
+  await pg.waitForTimeout(500);
+  assert.equal(await cartoes(pg), 80, "o lote carregado volta");
+  assert.ok(Math.abs((await pg.evaluate(() => scrollY)) - y) < 60, "a rolagem volta");
 });

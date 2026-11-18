@@ -390,6 +390,22 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .maplink:hover { text-decoration: underline; }
 .usedate { margin-left: auto; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
 
+/* lista compacta: uma linha por cupom; o botão de expandir mostra o cartão completo (regras, mapa, usar) */
+.expandir { display: none; flex: none; width: 40px; height: 40px; margin: -6px -6px 0 -4px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); place-items: center; }
+.expandir svg { transition: transform .15s ease; }
+.expandir[aria-expanded="true"] svg { transform: rotate(180deg); }
+.grid.compacto .expandir { display: grid; }
+.grid.compacto, .grid.compacto .group-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.grid.compacto .ticket:not(.expandido) { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+.grid.compacto .ticket:not(.expandido)::before, .grid.compacto .ticket:not(.expandido)::after,
+.grid.compacto .ticket:not(.expandido) .stub, .grid.compacto .ticket:not(.expandido) .loc,
+.grid.compacto .ticket:not(.expandido) .det, .grid.compacto .ticket:not(.expandido) .tfoot,
+.grid.compacto .ticket:not(.expandido) .stamp,
+.grid.compacto .ticket:not(.expandido) .tags .tag:not(.hoje):not(.off) { display: none; }
+.grid.compacto .ticket:not(.expandido) .tbody { padding: 9px 12px 10px; gap: 3px; }
+.grid.compacto .ticket:not(.expandido) .tname { font-size: 18px; }
+.grid.compacto .ticket:not(.expandido) .offer { font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.grid.compacto .ticket:not(.expandido) .tags:not(:has(.hoje, .off)) { display: none; }
 .ticket.is-used .stub { filter: grayscale(1); opacity: .7; }
 .ticket.is-used .tname, .ticket.is-used .offer, .ticket.is-used .offer strong { color: var(--muted); }
 .stamp {
@@ -503,6 +519,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <button type="button" data-status="usados">Usados</button>
         <button type="button" data-status="todos">Todos</button>
       </div>
+      <button type="button" class="chipbtn" id="compacto-toggle" aria-pressed="false" title="Uma linha por cupom">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Compacta
+      </button>
       <button type="button" class="chipbtn favbtn" id="fav-toggle" aria-pressed="false">
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3.1 1.7-1.9 3.1-3.1 5.3-3.1 3.7 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21Z" fill="currentColor"/></svg>
         Favoritos
@@ -721,6 +741,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     raio: null, // distância máxima em km
     abaFiltros: "quando", // aba aberta no painel de filtros
     planosAbertos: false, // detalhe dos planos no topo
+    compacto: false, expandidos: new Set(), // lista compacta e cupons abertos nela
     limite: 40, // quantos cartões aparecem (lotes de LOTE); volta ao primeiro lote quando a lista muda
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
@@ -752,6 +773,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
       if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
       state.planosAbertos = !!p.planosAbertos;
+      state.compacto = !!p.compacto;
       if ([1, 2, 5, 10].includes(p.raio)) state.raio = p.raio;
     }
   } catch (_) {}
@@ -760,7 +782,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, compacto: state.compacto, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -1180,7 +1202,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     </details>`;
     }
     const hid = `t-${String(c.id).replace(/[^\w-]/g, "")}`;
-    return `<article class="ticket ${catCls}${c.usado ? " is-used" : ""}" data-id="${esc(c.id)}" aria-labelledby="${hid}">
+    const exp = state.expandidos.has(c.id);
+    return `<article class="ticket ${catCls}${c.usado ? " is-used" : ""}${exp ? " expandido" : ""}" data-id="${esc(c.id)}" aria-labelledby="${hid}">
   <div class="stub" aria-hidden="true">
     <span class="mono">${esc(initials(c.nome))}</span>
     <span class="twofor">2 por 1</span>
@@ -1193,6 +1216,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
       <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}>${heartSvg}</button>
+      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
     </div>
     ${offer}
     ${loc}
@@ -1383,7 +1407,30 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     else if (tipo === "agora") state.quando = null;
     else if (tipo === "data") state.data = null;
     else if (tipo === "raio") state.raio = null;
+    else if (tipo === "q") state.q = "";
+    else if (tipo === "fav") state.fav = false;
+    else if (tipo === "prog") state.programas.delete(v);
   }
+  // Quando nada combina: quantos cupons apareceriam tirando cada filtro (busca, favoritos e programas inclusive)
+  const CAMPOS_SET = ["categorias", "tipos", "comods", "aceita", "dias", "turnos", "cidades", "shoppings", "bairros", "programas"];
+  function sugestoesSemResultado() {
+    const cands = filtrosAtivos().map(([, k, t]) => [k, t]);
+    if (state.q.trim()) cands.unshift(["q:", `a busca “${state.q.trim()}”`]);
+    if (state.fav) cands.push(["fav:", "Favoritos"]);
+    for (const p of state.programas) cands.push([`prog:${p}`, PROG[p]?.nome || p]);
+    const salvo = { q: state.q, fav: state.fav, quando: state.quando, data: state.data, ganhe: state.ganhe, regras: state.regras, raio: state.raio,
+      sets: Object.fromEntries(CAMPOS_SET.map((k) => [k, state[k]])) };
+    const res = [];
+    for (const [k, t] of cands) {
+      for (const c of CAMPOS_SET) state[c] = new Set(salvo.sets[c]);
+      removeFiltro(k);
+      res.push({ k, t, n: visible().length });
+      Object.assign(state, { q: salvo.q, fav: salvo.fav, quando: salvo.quando, data: salvo.data, ganhe: salvo.ganhe, regras: salvo.regras, raio: salvo.raio });
+    }
+    for (const c of CAMPOS_SET) state[c] = salvo.sets[c];
+    return res.filter((r) => r.n > 0).sort((a, b) => b.n - a.n).slice(0, 4);
+  }
+
   function renderAtivos(xs) {
     const el = $("ativos");
     setHidden(el, !(state.phase === "ready" && xs.length && !state.grupo));
@@ -1431,6 +1478,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     $("status").querySelectorAll("button").forEach((b) => setAttr(b, "aria-pressed", String(b.dataset.status === state.status)));
     setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
     setAttr($("agora-toggle"), "aria-pressed", String(state.quando === "agora"));
+    setAttr($("compacto-toggle"), "aria-pressed", String(state.compacto));
     setAttr($("agora-perto"), "aria-pressed", String(state.quando === "agora" && state.sort === "perto"));
     $("sort").value = state.sort;
     setHidden($("filters"), !state.filtersOpen);
@@ -1579,6 +1627,19 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
      ao rolar: cartões entrando acima do ponto em que o leitor está desorientam. */
   const LOTE = 40;
   let assinaturaLista = "";
+  // posição na lista guardada na sessão do navegador (sobrevive a recarregar a aba; some ao fechar)
+  const POS_KEY = "cupons-em-dobro:posicao";
+  let posicaoSalva = null, rolarPara = null;
+  try { posicaoSalva = JSON.parse(sessionStorage.getItem(POS_KEY) || "null"); } catch (_) {}
+  let _posTimer = null;
+  function guardaPosicao() {
+    clearTimeout(_posTimer);
+    _posTimer = setTimeout(() => {
+      if (state.phase !== "ready" || state.grupo || state.filtersOpen) return;
+      try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY) })); } catch (_) {}
+    }, 300);
+  }
+  addEventListener("scroll", guardaPosicao, { passive: true });
   function assinatura() { // o que define a lista; marcar como usado ou favoritar não muda o lote
     return JSON.stringify([state.q.trim(), state.status, state.fav, state.sort, [...state.programas], [...state.categorias], state.ganhe,
       state.regras, state.quando, state.data, [...state.aceita], [...state.turnos], [...state.shoppings], [...state.cidades], [...state.tipos], [...state.comods], [...state.dias], [...state.bairros],
@@ -1648,7 +1709,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
     const list = visible();
     const sig = assinatura();
-    if (sig !== assinaturaLista) { assinaturaLista = sig; state.limite = LOTE; }
+    if (sig !== assinaturaLista) {
+      // primeira lista depois de abrir: se a sessão guardou a mesma lista, volta ao lote e à posição de antes
+      state.limite = !assinaturaLista && posicaoSalva && posicaoSalva.sig === sig ? Math.max(LOTE, posicaoSalva.limite) : LOTE;
+      if (!assinaturaLista && posicaoSalva && posicaoSalva.sig === sig) rolarPara = posicaoSalva.y;
+      assinaturaLista = sig;
+    }
     // "Ver juntos" mostra o grupo inteiro (é pequeno); fora dele, só o lote
     const shown = state.grupo ? list : list.slice(0, state.limite);
     htmlDe($("filters-ver")).innerHTML = list.length ? `Ver ${list.length} ${list.length === 1 ? "cupom" : "cupons"}` : "Nenhum cupom";
@@ -1669,7 +1735,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       gridDeCartoes = false;
       grid.innerHTML = usedEmpty
         ? `<div class="empty"><h3>Nenhum cupom usado</h3><p>Quando usar um cupom, toque em “Marcar como usado”. Ele sai da lista de disponíveis e fica guardado aqui com a data.</p></div>`
-        : `<div class="empty"><h3>Nada encontrado</h3><p>Nenhum cupom combina com a busca e os filtros atuais.</p><button type="button" class="linkbtn" data-act="clear-all">Limpar busca e filtros</button></div>`;
+        : (() => {
+          const sug = sugestoesSemResultado();
+          const botoes = sug.map((r) => `<button type="button" class="fchip" data-act="tirar" data-remove="${esc(r.k)}">Sem ${esc(r.t)} <span class="n">${nCupons(r.n)}</span></button>`).join("");
+          return `<div class="empty"><h3>Nada encontrado</h3><p>Nenhum cupom combina com a busca e os filtros atuais.${sug.length ? " Tirando um deles:" : ""}</p>${sug.length ? `<div class="fchips sugestoes">${botoes}</div>` : ""}<button type="button" class="linkbtn" data-act="clear-all">Limpar busca e filtros</button></div>`;
+        })();
       return;
     }
 
@@ -1677,7 +1747,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       const key = state.sort === "categoria" ? (c) => c.categoria || "Sem categoria" : (c) => PROG[c.programa]?.nome || c.programa;
       const groups = new Map();
       for (const c of shown) { const k = key(c); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(c); }
-      if (grid.className !== "grid grouped") grid.className = "grid grouped";
+      const cls = `grid grouped${state.compacto ? " compacto" : ""}`;
+      if (grid.className !== cls) grid.className = cls;
       if (!gridDeCartoes) grid.innerHTML = "";
       // seções reaproveitadas pelo nome do grupo; os cartões, pelo id
       const secoes = new Map([...grid.querySelectorAll(":scope > section.group")].map((sec) => [sec.dataset.grupo, sec]));
@@ -1693,7 +1764,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         return sec;
       }));
     } else {
-      if (grid.className !== "grid") grid.className = "grid";
+      const cls = `grid${state.compacto ? " compacto" : ""}`;
+      if (grid.className !== cls) grid.className = cls;
       if (!gridDeCartoes) grid.innerHTML = "";
       reconcilia(grid, shown.map((c) => cartaoEl(c)));
     }
@@ -1755,6 +1827,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     renderGrid();
     restauraFoco(sels);
     focoPendente = null;
+    if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
+    guardaPosicao();
   }
 
   /* ---------- toast ---------- */
@@ -2022,6 +2096,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     savePrefs(); render();
   });
   // "Agora, perto": liga Vale agora e a ordem por distância num toque; tocar de novo desliga os dois
+  $("compacto-toggle").addEventListener("click", () => { state.compacto = !state.compacto; savePrefs(); render(); });
   $("agora-perto").addEventListener("click", () => {
     if (state.quando === "agora" && state.sort === "perto") {
       state.quando = null; state.sort = "app";
@@ -2078,10 +2153,21 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   $("grid").addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     if (b.dataset.act === "clear-all") { clearAll(); return; }
+    if (b.dataset.act === "tirar") {
+      removeFiltro(b.dataset.remove);
+      if (b.dataset.remove === "q:") $("q").value = "";
+      focoPendente = ["#result-count"];
+      savePrefs(); render();
+      return;
+    }
     const card = b.closest(".ticket"); if (!card) return;
     const id = card.dataset.id;
     const c = state.cupons.find((x) => x.id === id); if (!c) return;
-    if (b.dataset.act === "grupo") {
+    if (b.dataset.act === "expandir") {
+      toggleSet(state.expandidos, id);
+      focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="expandir"]`];
+      render();
+    } else if (b.dataset.act === "grupo") {
       state.grupo = id;
       focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
       render();

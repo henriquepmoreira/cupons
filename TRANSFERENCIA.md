@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 34, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 35, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -58,6 +58,15 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - **Foco escondido sob a barra fixa:** `scroll-padding-top` acompanha a altura da `.toolbar` (`ResizeObserver`). Antes, navegando para trás, metade dos itens focados ficava sob a barra.
   - axe-core 4.10 (WCAG 2.2 AA + boas práticas), temas claro e escuro, 412 px: lista com lotes, Filtros com Perto de/raio/Data, cartão com os dois painéis abertos: nenhuma violação.
   - O teste com o TalkBack de verdade precisa ser feito no celular; aqui só dá para medir a árvore que ele recebe.
+- **Desempenho e uso (versão 35, 18/11/2026).** CPU 4×, até a tela atualizar: abrir Filtros 248 → 103 ms, chip de turno 466 → 138 ms, chip de shopping 266 → 65 ms, trocar de aba 301 → 79 ms.
+  - Contagens: `baseDe(grupo)` calcula uma vez por redesenho quem passa nos outros filtros, e `count()` só testa o chip nesse conjunto; só a aba aberta é montada (`if (aba === "...")`). `semFiltro` entra na chave da base. Chips fora da aba aberta ficam com valores antigos no DOM escondido; ao abrir a aba eles se atualizam (em testes, leia os chips com a aba aberta).
+  - `chipsEm(el).innerHTML = …`: se os chips são os mesmos (mesmos `data-*`), atualiza `aria-pressed`, `disabled`, classe e conteúdo no lugar; o botão tocado não é trocado (foco e TalkBack ficam nele, sem layout forçado). `faixasMin` e `diaKey` guardam conversões em cache.
+  - Fontes: `<link id="fontes" media="print">` vira `all` ao carregar (o script troca); `<noscript>` de reserva.
+  - `garanteGeo()`: `geo.json` só com "Mais perto", "Agora, perto", aba Onde, ou bairro/ordem/raio salvos. O foco no seletor de bairro espera as coordenadas.
+  - Filtros no celular (≤ 560 px) viram diálogo em tela cheia (`aplicaModoFiltros`): `role=dialog`, `aria-modal`, `inert` no cabeçalho, barra e lista, rolagem travada, título focado ao abrir, Esc fecha, "Ver N cupons" (`#filters-ver`) fecha e leva ao total; foco volta ao botão Filtros. No computador, painel no meio da página como antes. O aviso (toast) fica acima do diálogo (z-index 40).
+  - Lista compacta (`state.compacto`, nas preferências): classe `compacto` na grade; cada cartão ganha o botão `[data-act=expandir]` (escondido fora do modo compacto) e a classe `expandido` (`state.expandidos`). O HTML do cartão não muda com o modo, então trocar de modo não recria cartões.
+  - Nada encontrado: `sugestoesSemResultado()` testa tirar cada filtro ativo (e busca, favoritos, programas) e mostra até 4 botões `[data-act=tirar]`.
+  - Posição: `sessionStorage` (`cupons-em-dobro:posicao`) guarda assinatura da lista, lote e rolagem; na primeira lista depois de abrir, se a assinatura bate, volta lote e rolagem. "Ver juntos" já devolvia a posição (o foco volta ao cartão).
 - **Topo mais compacto no celular (versão 34, 18/11/2026):**
   - Barra fixa: a busca e **uma** linha `.controls` que rola de lado em telas de até 560 px (antes, até 5 linhas: 246 px presos no topo; agora 114 px, e o primeiro cupom aparece 300 px mais acima). Ordem no HTML (e no teclado/leitor): Filtros, Ordenar, situação, Favoritos, Vale agora, Agora perto, Pet, Kids. `.controls > * { position: relative }` prende os `.sr-only` dentro da linha (sem isso a página rola de lado; mesmo caso dos botões de programa).
   - Planos: `<details class="planos-det">` com o resumo numa linha ("Tour vence em 108 dias · cerca de 32 cupons por semana · ⚑ feriado sexta (20/11)") e o detalhe de cada plano ao abrir. Aberto/fechado fica nas preferências (`planosAbertos`).
@@ -265,3 +274,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 41. (este commit) painel de filtros em abas com linha de filtros ativos, `scripts/sincronizar.py`, cópia sem login regenerada; versão 32
 42. (este commit) botão "Agora, perto"; versão 33
 43. (este commit) barra fixa numa linha rolável e resumo dos planos recolhível; versão 34
+44. (commits a8807e0, 6e1c3c5, fd770b1 e este) contagens mais rápidas, fontes sem bloquear, coordenadas sob demanda, Filtros em tela cheia no celular, lista compacta, sugestões sem resultado, posição ao recarregar; versão 35
