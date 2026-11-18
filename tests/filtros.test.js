@@ -5,21 +5,17 @@ const { abrir, fechar, aba, fecharFiltros, texto, numero, espera } = require("./
 
 after(fechar);
 
-test("atalhos Pet e Kids ligam os mesmos chips das comodidades", async () => {
+test("Pet e Kids ficam nas comodidades de Filtros e se somam", async () => {
   const pg = await abrir();
   const total = numero(await texto(pg, "#result-count"));
-  await pg.click("#pet-toggle");
+  await aba(pg, "oque");
+  await pg.click('#f-comod button[data-comod="Pet Friendly / Aceita Pet"]');
   await espera(pg);
   const pet = numero(await texto(pg, "#result-count"));
   assert.ok(pet > 0 && pet < total);
-  assert.equal(await pg.$eval("#pet-toggle", (b) => b.getAttribute("aria-pressed")), "true");
-  await pg.click("#kids-toggle");
-  await espera(pg);
-  assert.ok(numero(await texto(pg, "#result-count")) < pet, "Pet e Kids juntos exigem os dois");
-  await aba(pg, "oque");
   await pg.click('#f-comod button[data-comod="Espaço Kids"]');
   await espera(pg);
-  assert.equal(await pg.$eval("#kids-toggle", (b) => b.getAttribute("aria-pressed")), "false", "desmarcar o chip desliga o atalho");
+  assert.ok(numero(await texto(pg, "#result-count")) < pet, "Pet e Kids juntos exigem os dois");
 });
 
 test('comodidade que só o Tour informa aparece como "só Tour"', async () => {
@@ -154,21 +150,32 @@ test("linha de filtros ativos: mostra com o painel fechado, o × remove e o foco
   assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
 });
 
-test("barra fixa no celular: busca + uma linha de botões que rola de lado", async () => {
+test("barra fixa no celular: busca + quatro atalhos numa linha, sem rolar de lado", async () => {
   const pg = await abrir({ largura: 390 });
   const r = await pg.evaluate(() => {
     const barra = document.querySelector(".toolbar").getBoundingClientRect();
-    const tops = [...document.querySelectorAll(".controls > *")].map((e) => { const r = e.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 6); }); // centro vertical (o grupo de situação é 4 px mais alto)
-    return { altura: barra.height, linhas: new Set(tops).size, ordem: [...document.querySelectorAll(".controls > *")].map((e) => e.id || e.className) };
+    const ctl = document.querySelector(".controls");
+    const tops = [...ctl.children].map((e) => { const r = e.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 6); });
+    return { altura: barra.height, linhas: new Set(tops).size, cabe: ctl.scrollWidth <= ctl.clientWidth + 1, ordem: [...ctl.children].map((e) => e.id) };
   });
-  assert.ok(r.altura < 140, `${r.altura}px`);
+  assert.ok(r.altura < 120, `${r.altura}px`);
   assert.equal(r.linhas, 1, "todos os botões na mesma linha");
-  assert.deepEqual(r.ordem.slice(0, 3), ["filters-toggle", "sort", "status"]);
+  assert.ok(r.cabe, "a linha cabe na tela, sem rolar");
+  assert.deepEqual(r.ordem, ["filters-toggle", "perto-toggle", "agora-toggle", "fav-toggle"]);
   assert.equal(await pg.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "sem rolagem lateral da página");
-  // o último botão continua alcançável: o foco rola a linha até ele
-  await pg.focus("#kids-toggle");
-  const visivel = await pg.$eval("#kids-toggle", (b) => { const r = b.getBoundingClientRect(); return r.right <= innerWidth && r.left >= 0; });
-  assert.ok(visivel);
+  // rótulo curto na tela, nome completo para o leitor de tela
+  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-label")), "Perto de mim");
+  assert.equal(await pg.$eval("#fav-toggle", (b) => b.getAttribute("aria-label")), "Favoritos");
+});
+
+test("Situação, Ordenar e Compacta ficam no topo do painel Filtros", async () => {
+  const pg = await abrir({ largura: 390 });
+  await pg.click("#filters-toggle");
+  await espera(pg);
+  for (const id of ["status", "sort", "compacto-toggle"]) assert.equal(await pg.$eval("#" + id, (e) => !!e.closest("#filters") && e.getBoundingClientRect().height > 0), true, id);
+  await pg.click('#status button[data-status="usados"]');
+  await espera(pg);
+  assert.match(await texto(pg, "#result-count"), /usados/);
 });
 
 test("tocar num chip mantém o mesmo botão (foco e leitor de tela ficam nele)", async () => {

@@ -1,7 +1,7 @@
 // Lotes de 40 cartões, cartões reaproveitados e painéis montados ao abrir.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, aba, fecharFiltros, texto, textos, numero, espera, busca, focado, cartoes } = require("./lib/pagina");
+const { abrir, fechar, aba, fecharFiltros, texto, textos, numero, espera, busca, focado, cartoes, ordenar, compacta } = require("./lib/pagina");
 
 after(fechar);
 
@@ -66,11 +66,11 @@ test("painel de detalhes é montado ao abrir, no mesmo cartão, e continua abert
 
 test("ordem por categoria agrupa e respeita o lote", async () => {
   const pg = await abrir();
-  await pg.selectOption("#sort", "categoria");
+  await ordenar(pg, "categoria");
   await espera(pg);
   assert.equal(await cartoes(pg), 40);
   assert.ok(await pg.$$eval(".group", (g) => g.length) >= 1);
-  await pg.selectOption("#sort", "app");
+  await ordenar(pg, "app");
   await espera(pg);
   assert.equal(await pg.$$eval(".group", (g) => g.length), 0);
   assert.equal(await pg.$$eval("#grid > .ticket", (t) => t.length), 40);
@@ -110,7 +110,7 @@ test("várias unidades com só um horário conhecido: a etiqueta diz qual unidad
 test("lista compacta: uma linha por cupom, expandir mostra o cartão completo, e fica lembrada", async () => {
   const pg = await abrir({ largura: 390 });
   const alturaNormal = await pg.$eval("#grid .ticket", (t) => t.getBoundingClientRect().height);
-  await pg.click("#compacto-toggle");
+  await compacta(pg);
   await espera(pg);
   assert.equal(await pg.$eval("#compacto-toggle", (b) => b.getAttribute("aria-pressed")), "true");
   const card = pg.locator("#grid .ticket").first();

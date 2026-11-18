@@ -156,8 +156,13 @@ Dentro do claude.ai a página não recebe a localização do aparelho. A pasta `
 - **App na Tela de Início:** `manifest.webmanifest`, `apple-touch-icon.png` e `icone-192/512.png` (fontes em `scripts/site/`). No iPhone: Safari → Compartilhar → Adicionar à Tela de Início.
 - Fora do claude.ai não há banco: o site mostra a cópia (`snapshot.json`), só para consulta. Favoritar e marcar como usado continuam no artifact. "Meus lugares" (área privada do banco) não aparece no site.
 - O site é público para quem tiver o endereço (no GitHub Enterprise pode ser privado): entram a lista, os favoritos e os usados. Nada de `data/users` entra. A página tem `noindex` para buscadores.
-- Para ligar: Settings → Pages → Build and deployment → Source "Deploy from a branch" → escolher o branch e a pasta `/docs`. Em repositório privado, o Pages exige plano pago.
+- Para ligar: Settings → Pages → Build and deployment → Source "Deploy from a branch" → branch padrão (`claude/clever-edison-q4u03f`) e pasta `/docs`. Em repositório privado, o Pages exige plano pago.
 - Atualize junto com cada republicação do artifact (mesma exportação do banco), para as duas cópias andarem juntas.
+
+## Barra de cima e tempo estimado
+
+- A barra tem só quatro atalhos numa linha: **Filtros**, **Perto de mim**, **Vale agora** e **Favoritos** (no celular, rótulos curtos "Perto", "Agora" e só o coração; o leitor de tela ouve o nome completo). Situação (Disponíveis/Usados/Todos), Ordenar e Compacta ficam no topo do painel Filtros, em "Lista". Pet e Kids continuam nas comodidades (Filtros → O quê).
+- Toda distância vem com o tempo estimado: a pé até 1,5 km (caminho ~30% maior que a linha reta, 4,8 km/h) e de carro acima disso (~40% maior, ~25 km/h, mais 2 min), ex.: "350 m · 6 min a pé", "4,2 km · ~16 min de carro".
 
 ## Atalho "Perto de mim"
 

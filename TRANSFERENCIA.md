@@ -7,8 +7,8 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 | o quê | onde |
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
-| Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 42, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**, que é o **branch padrão** do repositório (não existe `main`). Desde 18/11/2026 o trabalho das sessões entra nele por pull request; o site do GitHub Pages publica a pasta `/docs` dele. Numa sessão nova: `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele; antes, confira se há PR aberto de outra sessão ainda não juntado. |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 43, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -27,7 +27,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
    2. Exporte o banco (`ArtifactData` list, `query {"limit": 1000}`, `out_dir <pasta>`), rode `python3 scripts/sincronizar.py <pasta>/cupons` e confira que não sobrou diferença (marcas da página vão para os arquivos com `--marcas-para-arquivos`; campos dos arquivos viram patches para o banco).
    3. Gere a cópia sem login: `python3 scripts/gerar-snapshot.py <pasta>/cupons <saida>/snapshot.json`.
    4. Publique com `files: {"geo.json": "data/geo.json", "snapshot.json": "<saida>/snapshot.json"}`.
-   5. **Site do GitHub Pages:** `python3 scripts/gerar-site.py <pasta>/cupons` (mesma exportação) e commit de `docs/`. O Pages só publica o branch escolhido em Settings → Pages; se não for o branch da sessão, o `docs/` novo precisa chegar até ele (PR para o branch padrão, com pedido do usuário). Publicar só o `cupons.html` mantém os arquivos anteriores no artifact, e a cópia sem login fica para trás.
+   5. **Site do GitHub Pages:** `python3 scripts/gerar-site.py <pasta>/cupons` (mesma exportação) e commit de `docs/`. O Pages publica `/docs` do branch padrão (`claude/clever-edison-q4u03f`): o site só muda quando o trabalho da sessão chega lá, por pull request (abrir PR quando o usuário pedir ou quando houver mudança no site).
 5. **Mudar o banco não exige republicar; mudar o `cupons.html` exige.**
    **Autorização permanente (18/11/2026):** o usuário autorizou republicar a página sempre que necessário (por exemplo, depois de mudar `cupons.html`, `data/geo.json` ou o banco, para atualizar a cópia sem login). Não é preciso pedir antes; avise depois.
 6. **Cupons usados vão para o fim da lista do app**, com a foto em preto e branco no Poa e no Canoas (no Tour, ficam numa lista própria de vouchers usados). Ao casar prints ou vídeos com a lista pela ordem, pule os usados.
@@ -293,4 +293,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 52. (c28d653) "Meus lugares" em "Perto de" (README, seção própria): lugar Casa gravado em `data/users/me/lugares` (privado; coordenada fora do repositório), página lê com `user.id()` + `onSnapshot`, "Agora, perto" sem GPS usa o primeiro lugar; banco falso dos testes com área privada e 2 testes novos (64 no total); camadas do My Maps (`mapa/*.csv`) regeneradas; versão 40 publicada.
 53. (5271a0c) site do GitHub Pages em `docs/` (`scripts/gerar-site.py`): a página fora do claude.ai, com GPS do navegador e a cópia dos cupons, só para consulta; testado localmente com localização (Hospital Moinhos → Mr. White a 200 m). O usuário precisa ligar o Pages em Settings → Pages.
 54. (d7393b9) bloco "Valendo agora" no topo da lista (3 testes novos, 67 no total); site do Pages com service worker (offline, abre na hora, troca a cópia quando há nova) e app na Tela de Início (manifesto e ícones em `scripts/site/`); testado localmente offline; versão 41 publicada.
-55. (este commit) atalho "Perto de mim" na barra (1 teste novo, 68 no total); versão 42 publicada e site `docs/` regenerado.
+55. (9ccdce7) atalho "Perto de mim" na barra (1 teste novo, 68 no total); versão 42 publicada e site `docs/` regenerado.
+56. (este commit) barra enxuta (Filtros, Perto de mim, Vale agora, Favoritos numa linha; Situação, Ordenar e Compacta no topo do painel Filtros; "Agora, perto" e atalhos Pet/Kids removidos, Pet e Kids continuam nas comodidades), tempo estimado junto da distância (a pé até 1,5 km, de carro acima), testes ajustados (70); versão 43 publicada; PR para o branch padrão, para o Pages publicar de lá.

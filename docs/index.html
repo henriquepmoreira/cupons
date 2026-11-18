@@ -197,6 +197,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .chipbtn[aria-pressed="true"], .chipbtn[aria-expanded="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .chipbtn.favbtn[aria-pressed="true"] { border-color: var(--fav); background: color-mix(in srgb, var(--fav) 12%, var(--surface)); }
 .chipbtn.favbtn svg { color: var(--fav); }
+.chipbtn .curto { display: none; }
+.flista-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .chipbtn .badge {
   min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--accent); color: var(--accent-ink);
   font-size: 11.5px; display: inline-grid; place-items: center; font-variant-numeric: tabular-nums;
@@ -483,8 +485,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   .controls::-webkit-scrollbar { display: none; }
   /* position: relative prende os textos .sr-only (absolutos) dentro da linha rolável; sem isso a página rola de lado */
   .controls > * { flex: none; position: relative; }
+  /* quatro atalhos numa linha só: rótulos curtos e Favoritos só com o coração */
+  .controls .chipbtn .longo { display: none; }
+  .controls .chipbtn .curto { display: inline; }
+  .controls #fav-toggle { padding: 0 11px; }
   .sort { margin-left: 0; }
-  .sort-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .controls .sort-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .sort select { max-width: 14em; }
   /* topo compacto: título numa linha, números ao lado e menores (a busca sobe ~150 px) */
   .masthead { padding-block: 14px 12px; gap: 10px; }
@@ -523,11 +529,40 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       <input id="q" type="search" placeholder="Busque restaurante, prato ou categoria" autocomplete="off" aria-label="Buscar cupons">
       <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden>×</button>
     </div>
-    <div class="controls" role="group" aria-label="Filtros rápidos e ordem">
+    <div class="controls" role="group" aria-label="Atalhos da lista">
       <button type="button" class="chipbtn" id="filters-toggle" aria-expanded="false" aria-controls="filters">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
         Filtros <span class="badge" id="filters-badge" hidden></span>
       </button>
+      <button type="button" class="chipbtn" id="perto-toggle" aria-label="Perto de mim" aria-pressed="false" title="Todos os cupons disponíveis, do mais perto ao mais longe, abertos ou fechados">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <span class="longo">Perto de mim</span><span class="curto">Perto</span>
+      </button>
+      <button type="button" class="chipbtn" id="agora-toggle" aria-label="Vale agora" aria-pressed="false" title="Cupons que valem neste horário (como o “Aberto agora” do app)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
+        <span class="longo">Vale agora</span><span class="curto">Agora</span>
+      </button>
+      <button type="button" class="chipbtn favbtn" id="fav-toggle" aria-label="Favoritos" aria-pressed="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3.1 1.7-1.9 3.1-3.1 5.3-3.1 3.7 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21Z" fill="currentColor"/></svg>
+        <span class="longo">Favoritos</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<section class="wrap filters" id="filters" hidden aria-labelledby="filters-titulo">
+  <div class="filters-head">
+    <h2 class="ftitle" id="filters-titulo" tabindex="-1">Filtros</h2>
+    <button type="button" class="fechar" id="filters-close" aria-label="Fechar filtros">×</button>
+  </div>
+  <div class="fgroup flista">
+    <h2 id="f-lista-h">Lista</h2>
+    <div class="flista-ctl">
+        <div class="seg" role="group" aria-label="Situação do cupom" id="status">
+        <button type="button" data-status="disponiveis">Disponíveis</button>
+        <button type="button" data-status="usados">Usados</button>
+        <button type="button" data-status="todos">Todos</button>
+      </div>
       <label class="sort" for="sort"><span class="sort-lbl">Ordenar</span>
         <select id="sort">
           <option value="app">Padrão (como no app)</option>
@@ -539,47 +574,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
           <option value="perto">Mais perto</option>
         </select>
       </label>
-      <div class="seg" role="group" aria-label="Situação do cupom" id="status">
-        <button type="button" data-status="disponiveis">Disponíveis</button>
-        <button type="button" data-status="usados">Usados</button>
-        <button type="button" data-status="todos">Todos</button>
-      </div>
-      <button type="button" class="chipbtn" id="compacto-toggle" aria-pressed="false" title="Uma linha por cupom">
+      <button type="button" class="fchip" id="compacto-toggle" aria-pressed="false" title="Uma linha por cupom">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
         Compacta
       </button>
-      <button type="button" class="chipbtn favbtn" id="fav-toggle" aria-pressed="false">
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.7 4.5c2.2 0 3.6 1.2 5.3 3.1 1.7-1.9 3.1-3.1 5.3-3.1 3.7 0 5.8 3.7 4.3 7.2C19.5 16.4 12 21 12 21Z" fill="currentColor"/></svg>
-        Favoritos
-      </button>
-      <button type="button" class="chipbtn" id="agora-toggle" aria-pressed="false" title="Cupons que valem neste horário (como o “Aberto agora” do app)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-        Vale agora
-      </button>
-      <button type="button" class="chipbtn" id="perto-toggle" aria-pressed="false" title="Todos os cupons disponíveis, do mais perto ao mais longe, abertos ou fechados">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-        Perto de mim
-      </button>
-      <button type="button" class="chipbtn" id="agora-perto" aria-pressed="false" title="Vale agora, do mais perto ao mais longe de você">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/></svg>
-        <span aria-hidden="true">Agora, perto</span><span class="sr-only">Vale agora, perto de mim</span>
-      </button>
-      <button type="button" class="chipbtn" id="pet-toggle" data-atalho="Pet Friendly / Aceita Pet" aria-pressed="false" title="Aceita pet (Pet Friendly)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="5.6" cy="10.4" rx="2" ry="2.5"/><ellipse cx="9.6" cy="5.9" rx="2" ry="2.5"/><ellipse cx="14.4" cy="5.9" rx="2" ry="2.5"/><ellipse cx="18.4" cy="10.4" rx="2" ry="2.5"/><path d="M12 11.2c-3 0-5.8 3.5-5.8 6.1 0 2 1.6 2.8 3.2 2.4 1-.3 1.7-.6 2.6-.6s1.6.3 2.6.6c1.6.4 3.2-.4 3.2-2.4 0-2.6-2.8-6.1-5.8-6.1Z"/></svg>
-        <span aria-hidden="true">Pet</span><span class="sr-only">Aceita pet</span>
-      </button>
-      <button type="button" class="chipbtn" id="kids-toggle" data-atalho="Espaço Kids" aria-pressed="false" title="Espaço Kids">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5.2" r="2.4"/><path d="M12 9v6M6.8 11.2 12 9.6l5.2 1.6M8.8 21l3.2-6 3.2 6"/></svg>
-        <span aria-hidden="true">Kids</span><span class="sr-only">Espaço kids</span>
-      </button>
     </div>
-  </div>
-</div>
-
-<section class="wrap filters" id="filters" hidden aria-labelledby="filters-titulo">
-  <div class="filters-head">
-    <h2 class="ftitle" id="filters-titulo" tabindex="-1">Filtros</h2>
-    <button type="button" class="fechar" id="filters-close" aria-label="Fechar filtros">×</button>
   </div>
   <div class="ftabs" role="tablist" aria-label="Grupos de filtros">
     <button type="button" class="ftab" role="tab" id="aba-quando" data-aba="quando" aria-controls="painel-quando" aria-selected="false" tabindex="-1">Quando <span class="badge" hidden></span></button>
@@ -1031,6 +1030,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const NUM1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }), NUM0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
   const kmTxt = (km) => (km < 10 ? NUM1 : NUM0).format(km);
   const fmtKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} m` : `${kmTxt(km)} km`);
+  /* tempo estimado a partir da linha reta: a pé até 1,5 km (caminho ~30% maior, 4,8 km/h);
+     acima disso de carro (caminho ~40% maior, ~25 km/h na cidade, mais 2 min para sair e estacionar) */
+  const minutosAte = (km) => (km <= 1.5 ? { min: Math.max(1, Math.round(km * 16)), modo: "a pé" } : { min: Math.round(km * 3.4 + 2), modo: "de carro" });
+  const tempoTxt = (km) => { const t = minutosAte(km); return `${t.modo === "de carro" ? "~" : ""}${t.min} min ${t.modo}`; };
+  const falaTempo = (km) => { const t = minutosAte(km); return `cerca de ${t.min} ${t.min === 1 ? "minuto" : "minutos"} ${t.modo}`; };
   const falaKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} metros` : `${kmTxt(km)} quilômetros`);
   let _bairrosRef = { geo: null, n: -1, mapa: new Map() };
   function bairrosRef() { // "cidade|bairro" -> { lat, lng, bairro, cidade }: média das unidades com endereço no bairro
@@ -1247,7 +1251,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       ? [listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean).join(" · ")
       : u ? [u.bairro, u.cidade, shoppingDaUnidade(u)].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
     const dist = distDe(c);
-    const distHtml = dist ? `<span class="dist">${duplo(`${dist.aprox ? "≈ " : ""}${fmtKm(dist.km)}`, `A ${dist.aprox ? "cerca de " : ""}${falaKm(dist.km)} de ${state.perto.rotulo}${outras.length ? ", na unidade mais perto" : ""}.`)}</span>` : "";
+    const distHtml = dist ? `<span class="dist">${duplo(`${dist.aprox ? "≈ " : ""}${fmtKm(dist.km)} · ${tempoTxt(dist.km)}`, `A ${dist.aprox ? "cerca de " : ""}${falaKm(dist.km)} de ${state.perto.rotulo}${outras.length ? ", na unidade mais perto" : ""}, ${falaTempo(dist.km)}.`)}</span>` : "";
     const loc = locTxt || distHtml ? `<p class="loc">${distHtml}${distHtml && locTxt ? '<span aria-hidden="true"> · </span>' : ""}${esc(locTxt)}</p>` : "";
     const q = encodeURIComponent(u?.endereco
       ? [u.endereco.replace(/\s*\(.*?\)/g, ""), u.bairro, u.cidade, "RS"].filter(Boolean).join(", ")
@@ -1564,7 +1568,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
     setAttr($("agora-toggle"), "aria-pressed", String(state.quando === "agora"));
     setAttr($("compacto-toggle"), "aria-pressed", String(state.compacto));
-    setAttr($("agora-perto"), "aria-pressed", String(state.quando === "agora" && state.sort === "perto"));
     setAttr($("perto-toggle"), "aria-pressed", String(pertoPuro()));
     $("sort").value = state.sort;
     setHidden($("filters"), !state.filtersOpen);
@@ -1574,7 +1577,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     setHidden($("filters-badge"), n === 0);
     htmlDe($("filters-badge")).innerHTML = `<span class="sr-only">, </span>${n}<span class="sr-only"> ${n === 1 ? "ativo" : "ativos"}</span>`;
     setHidden($("q-clear"), !state.q);
-    for (const b of document.querySelectorAll("[data-atalho]")) setAttr(b, "aria-pressed", String(state.comods.has(b.dataset.atalho)));
     const ativos = filtrosAtivos();
     renderAtivos(ativos);
     renderAbas(ativos);
@@ -1931,7 +1933,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const li = itens.map(({ c, d }) => {
       const fim = fimDe(c), prog = PROG[c.programa];
       const ate = fim < 9999 ? duplo(`até ${hhmm(fim)}`, `vale até as ${hhmm(fim)}`) : "";
-      const km = d ? duplo(`${d.aprox ? "≈ " : ""}${fmtKm(d.km)}`, `a ${d.aprox ? "cerca de " : ""}${falaKm(d.km)}`) : "";
+      const km = d ? duplo(`${d.aprox ? "≈ " : ""}${fmtKm(d.km)} · ${tempoTxt(d.km)}`, `a ${d.aprox ? "cerca de " : ""}${falaKm(d.km)}, ${falaTempo(d.km)}`) : "";
       const oferta = c.item ? `${c.item}, ${GANHE_TXT[c.ganhe] || "outro igual"}` : "oferta não cadastrada";
       return `<li><button type="button" class="agora-item" data-agora="${esc(c.id)}">
         <span class="nm">${c.favorito ? '<span class="fv" aria-hidden="true">♥ </span>' : ""}${esc(c.nome)}${c.favorito ? '<span class="sr-only">, favorito</span>' : ""}</span>
@@ -2297,16 +2299,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     savePrefs(); render();
     pedeLocalizacao(true); // GPS; sem ele, o ponto já escolhido, o primeiro lugar salvo ou a aba Onde
   });
-  $("agora-perto").addEventListener("click", () => {
-    if (state.quando === "agora" && state.sort === "perto") {
-      state.quando = null; state.sort = "app";
-      savePrefs(); render();
-      return;
-    }
-    state.quando = "agora"; state.data = null; state.sort = "perto";
-    savePrefs(); render();
-    pedeLocalizacao(true);
-  });
   $("agora-toggle").addEventListener("click", () => {
     state.quando = state.quando === "agora" ? null : "agora";
     if (state.quando === "agora") state.data = null;
@@ -2317,7 +2309,6 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const b = e.target.closest("button[data-tipo]"); if (!b) return;
     toggleSet(state.tipos, b.dataset.tipo); savePrefs(); render();
   });
-  for (const b of document.querySelectorAll("[data-atalho]")) b.addEventListener("click", () => { toggleSet(state.comods, b.dataset.atalho); savePrefs(); render(); });
   $("f-comod").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-comod]"); if (!b) return;
     toggleSet(state.comods, b.dataset.comod); savePrefs(); render();

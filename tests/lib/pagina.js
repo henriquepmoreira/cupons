@@ -131,6 +131,10 @@ async function fecharFiltros(pg) {
   if (!(await pg.$eval("#filters", (e) => e.hidden))) await pg.click("#filters-close");
   await pg.waitForTimeout(50);
 }
+// Situação, Ordenar e Compacta ficam no topo do painel Filtros (a barra só tem os atalhos)
+async function abrirFiltros(pg) { if (await pg.$eval("#filters", (e) => e.hidden)) await pg.click("#filters-toggle"); await pg.waitForTimeout(50); }
+async function ordenar(pg, valor, { fechar: fecha = true } = {}) { await abrirFiltros(pg); await pg.selectOption("#sort", valor); await pg.waitForTimeout(80); if (fecha) await fecharFiltros(pg); }
+async function compacta(pg) { await abrirFiltros(pg); await pg.click("#compacto-toggle"); await pg.waitForTimeout(80); await fecharFiltros(pg); }
 async function focado(pg) {
   return pg.evaluate(() => {
     const a = document.activeElement;
@@ -147,4 +151,4 @@ async function arvoreAcessibilidade(pg) {
   return nodes;
 }
 
-module.exports = { abrir, fechar, cupons, texto, textos, numero, cartoes, espera, busca, aba, fecharFiltros, focado, arvoreAcessibilidade, RAIZ };
+module.exports = { abrir, fechar, cupons, texto, textos, numero, cartoes, espera, busca, aba, fecharFiltros, focado, abrirFiltros, ordenar, compacta, arvoreAcessibilidade, RAIZ };
