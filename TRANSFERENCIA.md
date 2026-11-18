@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 37, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 38, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -28,6 +28,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
    3. Gere a cópia sem login: `python3 scripts/gerar-snapshot.py <pasta>/cupons <saida>/snapshot.json`.
    4. Publique com `files: {"geo.json": "data/geo.json", "snapshot.json": "<saida>/snapshot.json"}`. Publicar só o `cupons.html` mantém os arquivos anteriores no artifact, e a cópia sem login fica para trás.
 5. **Mudar o banco não exige republicar; mudar o `cupons.html` exige.**
+   **Autorização permanente (18/11/2026):** o usuário autorizou republicar a página sempre que necessário (por exemplo, depois de mudar `cupons.html`, `data/geo.json` ou o banco, para atualizar a cópia sem login). Não é preciso pedir antes; avise depois.
 6. **Cupons usados vão para o fim da lista do app**, com a foto em preto e branco no Poa e no Canoas (no Tour, ficam numa lista própria de vouchers usados). Ao casar prints ou vídeos com a lista pela ordem, pule os usados.
 7. **Dia que falta nos horários do app quer dizer que o cupom não vale nesse dia.** Conferi isso em imagem dezenas de vezes. Não complete dias faltantes.
 8. **Mantenha o formato dos arquivos de dados** (um cupom por linha) para o diff continuar legível. Foi escrito assim:
@@ -285,4 +286,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 46. (f07fa00) conferência das listas do Canoas e do Tour pelos vídeos de 17/11 (README, "Conferência das listas"): Degustar no Bairro e Helena Burger POA novos, ofertas do Darna (Canoas e Tour) e do Spoleto (Canoas), 138 cupons com nova posição; banco atualizado em três lotes e conferido com `sincronizar.py` (682 cupons, sem diferença). Página não republicada.
 47. (1418bae) Guacamole Taqueria, Grano Forneria (Canoas) e Go Coffee São Leopoldo (Tour) apagados, porque saíram do programa (confirmado pelo usuário); lista inteira do Poa e usados do Tour conferidos pelos vídeos de 17/11, sem diferenças; banco conferido com `sincronizar.py` (679 cupons). Página não republicada.
 48. (f80153d) página republicada (versão 37) só para atualizar a cópia sem login: `snapshot.json` com os 679 cupons de 18/11, gerado da exportação do banco conferida com `sincronizar.py`; `cupons.html` e `geo.json` iguais à versão 36.
-49. (este commit) detalhes do Degustar no Bairro (completos) e do Helena Burger POA (unidade, feriados e datas) por prints de 18/11; dois endereços novos em `data/geo.json`. Banco atualizado e conferido. **Página não republicada:** o `geo.json` e a cópia sem login publicados ainda não têm esses dois endereços.
+49. (c739c98) detalhes do Degustar no Bairro (completos) e do Helena Burger POA (unidade, feriados e datas) por prints de 18/11; dois endereços novos em `data/geo.json`. Banco atualizado e conferido. Página republicada depois (versão 38) com `geo.json` e cópia sem login novos.
+50. (este commit) versão 38 publicada; autorização permanente para republicar registrada na regra 5.
