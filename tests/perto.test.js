@@ -145,3 +145,25 @@ test('"Agora, perto" sem localização e sem bairro usa o primeiro lugar salvo',
   assert.match(await texto(pg, "#result-count"), /mais longe de Casa$/);
   assert.equal(await pg.$eval("#filters", (e) => e.hidden), true, "não abre o painel");
 });
+
+test('"Perto de mim": limpa busca e filtros, ordena todos (abertos ou fechados) por distância; outro toque volta', async () => {
+  const pg = await abrir({ localizacao: PRACA_DA_MATRIZ, data: "2026-11-18T05:10:00" });
+  await pg.click("#agora-toggle"); // um filtro ligado antes
+  await pg.fill("#q", "pizza"); await espera(pg, 200);
+  await pg.click("#perto-toggle");
+  await pg.waitForTimeout(1200);
+  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "true");
+  assert.equal(await pg.$eval("#agora-toggle", (b) => b.getAttribute("aria-pressed")), "false", "não liga Vale agora");
+  assert.equal(await pg.$eval("#q", (i) => i.value), "");
+  assert.equal(await pg.$eval("#sort", (s) => s.value), "perto");
+  assert.match(await texto(pg, "#result-count"), /^\d+ cupons disponíveis, do mais perto ao mais longe de você$/);
+  const total = numero(await texto(pg, "#result-count"));
+  assert.ok(total > 500, `todos os disponíveis, mesmo de madrugada: ${total}`);
+  const d = (await textos(pg, "#grid .ticket .loc .dist > span[aria-hidden]")).map(km);
+  assert.deepEqual(d.slice(0, 10), [...d.slice(0, 10)].sort((a, b) => a - b));
+  await pg.click("#perto-toggle");
+  await espera(pg, 200);
+  assert.equal(await pg.$eval("#sort", (s) => s.value), "app");
+  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "false");
+  assert.deepEqual(pg.erros, []);
+});

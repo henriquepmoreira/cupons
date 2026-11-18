@@ -159,6 +159,10 @@ Dentro do claude.ai a página não recebe a localização do aparelho. A pasta `
 - Para ligar: Settings → Pages → Build and deployment → Source "Deploy from a branch" → escolher o branch e a pasta `/docs`. Em repositório privado, o Pages exige plano pago.
 - Atualize junto com cada republicação do artifact (mesma exportação do banco), para as duas cópias andarem juntas.
 
+## Atalho "Perto de mim"
+
+Botão na barra de cima: limpa busca, filtros, Favoritos e programas (não liga "Vale agora") e ordena todos os cupons disponíveis do mais perto ao mais longe, abertos ou fechados. Usa o GPS; sem ele, o ponto já escolhido, o primeiro de "Meus lugares" ou a aba Onde. Fica marcado enquanto a lista é só essa ordem; outro toque volta à ordem padrão.
+
 ## Valendo agora (topo da lista)
 
 Na lista sem busca nem filtros, um bloco mostra até 5 cupons disponíveis que valem neste minuto: com ponto de partida (GPS, lugar ou bairro), os mais perto; sem ele, os favoritos que acabam antes (ou todos, se nenhum favorito vale agora). Tocar num item mostra só aquele cupom (e o mesmo lugar nos outros programas), com "Voltar à lista". "Ver todos que valem agora" liga o filtro; "Ordenar pelos mais perto" pede a localização.

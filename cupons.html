@@ -555,6 +555,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
         Vale agora
       </button>
+      <button type="button" class="chipbtn" id="perto-toggle" aria-pressed="false" title="Todos os cupons disponíveis, do mais perto ao mais longe, abertos ou fechados">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        Perto de mim
+      </button>
       <button type="button" class="chipbtn" id="agora-perto" aria-pressed="false" title="Vale agora, do mais perto ao mais longe de você">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/></svg>
         <span aria-hidden="true">Agora, perto</span><span class="sr-only">Vale agora, perto de mim</span>
@@ -1194,6 +1198,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     return list.sort(cmp);
   }
   const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + (state.raio && state.perto ? 1 : 0) + state.aceita.size + state.turnos.size + state.shoppings.size + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
+  // "Perto de mim": só a ordem por distância, sem busca nem filtros, abertos ou fechados
+  const pertoPuro = () => state.sort === "perto" && state.status === "disponiveis" && !anyNarrowing();
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
@@ -1558,6 +1564,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     setAttr($("agora-toggle"), "aria-pressed", String(state.quando === "agora"));
     setAttr($("compacto-toggle"), "aria-pressed", String(state.compacto));
     setAttr($("agora-perto"), "aria-pressed", String(state.quando === "agora" && state.sort === "perto"));
+    setAttr($("perto-toggle"), "aria-pressed", String(pertoPuro()));
     $("sort").value = state.sort;
     setHidden($("filters"), !state.filtersOpen);
     aplicaModoFiltros();
@@ -2281,6 +2288,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   });
   // "Agora, perto": liga Vale agora e a ordem por distância num toque; tocar de novo desliga os dois
   $("compacto-toggle").addEventListener("click", () => { state.compacto = !state.compacto; savePrefs(); render(); });
+  $("perto-toggle").addEventListener("click", () => {
+    if (pertoPuro()) { state.sort = "app"; savePrefs(); render(); return; }
+    // limpa busca, filtros, favoritos e programas; não liga "Vale agora"
+    clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; state.status = "disponiveis";
+    state.sort = "perto";
+    savePrefs(); render();
+    pedeLocalizacao(true); // GPS; sem ele, o ponto já escolhido, o primeiro lugar salvo ou a aba Onde
+  });
   $("agora-perto").addEventListener("click", () => {
     if (state.quando === "agora" && state.sort === "perto") {
       state.quando = null; state.sort = "app";
