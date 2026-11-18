@@ -310,6 +310,24 @@ test("lista nova: os primeiros cartões aparecem na hora e o resto do lote logo 
   assert.deepEqual(nomes, ordenados, "na ordem certa");
 });
 
+test("ordem por categoria também em duas etapas: contagem final já na primeira, lote inteiro logo depois", async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  const imediato = await pg.evaluate(() => {
+    const s = document.getElementById("sort");
+    s.value = "categoria"; s.dispatchEvent(new Event("change", { bubbles: true }));
+    return { n: document.querySelectorAll("#grid .ticket").length,
+      contagens: [...document.querySelectorAll("#grid .group-title > span")].map((e) => e.textContent) };
+  });
+  assert.ok(imediato.n < 40, `primeira etapa com ${imediato.n} cartões`);
+  await espera(pg, 150);
+  const depois = await pg.evaluate(() => ({ n: document.querySelectorAll("#grid .ticket").length,
+    grupos: [...document.querySelectorAll("#grid section.group")].map((g) => [g.querySelector(".group-title > span").textContent, g.querySelectorAll(".ticket").length]) }));
+  assert.equal(depois.n, 40);
+  for (const [txt, n] of depois.grupos) assert.equal(parseInt(txt), n, `grupo diz ${txt} e tem ${n}`);
+  for (const t of imediato.contagens) assert.ok(depois.grupos.some(([txt]) => txt === t), `contagem ${t} da primeira etapa é a final`);
+});
+
 test("lista nova: um redesenho no meio (banco, favorito) monta a lista inteira na hora", async () => {
   const pg = await abrir();
   await pg.click("#filters-toggle");

@@ -1854,6 +1854,13 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   const PRIMEIROS = 12;
   let _restoGrade = 0; // muda a cada redesenho: o resto agendado por um redesenho antigo desiste
   const cancelaResto = () => { _restoGrade++; };
+  // em duas etapas só numa lista nova, sem rolagem a restaurar e sem foco a devolver dentro da grade
+  const podeEtapas = (listaNova, n, grid) => listaNova && !state.grupo && n > PRIMEIROS && rolarPara === null && !focoPendente && !grid.contains(document.activeElement);
+  function agendaResto(fn) {
+    // um quadro para pintar os primeiros; o resto entra na tarefa seguinte, antes de a pessoa rolar até ele
+    const vez = _restoGrade;
+    requestAnimationFrame(() => setTimeout(() => { if (vez === _restoGrade) fn(); }, 0));
+  }
   function renderGrid() {
     cancelaResto();
     const grid = $("grid");
@@ -1937,39 +1944,46 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (!gridDeCartoes) grid.innerHTML = "";
       // seções reaproveitadas pelo nome do grupo; os cartões, pelo id
       const secoes = new Map([...grid.querySelectorAll(":scope > section.group")].map((sec) => [sec.dataset.grupo, sec]));
-      reconcilia(grid, [...groups].map(([k, items]) => {
+      // em duas etapas, como na lista simples: a contagem de cada grupo já é a final; os cartões novos
+      // depois dos primeiros entram logo depois da primeira pintura (grupos que ficam vazios também)
+      const noDom = new Set(grid.querySelectorAll(".ticket")); // seções novas ainda não estão no DOM
+      const naGrade = (c) => noDom.has(_cartoes.get(`4:${c.id}`)?.el);
+      let primeira = null;
+      if (podeEtapas(listaNova, shown.length, grid)) {
+        const parte = new Set(shown.filter((c, i) => i < PRIMEIROS || naGrade(c)));
+        if (shown.length - parte.size >= 8) primeira = parte;
+      }
+      const monta = (filtro) => reconcilia(grid, [...groups].flatMap(([k, items]) => {
+        const vis = filtro ? items.filter((c) => filtro.has(c)) : items;
+        if (!vis.length) return [];
         let sec = secoes.get(k);
         if (!sec) {
           _tpl.innerHTML = `<section class="group" aria-label="${esc(k)}"><h3 class="group-title">${esc(k)} <span></span></h3><div class="group-grid"></div></section>`;
           sec = _tpl.content.firstElementChild;
           sec.dataset.grupo = k;
+          secoes.set(k, sec);
         }
         sec.querySelector(".group-title span").innerHTML = nCupons(items.length);
-        reconcilia(sec.querySelector(".group-grid"), items.map((c) => cartaoEl(c, 4)));
-        return sec;
+        reconcilia(sec.querySelector(".group-grid"), vis.map((c) => cartaoEl(c, 4)));
+        return [sec];
       }));
+      monta(primeira);
+      if (primeira) agendaResto(() => monta(null));
     } else {
       const cls = `grid${state.compacto ? " compacto" : ""}`;
       if (grid.className !== cls) grid.className = cls;
       if (!gridDeCartoes) grid.innerHTML = "";
-      // em duas etapas só numa lista nova, sem rolagem a restaurar e sem foco a devolver dentro da grade
       // Cartões que já estão na grade ficam (tirar e devolver custaria mais); só os novos depois dos
       // primeiros esperam. Se forem poucos, monta tudo de uma vez.
       let agora = shown;
-      if (listaNova && !state.grupo && shown.length > PRIMEIROS && rolarPara === null && !focoPendente && !grid.contains(document.activeElement)) {
+      if (podeEtapas(listaNova, shown.length, grid)) {
         const naGrade = (c) => _cartoes.get(`3:${c.id}`)?.el.parentNode === grid;
         const parte = shown.filter((c, i) => i < PRIMEIROS || naGrade(c));
         if (shown.length - parte.length >= 8) agora = parte;
       }
       const emEtapas = agora !== shown;
       reconcilia(grid, agora.map((c) => cartaoEl(c)));
-      if (emEtapas) {
-        // um quadro para pintar os primeiros; o resto entra na tarefa seguinte, antes de a pessoa rolar até ele
-        const vez = _restoGrade;
-        requestAnimationFrame(() => setTimeout(() => {
-          if (vez === _restoGrade) reconcilia(grid, shown.map((c) => cartaoEl(c)));
-        }, 0));
-      }
+      if (emEtapas) agendaResto(() => reconcilia(grid, shown.map((c) => cartaoEl(c))));
     }
     gridDeCartoes = true;
   }
