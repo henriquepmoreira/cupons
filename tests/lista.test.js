@@ -241,6 +241,46 @@ test("topo compacto no celular: título numa linha e a busca perto do topo", asy
   }
 });
 
+test("os quatro atalhos da barra cabem inteiros no celular, de 320 a 412 px", async () => {
+  for (const largura of [320, 360, 390, 412]) {
+    const pg = await abrir({ largura });
+    const m = await pg.evaluate(() => {
+      const c = document.querySelector(".controls");
+      return { sobra: c.scrollWidth - c.clientWidth, fav: document.getElementById("fav-toggle").getBoundingClientRect().right, largura: innerWidth };
+    });
+    assert.equal(m.sobra, 0, `${largura}px: a linha de atalhos rola de lado (${m.sobra} px a mais)`);
+    assert.ok(m.fav <= m.largura - 16, `${largura}px: o coração fica cortado (termina em ${Math.round(m.fav)} px)`);
+    await pg.context().close();
+  }
+});
+
+test("celular: a barra fixa some ao rolar para baixo e volta ao rolar para cima ou com o foco na busca", async () => {
+  const pg = await abrir();
+  const recolhida = () => pg.$eval(".toolbar", (b) => b.classList.contains("recolhida"));
+  const rola = async (y) => { await pg.evaluate((y) => scrollTo(0, y), y); await espera(pg, 60); };
+  await rola(200);
+  assert.equal(await recolhida(), false, "no começo da página ela fica");
+  await rola(900); await rola(1500);
+  assert.equal(await recolhida(), true, "rolando para baixo ela some");
+  assert.equal(await pg.$eval(".toolbar", (b) => getComputedStyle(b).visibility), "visible", "continua na árvore de acessibilidade");
+  await rola(1400);
+  assert.equal(await recolhida(), false, "rolando para cima ela volta");
+  await rola(2200);
+  assert.equal(await recolhida(), true);
+  await pg.focus("#q");
+  assert.equal(await recolhida(), false, "o foco na busca traz a barra de volta");
+  await rola(3000);
+  assert.equal(await recolhida(), false, "com o foco dentro dela, não some");
+  await pg.context().close();
+});
+
+test("computador: a barra fixa nunca some", async () => {
+  const pg = await abrir({ largura: 1200 });
+  for (const y of [900, 1800, 2700]) { await pg.evaluate((y) => scrollTo(0, y), y); await espera(pg, 60); }
+  assert.equal(await pg.$eval(".toolbar", (b) => b.classList.contains("recolhida")), false);
+  await pg.context().close();
+});
+
 // bloco "Valendo agora" (topo da lista)
 const LUGARES_AGORA = { lugares: [{ id: "casa", nome: "Casa", lat: -30.0256, lng: -51.2085 }] };
 

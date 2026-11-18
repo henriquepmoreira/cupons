@@ -263,10 +263,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .agora ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .agora-item { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline; text-align: left; padding: 8px 6px; border: 0; border-radius: 8px; background: transparent; }
 .agora-item:hover { background: var(--surface-2); }
-.agora-item .nm { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* position: relative prende os .sr-only (absolutos) dentro do texto cortado; sem isso a página rolava de lado em 320 px */
+.agora-item .nm { position: relative; font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agora-item .nm .fv { color: var(--fav); }
 .agora-item .km { font-family: var(--f-mono); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
-.agora-item .det2 { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.agora-item .det2 { position: relative; grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agora-item .det2 .ate { color: var(--ok); font-weight: 600; }
 .agora-pe { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .resultbar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-block: 16px 10px; }
@@ -455,6 +456,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 @media (prefers-reduced-motion: no-preference) {
   .ghost { animation: pulse 1.4s ease-in-out infinite alternate; }
   @keyframes pulse { to { opacity: .3; } }
+  .toolbar { transition: translate .2s ease; }
 }
 
 /* ---------- toast ---------- */
@@ -489,6 +491,20 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   .controls .chipbtn .longo { display: none; }
   .controls .chipbtn .curto { display: inline; }
   .controls #fav-toggle { padding: 0 11px; }
+  /* os quatro dividem a linha: cabem inteiros de 320 px para cima (antes o coração ficava cortado em 320 e 360 px) */
+  .controls { gap: 6px; margin-right: 0; padding-right: 0; }
+  .controls > .chipbtn { flex: 1 0 auto; justify-content: center; padding: 0 9px; }
+  .controls > #fav-toggle { flex: 0 0 auto; }
+  @media (max-width: 350px) {
+    .controls { gap: 5px; }
+    .controls > .chipbtn { padding: 0 6px; gap: 4px; }
+    .controls > #fav-toggle { padding: 0 8px; }
+  }
+  /* a barra fixa some ao rolar para baixo e volta ao rolar para cima (mais lista na tela);
+     sem desfoque por trás, que custa um redesenho a cada quadro da rolagem nos celulares mais simples */
+  .toolbar { background: var(--bg); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* continua na árvore de acessibilidade: o leitor de tela chega nela e o foco a traz de volta */
+  .toolbar.recolhida { translate: 0 calc(-100% - env(safe-area-inset-top, 0px) - 2px); }
   .sort { margin-left: 0; }
   .controls .sort-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .sort select { max-width: 14em; }
@@ -526,7 +542,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="wrap">
     <div class="search" role="search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Busque restaurante, prato ou categoria" autocomplete="off" aria-label="Buscar cupons">
+      <input id="q" type="search" placeholder="Busque lugar, prato ou bairro" autocomplete="off" aria-label="Buscar cupons">
       <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden>×</button>
     </div>
     <div class="controls" role="group" aria-label="Atalhos da lista">
@@ -753,7 +769,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   function isoDate(d) { const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; }
   function today() { return isoDate(new Date()); }
   function parseIso(iso) { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); }
-  function addDays(iso, n) { const d = parseIso(iso); d.setDate(d.getDate() + n); return isoDate(d); }
+  const _addDays = new Map(); // "2026-11-20|-1" -> "2026-11-19" (chamada milhares de vezes por redesenho)
+  function addDays(iso, n) {
+    const k = iso + "|" + n; let r = _addDays.get(k);
+    if (r === undefined) { const d = parseIso(iso); d.setDate(d.getDate() + n); r = isoDate(d); _addDays.set(k, r); }
+    return r;
+  }
   function diasEntre(a, b) { return Math.round((parseIso(b) - parseIso(a)) / 864e5); }
 
   /* ---------- estado ---------- */
@@ -922,7 +943,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   }
   const planoVencido = (c, iso) => { const v = PROG[c.programa]?.validade; return !!v && iso > v; };
   // null = sem horários cadastrados; { ok: true, h } = vale nas faixas h; { ok: false, motivo } = não vale
+  // Guardado por cupom e data: só depende de horários, feriados e validade, que as escritas da página
+  // não mudam (elas só mexem em favorito/usado), e cada atualização do banco traz objetos novos.
+  const _valeEm = new WeakMap();
   function valeEm(c, iso) {
+    let m = _valeEm.get(c);
+    if (!m) { m = new Map(); _valeEm.set(c, m); }
+    let r = m.get(iso);
+    if (r === undefined) { r = valeEmCalc(c, iso); m.set(iso, r); }
+    return r;
+  }
+  function valeEmCalc(c, iso) {
     if (planoVencido(c, iso)) return { ok: false, motivo: "plano vencido" };
     if (!temHorario(c)) return null;
     const f = feriadoEm(iso, c);
@@ -932,7 +963,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const h = horDe(c)[diaKey(iso)];
     return h ? { ok: true, h } : { ok: false, motivo: null };
   }
-  const faixas = (h) => String(h || "").split(";").map((x) => x.trim().split(/\s*-\s*/)).filter((p) => p.length === 2);
+  const _faixas = new Map(); // "11:00 - 15:00; 18:00 - 23:00" -> [["11:00", "15:00"], ["18:00", "23:00"]] (não altere o resultado)
+  const faixas = (h) => {
+    let r = _faixas.get(h);
+    if (!r) { r = String(h || "").split(";").map((x) => x.trim().split(/\s*-\s*/)).filter((p) => p.length === 2); _faixas.set(h, r); }
+    return r;
+  };
   const fmtFaixas = (h) => faixas(h).map(([a, b]) => `${a}–${b}`).join(", ");
   // versão falada: "das 11:30 às 14:30 e das 18:00 às 22:00" (o traço "–" é lido de forma confusa)
   const falaFaixas = (h) => faixas(h).map(([a, b]) => `das ${a} às ${b}`).join(" e ");
@@ -1141,8 +1177,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   /* ---------- derivações ---------- */
   const _hay = new WeakMap(); // texto de busca de cada cupom; o objeto muda a cada atualização do banco, e o cache junto
-  function matchesSearch(c, words) {
-    if (!words.length) return true;
+  function hayDe(c) {
     let hay = _hay.get(c);
     if (hay === undefined) {
       const us = unidadesDe(c).flatMap((u) => [u.bairro, u.cidade, u.endereco]);
@@ -1150,7 +1185,30 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" "), shoppingsDe(c).join(" ")].join(" "));
       _hay.set(c, hay);
     }
+    return hay;
+  }
+  function matchesSearch(c, words) {
+    if (!words.length) return true;
+    const hay = hayDe(c);
     return words.every((w) => hay.includes(w));
+  }
+  // Prepara em segundo plano o texto de busca e o horário de hoje de cada cupom, assim que a lista chega:
+  // a primeira letra digitada e o primeiro "Vale agora" não pagam por isso (eram ~60 ms no celular).
+  const ocioso = (fn) => (window.requestIdleCallback ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(() => fn({ timeRemaining: () => 8 }), 50));
+  let _preparada = null;
+  function preparaEmSegundoPlano() {
+    const lista = state.cupons;
+    if (lista === _preparada || !lista.length) return;
+    _preparada = lista;
+    let i = 0;
+    const passo = (prazo) => {
+      if (state.cupons !== lista) return; // chegou outra lista: ela agenda o próprio preparo
+      const t = today(), ontem = addDays(t, -1);
+      let n = 0; // se o prazo venceu sem ociosidade, faz um pedaço pequeno mesmo assim
+      while (i < lista.length && (prazo.timeRemaining() > 2 || (prazo.didTimeout && n++ < 25))) { const c = lista[i++]; hayDe(c); valeEm(c, t); valeEm(c, ontem); }
+      if (i < lista.length) ocioso(passo);
+    };
+    ocioso(passo);
   }
   function passes(c, skip) {
     if (skip !== "status") {
@@ -1926,7 +1984,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       titulo = `Valendo agora perto de ${state.perto.rotulo}`;
     } else {
       const favs = cands.filter((c) => c.favorito);
-      itens = (favs.length ? favs : cands).map((c) => ({ c, d: null })).sort((a, b) => fimDe(a.c) - fimDe(b.c) || collator.compare(a.c.nome, b.c.nome)).slice(0, AGORA_MAX);
+      // fim calculado uma vez por cupom (dentro do comparador eram milhares de chamadas a cada redesenho)
+      itens = (favs.length ? favs : cands).map((c) => ({ c, d: null, fim: fimDe(c) })).sort((a, b) => a.fim - b.fim || collator.compare(a.c.nome, b.c.nome)).slice(0, AGORA_MAX);
       titulo = favs.length ? "Favoritos valendo agora" : "Valendo agora";
     }
     if (!itens.length) { setHidden(el, true); return; }
@@ -1961,6 +2020,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     focoPendente = null;
     if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
     guardaPosicao();
+    preparaEmSegundoPlano();
   }
 
   /* ---------- toast ---------- */
@@ -2033,10 +2093,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   let _cacheTimer = null;
   function guardaCache() {
     clearTimeout(_cacheTimer);
-    _cacheTimer = setTimeout(() => {
+    // ~500 KB de JSON: grava quando o navegador estiver ocioso, para não atrasar o próximo toque
+    _cacheTimer = setTimeout(() => ocioso(() => {
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons })); }
       catch (_) { try { localStorage.removeItem(CACHE_KEY); } catch (_) {} } // sem espaço: melhor nenhuma cópia que uma velha
-    }, 1500);
+    }), 1500);
   }
 
   async function boot() {
@@ -2431,6 +2492,23 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const ajustaRolagem = () => { document.documentElement.style.scrollPaddingTop = `${Math.ceil(barra.getBoundingClientRect().height) + 8}px`; };
   if (window.ResizeObserver) new ResizeObserver(ajustaRolagem).observe(barra);
   ajustaRolagem();
+
+  // No celular, a barra fixa some ao rolar para baixo e volta ao rolar para cima, como nos apps:
+  // são ~115 px a mais de lista. Fica sempre visível no começo da página, com o foco dentro dela
+  // (teclado ou leitor de tela chegando à busca) e com o painel Filtros aberto.
+  let barraY = scrollY, barraRaf = 0;
+  const recolheBarra = (sim) => { if (barra.classList.contains("recolhida") !== sim) barra.classList.toggle("recolhida", sim); };
+  function acompanhaRolagem() {
+    barraRaf = 0;
+    const y = scrollY, dy = y - barraY;
+    if (!mqCelular.matches || state.filtersOpen || barra.contains(document.activeElement) || y < 320) { recolheBarra(false); barraY = y; return; }
+    if (Math.abs(dy) < 12) return; // tremidas do dedo não mexem na barra
+    recolheBarra(dy > 0);
+    barraY = y;
+  }
+  addEventListener("scroll", () => { if (!barraRaf) barraRaf = requestAnimationFrame(acompanhaRolagem); }, { passive: true });
+  barra.addEventListener("focusin", () => recolheBarra(false));
+  mqCelular.addEventListener?.("change", acompanhaRolagem);
 
   // a etiqueta "Agora · até 15:00" depende da hora: redesenha a cada minuto com a página visível
   // e ao voltar para a aba (o celular congela os timers de abas em segundo plano)

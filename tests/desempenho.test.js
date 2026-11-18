@@ -36,6 +36,24 @@ test(`favoritar, atualizar o banco e digitar ficam abaixo de ${LIMITE_MS} ms (CP
   }
 });
 
+test(`abrir o painel Filtros fica abaixo de ${LIMITE_MS} ms (CPU 4×)`, async () => {
+  const pg = await abrir();
+  const cdp = await pg.context().newCDPSession(pg);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+  const vez = () => pg.evaluate(async () => {
+    const t = performance.now();
+    document.getElementById("filters-toggle").click();
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const ms = performance.now() - t;
+    document.getElementById("filters-close").click();
+    await new Promise((r) => setTimeout(r, 50));
+    return ms;
+  });
+  await vez(); // aquece
+  const ms = await vez();
+  assert.ok(ms < LIMITE_MS, `abrir Filtros: ${Math.round(ms)} ms (antes da versão 44: ~230 ms)`);
+});
+
 test(`com o painel de filtros aberto, tocar num chip fica abaixo de ${LIMITE_MS} ms (CPU 4×)`, async () => {
   const pg = await abrir();
   await pg.click("#filters-toggle");
