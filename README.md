@@ -103,7 +103,7 @@ Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a te
 
 ## Canoas em Dobro
 
-São 134 cupons: 99 de 34 prints da aba Cupons (a Família Kabana saiu do programa e o segundo Urban 1736 era um erro do app; os dois foram apagados), 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger) 32 já usados, vistos em prints de 17/11 (ver "Cupons já usados"), e o Degustar no Bairro, visto no vídeo de 17/11 (ver "Conferência das listas"). Na captura original a lista parecia **não terminar**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
+São 132 cupons: 99 de 34 prints da aba Cupons (a Família Kabana saiu do programa e o segundo Urban 1736 era um erro do app; os dois foram apagados), 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger) 32 já usados, vistos em prints de 17/11 (ver "Cupons já usados"), e o Degustar no Bairro, visto no vídeo de 17/11 (ver "Conferência das listas"). Na captura original a lista parecia **não terminar**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
 
 - Não há pontos de anúncio sem emenda: em todos os prints o cupom seguinte aparece no rodapé do anterior.
 - **Dois cupons do Comidas de Boteco**, com ofertas diferentes, são registrados como cupons separados. O segundo Urban 1736 que aparecia na lista era um erro do app (confirmado em 17/11) e foi apagado.
@@ -174,11 +174,13 @@ Duas gravações rolando a lista inteira, sem abrir os cupons: Canoas em Dobro �
 - **Canoas em Dobro:** a ordem bate com a carteira do Kampeki Sushi ao Manjericão Toscano, e os 35 usados do fim da lista (Paradouro Café ao Amo Café) batem um a um.
   - **Cupom novo:** Degustar no Bairro, entre o Xis Rei e o The Big Mamma (uma garrafa de vinho boscato, igual ou de menor valor; sem favorito). Entrou na posição 78 e os seguintes andaram uma posição. Não tem detalhes.
   - **Ofertas mudadas:** Darna (agora "uma sequência árabe") e Spoleto (filé de frango no lugar de filé de sobrecoxa).
-  - **Sumiram da lista:** Guacamole Taqueria e Grano Forneria. Não aparecem nem entre os disponíveis nem entre os usados (em preto e branco no fim). Continuam na carteira até o usuário dizer se saíram do programa.
+  - **Saíram do programa:** Guacamole Taqueria e Grano Forneria não aparecem nem entre os disponíveis nem entre os usados (em preto e branco no fim). O usuário confirmou que saíram, e os dois foram apagados do arquivo e do banco. Os cupons seguintes andaram uma ou duas posições.
 - **Tour Grande Poa:** a lista de vouchers disponíveis bate com a carteira, na mesma ordem, de Ah! Casa a Vino! Novo Hamburgo. Os três usados que já estavam na carteira (Don Carlone, Chiquinho Havan e Manos Fast Food) não aparecem, como esperado. As ofertas dos 200 cartões foram comparadas com a carteira.
   - **Cupom novo:** Helena Burger POA, entre o Funny Feelings e o Inner (qualquer hambúrguer, igual ou de menor valor; sem asterisco, sem favorito). É outro voucher, diferente do Helena Burger Cano… já usado. Entrou na posição 159 e os seguintes andaram uma posição. Não tem detalhes.
   - **Oferta mudada:** Darna Cozinha Mediterrânea (agora "uma sequência árabe individual", ganhe outra igual, sem asterisco; antes era "um prato participante*", igual ou de menor valor).
-  - **Sumiu da lista:** Go Coffee São Leopoldo. A lista do vídeo não mostra os usados do Tour, então pode ter sido usado ou ter saído do programa. Continua na carteira como disponível até o usuário confirmar.
+  - **Saiu do programa:** Go Coffee São Leopoldo não aparece na lista de disponíveis. O usuário confirmou que saiu, e ele foi apagado do arquivo e do banco. Os cupons seguintes andaram uma posição.
+- **Poa em Dobro (vídeo de 17/11, 19:05, duas partes):** a lista inteira, do topo ao De Rua Burger, bate com a carteira: mesma ordem, mesmos 279 disponíveis e as mesmas ofertas. Os 31 usados aparecem no fim, em preto e branco, na mesma ordem da carteira; a única diferença é o Joe Hamburgueria, que o app mostra entre os usados (depois do Coccaderia.Co) e a carteira mantém na posição 72, onde estava quando foi marcado como usado na página. Nenhum cupom novo.
+- **Tour, vouchers usados (vídeo de 17/11, 19:04):** os 35 que aparecem, do Mamma Mia Express ao Xis Rei, estão todos na carteira como usados. O app agrupa os usados por tipo, então a ordem é outra. O vídeo começa no Mamma Mia Express; Ah! Casa (salgado ou doce) e Chá das Três - almoço ficam acima e não aparecem. Nenhum usado novo, e o Go Coffee São Leopoldo não está entre eles.
 
 ## Pendências da fase 1 (Poa em Dobro)
 
