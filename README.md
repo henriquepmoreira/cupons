@@ -25,7 +25,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Etiqueta de hoje diz o momento: "Agora · até 15:00" (vale agora), "Hoje a partir das 18:00" (ainda vai valer hoje) ou "Encerrado hoje"; acompanha a hora a cada minuto e ao voltar para a aba
 - Primeira tela na hora: a última lista que veio do banco fica guardada no navegador e aparece antes de o banco responder; quando ele chega, a lista é trocada (favoritos e usados valem o banco). Favoritar nesse intervalo funciona e vai ao banco quando ele responder. Se o banco demorar mais de 1,5 s, um aviso discreto diz que a lista é a guardada
 - No celular, o topo é compacto: título numa linha e os números (disponíveis, favoritos, usados) numa linha abaixo, menores; a busca fica a ~190 px do topo (antes 343)
-- Lista compacta (botão "Compacta"): uma linha por cupom, com o cartão completo ao expandir
+- Lista compacta, o padrão desde a versão 45: uma linha por cupom, com o cartão completo ao expandir (a seta ao lado do coração). A lista completa fica em Filtros → Lista → "Compacta" e é lembrada
 - Quando nada combina, a página sugere qual filtro tirar ("Sem Noite: 12 cupons") e aplica com um toque
 - Ao recarregar a aba, a lista volta ao mesmo ponto (mesmo lote e rolagem), se os filtros forem os mesmos
 - Painel de filtros em três abas (no celular, em tela cheia com "Ver N cupons") (Quando, O quê, Onde) e, acima da lista, a linha "Filtros ativos" com um × para remover cada um
@@ -61,7 +61,7 @@ O artifact guarda os cupons no próprio banco de dados, na coleção `cupons`, c
 
 Só a pessoa dona do artifact pode gravar no banco (regra `write: owner`).
 
-Quem abre o link sem estar logado no claude.ai não recebe o banco: a página mostra então uma cópia só para consulta, publicada junto com ela (`snapshot.json`, gerada do banco por `scripts/gerar-snapshot.py`). A cópia tem a data em que foi gerada e só muda quando a página é republicada com uma nova.
+Quem abre o link sem estar logado no claude.ai não recebe o banco: a página mostra então uma cópia só para consulta, publicada junto com ela (`snapshot.json`, enxuta, mais as regras em `regras.json`, que a página busca em segundo plano; as duas geradas do banco por `scripts/gerar-snapshot.py`). A cópia tem a data em que foi gerada e só muda quando a página é republicada com uma nova.
 
 `data/*.json` é o registro de origem, com a mesma estrutura. Mudanças feitas na página (favoritos, usados) ficam só no banco.
 Para importar um programa novo, crie `data/<programa>.json` e gere os documentos com:
@@ -70,7 +70,7 @@ Para importar um programa novo, crie `data/<programa>.json` e gere os documentos
 python3 scripts/gerar-seed.py data/<programa>.json <pasta-de-saida>
 ```
 
-Antes de republicar a página, rode os testes: `cd tests && npm install && npm test` (detalhes em `tests/README.md`). Para conferir banco e arquivos e levar favoritos e usados da página para os arquivos, use `scripts/sincronizar.py`; para atualizar a cópia de quem abre sem login, `scripts/gerar-snapshot.py` (passo a passo no `TRANSFERENCIA.md`).
+Antes de republicar a página, rode os testes: `cd tests && npm install && npm test` (detalhes em `tests/README.md`). Os mesmos testes rodam no GitHub a cada push em `claude/**` e a cada pull request (`.github/workflows/testes.yml`). Para conferir banco e arquivos e levar favoritos e usados da página para os arquivos, use `scripts/sincronizar.py`; para atualizar a cópia de quem abre sem login, `scripts/gerar-snapshot.py` (passo a passo no `TRANSFERENCIA.md`).
 
 Os scripts que leem gravações de tela (detalhes dos cupons) estão em `scripts/video/`, com instruções no README de lá. O passo a passo para continuar o trabalho numa sessão nova está em `TRANSFERENCIA.md`.
 
