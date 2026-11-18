@@ -3,8 +3,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- media="print" não bloqueia a primeira pintura; o script troca para "all" quando a folha chegar -->
-<link rel="stylesheet" id="fontes" media="print" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"></noscript>
+<!-- Archivo só nas larguras (62–100%) e pesos (700–900) que a página usa: o arquivo cai de 90 para 51 KB.
+     Figtree (400–700) e IBM Plex Mono (500 e 600) já vêm só com o que é usado. -->
+<link rel="stylesheet" id="fontes" media="print" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"></noscript>
 <style>
 /* Layout: carteira de tickets 2×1 — canhoto colorido por categoria, picote, corpo com a oferta; barra de busca fixa no topo. */
 :root {
