@@ -749,6 +749,29 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       set textContent(v) { v = String(v); el.__h = undefined; if (el.textContent !== v) el.textContent = v; },
     };
   }
+  // Grupo de chips: se os chips são os mesmos (mesmos data-*), atualiza só "marcado" e o conteúdo de cada um,
+  // sem trocar os botões (o foco e o TalkBack ficam no chip tocado); se mudaram, troca o grupo.
+  const _tplChips = document.createElement("template");
+  const chaveChip = (b) => b.getAttributeNames().filter((n) => n.startsWith("data-")).map((n) => `${n}=${b.getAttribute(n)}`).join("&");
+  function chipsEm(el) {
+    return {
+      set innerHTML(html) {
+        if (el.__h === html) return;
+        _tplChips.innerHTML = html;
+        const novos = [..._tplChips.content.children], velhos = [...el.children];
+        if (novos.length && novos.length === velhos.length && novos.every((n, i) => n.tagName === velhos[i].tagName && chaveChip(n) === chaveChip(velhos[i]))) {
+          novos.forEach((n, i) => {
+            const v = velhos[i];
+            if (n.hasAttribute("aria-pressed")) setAttr(v, "aria-pressed", n.getAttribute("aria-pressed"));
+            if (n.hasAttribute("disabled") !== v.hasAttribute("disabled")) v.toggleAttribute("disabled", n.hasAttribute("disabled"));
+            if (v.className !== n.className) v.className = n.className;
+            if (v.innerHTML !== n.innerHTML) v.innerHTML = n.innerHTML;
+          });
+        } else el.replaceChildren(...novos);
+        el.__h = html;
+      },
+    };
+  }
   const setAttr = (el, nome, v) => { v = String(v); if (el.getAttribute(nome) !== v) el.setAttribute(nome, v); };
   const setHidden = (el, v) => { if (el.hidden !== !!v) el.hidden = !!v; };
   const $ = (id) => document.getElementById(id);
@@ -794,7 +817,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   }
   const temHorario = (c) => Object.keys(horDe(c)).length > 0;
   const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-  const diaKey = (iso) => DIAS[parseIso(iso).getDay()];
+  const _diaKey = new Map();
+  const diaKey = (iso) => { let d = _diaKey.get(iso); if (d === undefined) { d = DIAS[parseIso(iso).getDay()]; _diaKey.set(iso, d); } return d; };
   const ddmm = (iso) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
   function rotuloDia(iso) { // visual: "Hoje", "Amanhã", "Sex 20/11"
     const t = today();
@@ -973,11 +997,15 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     ["madrugada", "Madrugada", "depois das 23h", "depois das 23 horas", 1380, 1800],
   ];
   const minutos = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + (m || 0); };
+  const _faixasMin = new Map(); // "11:00 - 15:00; 18:00 - 23:00" -> [[660, 900], [1080, 1380]] (fim > início)
+  function faixasMin(h) {
+    let r = _faixasMin.get(h);
+    if (!r) { r = faixas(h).map(([a, b]) => { const x = minutos(a); let y = minutos(b); if (y <= x) y += 1440; return [x, y]; }); _faixasMin.set(h, r); }
+    return r;
+  }
   function faixaNoTurno(h, w1, w2) {
-    return faixas(h).some(([a, b]) => {
-      const x = minutos(a); let y = minutos(b); if (y <= x) y += 1440; // faixa que passa da meia-noite
-      return [0, 1440, -1440].some((d) => x + d < w2 && y + d > w1);
-    });
+    // a faixa pode passar da meia-noite (fim + 1440); compara também deslocada de um dia
+    return faixasMin(h).some(([x, y]) => (x < w2 && y > w1) || (x + 1440 < w2 && y + 1440 > w1) || (x - 1440 < w2 && y - 1440 > w1));
   }
   function valeNoTurno(c, id) {
     const t = TURNOS.find((x) => x[0] === id); if (!t) return false;
@@ -1291,7 +1319,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     sel.disabled = !state.geo;
     setAttr($("perto-gps"), "aria-pressed", String(state.perto?.tipo === "gps"));
     $("perto-gps").disabled = !state.geo;
-    htmlDe($("f-raio")).innerHTML = [1, 2, 5, 10].map((r) => `<button type="button" class="fchip" data-raio="${r}" aria-pressed="${state.raio === r && !!state.perto}"${state.perto ? "" : " disabled"}>Até ${r} km <span class="n">${state.perto ? nCupons(count("raio", (c) => { const d = distDe(c); return !!d && d.km <= r; })) : ""}</span></button>`).join("");
+    chipsEm($("f-raio")).innerHTML = [1, 2, 5, 10].map((r) => `<button type="button" class="fchip" data-raio="${r}" aria-pressed="${state.raio === r && !!state.perto}"${state.perto ? "" : " disabled"}>Até ${r} km <span class="n">${state.perto ? nCupons(count("raio", (c) => { const d = distDe(c); return !!d && d.km <= r; })) : ""}</span></button>`).join("");
     htmlDe($("perto-nota")).textContent = !state.geo
       ? (state.geoFalhou ? "As coordenadas dos endereços não carregaram nesta visualização." : "Carregando as coordenadas dos endereços…")
       : state.perto
@@ -1369,100 +1397,115 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
     // categorias, com contagem respeitando os demais filtros
     const words = norm(state.q).split(/\s+/).filter(Boolean);
-    const catCount = {};
-    for (const c of state.cupons) if (passes(c, "categoria") && matchesSearch(c, words)) catCount[c.categoria] = (catCount[c.categoria] || 0) + 1;
-    const cats = [...new Set(state.cupons.map((c) => c.categoria).filter(Boolean))].sort(collator.compare);
-    htmlDe($("f-cat")).innerHTML = cats.length
-      ? cats.map((cat) => `<button type="button" class="fchip cat ${CAT_CLS[cat] || ""}" data-cat="${esc(cat)}" aria-pressed="${state.categorias.has(cat)}">${esc(cat)} <span class="n">${nCupons(catCount[cat] || 0)}</span></button>`).join("")
-      : '<span class="n">Nenhuma categoria ainda.</span>';
-    const count = (skip, pred) => state.cupons.filter((c) => passes(c, skip) && matchesSearch(c, words) && pred(c)).length;
-    $("f-ganhe").querySelectorAll("button").forEach((b) => {
-      setAttr(b, "aria-pressed", String(state.ganhe === b.dataset.ganhe));
-      htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("ganhe", (c) => c.ganhe === b.dataset.ganhe));
-    });
-    $("f-regras").querySelectorAll("button").forEach((b) => {
-      setAttr(b, "aria-pressed", String(state.regras === b.dataset.regras));
-      htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
-    });
-    const t = today();
+    // Quem passa em todos os filtros menos o do grupo: calculado uma vez por grupo e reaproveitado em
+    // todos os chips dele (antes cada chip refazia os filtros nos 577 cupons). Só a aba aberta é montada.
+    const _base = new Map(); let semAtivo = "";
+    const baseDe = (skip) => { const k = `${skip}|${semAtivo}`; if (!_base.has(k)) _base.set(k, state.cupons.filter((c) => passes(c, skip) && matchesSearch(c, words))); return _base.get(k); };
+    const count = (skip, pred) => { let n = 0; for (const c of baseDe(skip)) if (pred(c)) n++; return n; };
     // "Vale agora" e Data se excluem (tocar num desliga o outro): cada contagem ignora o filtro que vai sair
-    const semFiltro = (campo, fn) => { const salvo = state[campo]; state[campo] = null; try { return fn(); } finally { state[campo] = salvo; } };
-    renderPerto(count);
-    const bAgora = $("f-quando").querySelector('[data-quando="agora"]');
-    setAttr(bAgora, "aria-pressed", String(state.quando === "agora"));
-    htmlDe(bAgora.querySelector(".n")).innerHTML = nCupons(semFiltro("data", () => count("quando", valeAgora)));
-    $("f-quando").querySelectorAll("button[data-aceita]").forEach((b) => {
-      const k = b.dataset.aceita;
-      setAttr(b, "aria-pressed", String(state.aceita.has(k)));
-      htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("aceita", (c) => !planoVencido(c, t)
-        && (k === "feriados" ? c.feriados === true : c.datasComemorativas === true)
-        && [...state.aceita].filter((x) => x !== k).every((x) => (x === "feriados" ? c.feriados === true : c.datasComemorativas === true))));
-    });
-    htmlDe($("f-turno")).innerHTML = TURNOS.map(([id, nome, vis, fala]) =>
-      `<button type="button" class="fchip" data-turno="${id}" aria-pressed="${state.turnos.has(id)}">${duplo(`${nome} · ${vis}`, `${nome}, ${fala}`)} <span class="n">${nCupons(count("turno", (c) => valeNoTurno(c, id)))}</span></button>`).join("");
-    const shopCount = {};
-    for (const c of state.cupons) if (passes(c, "shopping") && matchesSearch(c, words)) for (const x of shoppingsDe(c)) shopCount[x] = (shopCount[x] || 0) + 1;
-    const shops = [...new Set(state.cupons.flatMap(shoppingsDe))].sort(collator.compare);
-    htmlDe($("f-shopping")).innerHTML = shops.length
-      ? shops.map((x) => `<button type="button" class="fchip" data-shopping="${esc(x)}" aria-pressed="${state.shoppings.has(x)}">${esc(x)} <span class="n">${nCupons(shopCount[x] || 0)}</span></button>`).join("")
-      : '<span class="fnote">Nenhum endereço de shopping cadastrado ainda.</span>';
-    const cidCount = {};
-    for (const c of state.cupons) if (passes(c, "cidade") && matchesSearch(c, words)) for (const cid of cidadesDe(c)) cidCount[cid] = (cidCount[cid] || 0) + 1;
-    const cidades = [...new Set(state.cupons.flatMap(cidadesDe))].sort(collator.compare);
-    htmlDe($("f-cidade")).innerHTML = cidades.length
-      ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${nCupons(cidCount[cid] || 0)}</span></button>`).join("")
-      : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
-    // datas: hoje e os próximos 6 dias, marcando feriados e datas comemorativas
-    htmlDe($("f-data")).innerHTML = Array.from({ length: 7 }, (_, i) => addDays(t, i)).map((iso) => {
-      const f = FERIADOS[iso], dc = DATAS_COMEMORATIVAS[iso];
-      const vis = rotuloDia(iso) + (f ? ` · feriado${f.onde ? ` em ${f.onde.join(", ")}` : ""}` : dc ? ` · ${dc}` : "");
-      const fala = falaDia(iso).replace(/^./, (x) => x.toUpperCase()) + (f ? `, feriado: ${f.nome}${f.onde ? `, só em ${listaE(f.onde)}` : ""}` : dc ? `, ${dc}` : "");
-      return `<button type="button" class="fchip" data-data="${iso}" aria-pressed="${state.data === iso}">${duplo(vis, fala)} <span class="n">${nCupons(state.quando === "agora" ? semFiltro("quando", () => count("data", (c) => !!valeEm(c, iso)?.ok)) : count("data", (c) => !!valeEm(c, iso)?.ok))}</span></button>`;
-    }).join("");
-    // dias da semana, na ordem do app (domingo primeiro)
-    const hk = hojeKey();
-    htmlDe($("f-dia")).innerHTML = DIAS.map((d) => {
-      const n = count("dia", (c) => !!horDe(c)[d]);
-      return `<button type="button" class="fchip" data-dia="${d}" aria-pressed="${state.dias.has(d)}">${duplo(DIAS_CURTO[d], DIAS_NOME[d] + (d === hk ? ", hoje" : ""))} <span class="n">${nCupons(n)}</span></button>`;
-    }).join("");
-    // bairros: com cidade marcada, só os dela (e os já marcados, para poder desmarcar)
-    const bCount = {}, bInfo = {};
-    for (const c of state.cupons) {
-      const conta = passes(c, "bairro") && matchesSearch(c, words);
-      for (const x of unidadesDe(c)) {
-        const k = chaveBairro(x); if (!k) continue;
-        bInfo[k] = x;
-        if (conta) bCount[k] = (bCount[k] || 0) + 1;
-      }
+    const semFiltro = (campo, fn) => { const salvo = state[campo], s0 = semAtivo; state[campo] = null; semAtivo = campo; try { return fn(); } finally { state[campo] = salvo; semAtivo = s0; } };
+    const aba = state.abaFiltros;
+    if (aba === "oque") {
+      const catCount = {};
+      for (const c of baseDe("categoria")) catCount[c.categoria] = (catCount[c.categoria] || 0) + 1;
+      const cats = [...new Set(state.cupons.map((c) => c.categoria).filter(Boolean))].sort(collator.compare);
+      chipsEm($("f-cat")).innerHTML = cats.length
+        ? cats.map((cat) => `<button type="button" class="fchip cat ${CAT_CLS[cat] || ""}" data-cat="${esc(cat)}" aria-pressed="${state.categorias.has(cat)}">${esc(cat)} <span class="n">${nCupons(catCount[cat] || 0)}</span></button>`).join("")
+        : '<span class="n">Nenhuma categoria ainda.</span>';
     }
-    const bairros = Object.keys(bInfo)
-      .filter((k) => !state.cidades.size || state.cidades.has(bInfo[k].cidade) || state.bairros.has(k))
-      .sort((a, b) => collator.compare(bInfo[a].bairro, bInfo[b].bairro) || collator.compare(bInfo[a].cidade || "", bInfo[b].cidade || ""));
-    htmlDe($("f-bairro")).innerHTML = bairros.length
-      ? bairros.map((k) => `<button type="button" class="fchip" data-bairro="${esc(k)}" aria-pressed="${state.bairros.has(k)}">${esc(bInfo[k].bairro)}${bInfo[k].cidade ? ` <span class="cid"><span class="sr-only">, </span>${esc(bInfo[k].cidade)}</span>` : ""} <span class="n">${nCupons(bCount[k] || 0)}</span></button>`).join("")
-      : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
-    const tipoCount = {};
-    for (const c of state.cupons) if (passes(c, "tipo") && matchesSearch(c, words)) for (const t of c.categoriasApp || []) tipoCount[t] = (tipoCount[t] || 0) + 1;
-    const tipos = [...new Set(state.cupons.flatMap((c) => c.categoriasApp || []))].sort(collator.compare);
-    htmlDe($("f-tipo")).innerHTML = tipos.length
-      ? tipos.map((t) => `<button type="button" class="fchip" data-tipo="${esc(t)}" aria-pressed="${state.tipos.has(t)}">${esc(t)} <span class="n">${nCupons(tipoCount[t] || 0)}</span></button>`).join("")
-      : '<span class="fnote">Nenhuma categoria do app cadastrada ainda.</span>';
-    const comodCount = {};
-    for (const c of state.cupons) if (passes(c, "comod") && matchesSearch(c, words)) for (const t of comodSet(c)) comodCount[t] = (comodCount[t] || 0) + 1;
-    const pos = (t) => { const i = COMOD_ORDEM.indexOf(t); return i < 0 ? 99 : i; };
-    const comodProgs = {};
-    for (const c of state.cupons) for (const t of comodSet(c)) (comodProgs[t] ||= new Set()).add(c.programa);
-    const progsComCupom = PROGRAMAS.filter((p) => state.cupons.some((c) => c.programa === p.id));
-    const comods = [...new Set(state.cupons.flatMap((c) => [...comodSet(c)]))].sort((a, b) => pos(a) - pos(b) || collator.compare(a, b));
-    htmlDe($("f-comod")).innerHTML = comods.length
-      ? comods.map((t) => {
-        // programas em que o app informa essa comodidade; se não forem todos, o chip diz quais
-        const ps = PROGRAMAS.filter((p) => comodProgs[t]?.has(p.id));
-        const parcial = ps.length < progsComCupom.length;
-        const vis = parcial ? ` <span class="cid" aria-hidden="true">· só ${esc(listaE(ps.map((p) => p.curto)))}</span><span class="sr-only">, só no ${esc(listaE(ps.map((p) => p.nome)).replace(/ e (?=[^,]*$)/, " e no "))}</span>` : "";
-        return `<button type="button" class="fchip" data-comod="${esc(t)}" aria-pressed="${state.comods.has(t)}">${esc(t)}${vis} <span class="n">${nCupons(comodCount[t] || 0)}</span></button>`;
-      }).join("")
-      : '<span class="fnote">Nenhuma comodidade cadastrada ainda.</span>';
+    if (aba === "oque") {
+      $("f-ganhe").querySelectorAll("button").forEach((b) => {
+        setAttr(b, "aria-pressed", String(state.ganhe === b.dataset.ganhe));
+        htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("ganhe", (c) => c.ganhe === b.dataset.ganhe));
+      });
+      $("f-regras").querySelectorAll("button").forEach((b) => {
+        setAttr(b, "aria-pressed", String(state.regras === b.dataset.regras));
+        htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("regras", (c) => (b.dataset.regras === "ver" ? !!c.verRegras : !c.verRegras)));
+      });
+    }
+    const t = today();
+    if (aba === "onde") {
+      renderPerto(count);
+    }
+    if (aba === "quando") {
+      const bAgora = $("f-quando").querySelector('[data-quando="agora"]');
+      setAttr(bAgora, "aria-pressed", String(state.quando === "agora"));
+      htmlDe(bAgora.querySelector(".n")).innerHTML = nCupons(semFiltro("data", () => count("quando", valeAgora)));
+      $("f-quando").querySelectorAll("button[data-aceita]").forEach((b) => {
+        const k = b.dataset.aceita;
+        setAttr(b, "aria-pressed", String(state.aceita.has(k)));
+        htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("aceita", (c) => !planoVencido(c, t)
+          && (k === "feriados" ? c.feriados === true : c.datasComemorativas === true)
+          && [...state.aceita].filter((x) => x !== k).every((x) => (x === "feriados" ? c.feriados === true : c.datasComemorativas === true))));
+      });
+      chipsEm($("f-turno")).innerHTML = TURNOS.map(([id, nome, vis, fala]) =>
+        `<button type="button" class="fchip" data-turno="${id}" aria-pressed="${state.turnos.has(id)}">${duplo(`${nome} · ${vis}`, `${nome}, ${fala}`)} <span class="n">${nCupons(count("turno", (c) => valeNoTurno(c, id)))}</span></button>`).join("");
+    }
+    if (aba === "onde") {
+      const shopCount = {};
+      for (const c of baseDe("shopping")) for (const x of shoppingsDe(c)) shopCount[x] = (shopCount[x] || 0) + 1;
+      const shops = [...new Set(state.cupons.flatMap(shoppingsDe))].sort(collator.compare);
+      chipsEm($("f-shopping")).innerHTML = shops.length
+        ? shops.map((x) => `<button type="button" class="fchip" data-shopping="${esc(x)}" aria-pressed="${state.shoppings.has(x)}">${esc(x)} <span class="n">${nCupons(shopCount[x] || 0)}</span></button>`).join("")
+        : '<span class="fnote">Nenhum endereço de shopping cadastrado ainda.</span>';
+      const cidCount = {};
+      for (const c of baseDe("cidade")) for (const cid of cidadesDe(c)) cidCount[cid] = (cidCount[cid] || 0) + 1;
+      const cidades = [...new Set(state.cupons.flatMap(cidadesDe))].sort(collator.compare);
+      chipsEm($("f-cidade")).innerHTML = cidades.length
+        ? cidades.map((cid) => `<button type="button" class="fchip" data-cidade="${esc(cid)}" aria-pressed="${state.cidades.has(cid)}">${esc(cid)} <span class="n">${nCupons(cidCount[cid] || 0)}</span></button>`).join("")
+        : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
+    }
+    if (aba === "quando") {
+      // datas: hoje e os próximos 6 dias, marcando feriados e datas comemorativas
+      chipsEm($("f-data")).innerHTML = Array.from({ length: 7 }, (_, i) => addDays(t, i)).map((iso) => {
+        const f = FERIADOS[iso], dc = DATAS_COMEMORATIVAS[iso];
+        const vis = rotuloDia(iso) + (f ? ` · feriado${f.onde ? ` em ${f.onde.join(", ")}` : ""}` : dc ? ` · ${dc}` : "");
+        const fala = falaDia(iso).replace(/^./, (x) => x.toUpperCase()) + (f ? `, feriado: ${f.nome}${f.onde ? `, só em ${listaE(f.onde)}` : ""}` : dc ? `, ${dc}` : "");
+        return `<button type="button" class="fchip" data-data="${iso}" aria-pressed="${state.data === iso}">${duplo(vis, fala)} <span class="n">${nCupons(state.quando === "agora" ? semFiltro("quando", () => count("data", (c) => !!valeEm(c, iso)?.ok)) : count("data", (c) => !!valeEm(c, iso)?.ok))}</span></button>`;
+      }).join("");
+      // dias da semana, na ordem do app (domingo primeiro)
+      const hk = hojeKey();
+      chipsEm($("f-dia")).innerHTML = DIAS.map((d) => {
+        const n = count("dia", (c) => !!horDe(c)[d]);
+        return `<button type="button" class="fchip" data-dia="${d}" aria-pressed="${state.dias.has(d)}">${duplo(DIAS_CURTO[d], DIAS_NOME[d] + (d === hk ? ", hoje" : ""))} <span class="n">${nCupons(n)}</span></button>`;
+      }).join("");
+    }
+    if (aba === "onde") {
+      // bairros: com cidade marcada, só os dela (e os já marcados, para poder desmarcar)
+      const bCount = {}, bInfo = {};
+      for (const c of state.cupons) for (const x of unidadesDe(c)) { const k = chaveBairro(x); if (k) bInfo[k] = x; }
+      for (const c of baseDe("bairro")) for (const k of new Set(unidadesDe(c).map(chaveBairro).filter(Boolean))) bCount[k] = (bCount[k] || 0) + 1;
+      const bairros = Object.keys(bInfo)
+        .filter((k) => !state.cidades.size || state.cidades.has(bInfo[k].cidade) || state.bairros.has(k))
+        .sort((a, b) => collator.compare(bInfo[a].bairro, bInfo[b].bairro) || collator.compare(bInfo[a].cidade || "", bInfo[b].cidade || ""));
+      chipsEm($("f-bairro")).innerHTML = bairros.length
+        ? bairros.map((k) => `<button type="button" class="fchip" data-bairro="${esc(k)}" aria-pressed="${state.bairros.has(k)}">${esc(bInfo[k].bairro)}${bInfo[k].cidade ? ` <span class="cid"><span class="sr-only">, </span>${esc(bInfo[k].cidade)}</span>` : ""} <span class="n">${nCupons(bCount[k] || 0)}</span></button>`).join("")
+        : '<span class="fnote">Nenhum endereço cadastrado ainda.</span>';
+    }
+    if (aba === "oque") {
+      const tipoCount = {};
+      for (const c of baseDe("tipo")) for (const t of c.categoriasApp || []) tipoCount[t] = (tipoCount[t] || 0) + 1;
+      const tipos = [...new Set(state.cupons.flatMap((c) => c.categoriasApp || []))].sort(collator.compare);
+      chipsEm($("f-tipo")).innerHTML = tipos.length
+        ? tipos.map((t) => `<button type="button" class="fchip" data-tipo="${esc(t)}" aria-pressed="${state.tipos.has(t)}">${esc(t)} <span class="n">${nCupons(tipoCount[t] || 0)}</span></button>`).join("")
+        : '<span class="fnote">Nenhuma categoria do app cadastrada ainda.</span>';
+      const comodCount = {};
+      for (const c of baseDe("comod")) for (const t of comodSet(c)) comodCount[t] = (comodCount[t] || 0) + 1;
+      const pos = (t) => { const i = COMOD_ORDEM.indexOf(t); return i < 0 ? 99 : i; };
+      const comodProgs = {};
+      for (const c of state.cupons) for (const t of comodSet(c)) (comodProgs[t] ||= new Set()).add(c.programa);
+      const progsComCupom = PROGRAMAS.filter((p) => state.cupons.some((c) => c.programa === p.id));
+      const comods = [...new Set(state.cupons.flatMap((c) => [...comodSet(c)]))].sort((a, b) => pos(a) - pos(b) || collator.compare(a, b));
+      chipsEm($("f-comod")).innerHTML = comods.length
+        ? comods.map((t) => {
+          // programas em que o app informa essa comodidade; se não forem todos, o chip diz quais
+          const ps = PROGRAMAS.filter((p) => comodProgs[t]?.has(p.id));
+          const parcial = ps.length < progsComCupom.length;
+          const vis = parcial ? ` <span class="cid" aria-hidden="true">· só ${esc(listaE(ps.map((p) => p.curto)))}</span><span class="sr-only">, só no ${esc(listaE(ps.map((p) => p.nome)).replace(/ e (?=[^,]*$)/, " e no "))}</span>` : "";
+          return `<button type="button" class="fchip" data-comod="${esc(t)}" aria-pressed="${state.comods.has(t)}">${esc(t)}${vis} <span class="n">${nCupons(comodCount[t] || 0)}</span></button>`;
+        }).join("")
+        : '<span class="fnote">Nenhuma comodidade cadastrada ainda.</span>';
+    }
   }
 
   function renderNotice() {

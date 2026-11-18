@@ -24,7 +24,7 @@ test("atalhos Pet e Kids ligam os mesmos chips das comodidades", async () => {
 
 test('comodidade que só o Tour informa aparece como "só Tour"', async () => {
   const pg = await abrir();
-  await pg.click("#filters-toggle");
+  await aba(pg, "oque");
   const vegano = await texto(pg, '#f-comod button[data-comod="Opções veganas"]');
   assert.match(vegano, /· só Tour/);
   assert.match(await texto(pg, '#f-comod button[data-comod="Opções veganas"] .sr-only'), /só no Tour Grande Poa/);
@@ -169,4 +169,15 @@ test("barra fixa no celular: busca + uma linha de botões que rola de lado", asy
   await pg.focus("#kids-toggle");
   const visivel = await pg.$eval("#kids-toggle", (b) => { const r = b.getBoundingClientRect(); return r.right <= innerWidth && r.left >= 0; });
   assert.ok(visivel);
+});
+
+test("tocar num chip mantém o mesmo botão (foco e leitor de tela ficam nele)", async () => {
+  const pg = await abrir();
+  await aba(pg, "quando");
+  await pg.evaluate(() => { window.__chip = document.querySelector('#f-turno button[data-turno="noite"]'); });
+  await pg.focus('#f-turno button[data-turno="noite"]');
+  await pg.keyboard.press("Enter");
+  await espera(pg);
+  assert.equal(await pg.evaluate(() => document.activeElement === window.__chip && document.contains(window.__chip)), true);
+  assert.equal(await pg.evaluate(() => window.__chip.getAttribute("aria-pressed")), "true");
 });

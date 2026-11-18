@@ -13,6 +13,7 @@ async function ateQuadro(pg, acao) {
     const t = performance.now();
     if (acao === "favoritar") document.querySelector("#grid .ticket .heart").click();
     if (acao === "banco") window.__snap();
+    if (acao === "chip") document.querySelector('#f-turno button[data-turno="noite"]').click();
     if (acao === "letra") {
       const q = document.getElementById("q");
       q.value += "a";
@@ -33,4 +34,15 @@ test(`favoritar, atualizar o banco e digitar ficam abaixo de ${LIMITE_MS} ms (CP
     const ms = await ateQuadro(pg, acao);
     assert.ok(ms < LIMITE_MS, `${acao}: ${Math.round(ms)} ms`);
   }
+});
+
+test(`com o painel de filtros aberto, tocar num chip fica abaixo de ${LIMITE_MS} ms (CPU 4×)`, async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  await pg.click("#aba-quando");
+  const cdp = await pg.context().newCDPSession(pg);
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+  await ateQuadro(pg, "chip"); // aquece
+  const ms = await ateQuadro(pg, "chip");
+  assert.ok(ms < LIMITE_MS, `chip: ${Math.round(ms)} ms (antes: ~470 ms)`);
 });
