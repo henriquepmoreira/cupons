@@ -177,6 +177,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   border: 1px solid var(--line); background: var(--surface); font-size: 16px;
 }
 .search input::placeholder { color: var(--muted); }
+/* o "×" do navegador duplicava o botão de limpar da página */
+.search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
 .search .clear {
   position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 32px; height: 32px; border-radius: 8px;
   border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1;
@@ -469,8 +471,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   .controls > * { flex: none; position: relative; }
   .sort { margin-left: 0; }
   .sort-lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .sort select { max-width: 11em; }
-  .stats { gap: 16px; }
+  .sort select { max-width: 14em; }
+  /* topo compacto: título numa linha, números ao lado e menores (a busca sobe ~150 px) */
+  .masthead { padding-block: 14px 12px; gap: 10px; }
+  .eyebrow { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .title-row { gap: 6px 12px; }
+  h1 { font-size: clamp(26px, 8vw, 34px); white-space: nowrap; }
+  /* números numa linha só, abaixo do título: "577 disponíveis  12 favoritos  3 usados" */
+  .stats { gap: 6px 14px; flex-wrap: wrap; }
+  .stat { display: flex; align-items: baseline; gap: 4px; }
+  .stat b { font-size: 19px; } /* 19 px em negrito ainda é "texto grande" para o contraste do vermelho dos favoritos */
+  .stat span { font-size: 12.5px; }
   .ticket { grid-template-columns: 62px minmax(0, 1fr); }
   .ticket::before, .ticket::after { left: 62px; }
   .mono { font-size: 22px; }
@@ -505,7 +516,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       </button>
       <label class="sort" for="sort"><span class="sort-lbl">Ordenar</span>
         <select id="sort">
-          <option value="app">Ordem do app</option>
+          <option value="app">Padrão (como no app)</option>
           <option value="az">Nome (A–Z)</option>
           <option value="fav">Favoritos primeiro</option>
           <option value="categoria">Por categoria</option>
@@ -732,6 +743,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     cupons: [], phase: "loading", // loading | ready | nodb | error
     slow: false, readOnly: false,
     copiaDe: null, // data da cópia somente leitura, quando o banco não está disponível
+    deCache: null, // data da lista guardada neste aparelho, enquanto o banco não respondeu
+    cacheLento: false, // o banco demora: avisa que a lista na tela é a guardada
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
     quando: null, data: null, aceita: new Set(), turnos: new Set(), shoppings: new Set(), cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
@@ -927,10 +940,22 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
      juntas; a cidade e o bairro de cada cupom aparecem para separar as unidades. */
   const nomeBase = (nome) => norm(nome).split(/\s+[-–]\s+/)[0].replace(/['’`´]/g, "").replace(/&/g, " e ")
     .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
-  let _grupos = { de: null, n: -1, mapa: new Map() };
+  // O agrupamento (O(n²)) só é refeito quando ids, nomes ou programas mudam; a cada atualização do banco
+  // (favorito, usado) só se trocam os objetos pelos novos, em O(n).
+  let _grupos = { de: null, n: -1, mapa: new Map() }, _gruposIds = { sig: "", ids: new Map() };
   function grupos() { // id -> lista de cupons do mesmo lugar (inclui o próprio), só quando há outro programa
     if (_grupos.de === state.cupons && _grupos.n === state.cupons.length) return _grupos.mapa;
-    const cs = state.cupons, ws = cs.map((c) => nomeBase(c.nome));
+    const cs = state.cupons;
+    const sig = cs.map((c) => `${c.id}\u0001${c.programa}\u0001${c.nome}`).join("\u0002");
+    if (sig !== _gruposIds.sig) _gruposIds = { sig, ids: gruposPorId(cs) };
+    const porId = new Map(cs.map((c) => [c.id, c]));
+    const mapa = new Map();
+    for (const [id, ids] of _gruposIds.ids) mapa.set(id, ids.map((x) => porId.get(x)).filter(Boolean));
+    _grupos = { de: cs, n: cs.length, mapa };
+    return mapa;
+  }
+  function gruposPorId(cs) {
+    const ws = cs.map((c) => nomeBase(c.nome));
     const pai = cs.map((_, i) => i);
     const raiz = (i) => (pai[i] === i ? i : (pai[i] = raiz(pai[i])));
     const prefixo = (a, b) => a.length > 0 && a.length <= b.length && a.every((w, i) => w === b[i]);
@@ -940,10 +965,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }
     const porRaiz = new Map();
     cs.forEach((c, i) => { const r = raiz(i); if (!porRaiz.has(r)) porRaiz.set(r, []); porRaiz.get(r).push(c); });
-    const mapa = new Map();
-    for (const g of porRaiz.values()) if (new Set(g.map((c) => c.programa)).size > 1) for (const c of g) mapa.set(c.id, g);
-    _grupos = { de: cs, n: cs.length, mapa };
-    return mapa;
+    const ids = new Map();
+    for (const g of porRaiz.values()) if (new Set(g.map((c) => c.programa)).size > 1) { const lista = g.map((c) => c.id); for (const c of g) ids.set(c.id, lista); }
+    return ids;
   }
   const outrosProgramas = (c) => (grupos().get(c.id) || []).filter((x) => x.programa !== c.programa);
   const ondeFica = (c) => {
@@ -983,8 +1007,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     _dist.mapa.set(c.id, best);
     return best;
   }
-  const fmtKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} m` : `${km.toLocaleString("pt-BR", { maximumFractionDigits: km < 10 ? 1 : 0 })} km`);
-  const falaKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} metros` : `${km.toLocaleString("pt-BR", { maximumFractionDigits: km < 10 ? 1 : 0 })} quilômetros`);
+  // formatadores criados uma vez (toLocaleString cria um a cada chamada)
+  const NUM1 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }), NUM0 = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+  const kmTxt = (km) => (km < 10 ? NUM1 : NUM0).format(km);
+  const fmtKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} m` : `${kmTxt(km)} km`);
+  const falaKm = (km) => (km < 1 ? `${Math.max(50, Math.round(km * 20) * 50)} metros` : `${kmTxt(km)} quilômetros`);
   let _bairrosRef = { geo: null, n: -1, mapa: new Map() };
   function bairrosRef() { // "cidade|bairro" -> { lat, lng, bairro, cidade }: média das unidades com endereço no bairro
     if (_bairrosRef.geo === state.geo && _bairrosRef.n === state.cupons.length) return _bairrosRef.mapa;
@@ -1050,6 +1077,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     let r = _faixasMin.get(h);
     if (!r) { r = faixas(h).map(([a, b]) => { const x = minutos(a); let y = minutos(b); if (y <= x) y += 1440; return [x, y]; }); _faixasMin.set(h, r); }
     return r;
+  }
+  const hhmm = (m) => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+  // estado do cupom hoje, pela hora atual: { tipo: "agora", fim } | { tipo: "depois", ini, fim } | { tipo: "encerrado" }
+  function etiquetaHoje(c, h) {
+    const d = new Date(), agora = d.getHours() * 60 + d.getMinutes();
+    const ontem = valeEm(c, addDays(today(), -1)); // faixa de ontem que passou da meia-noite e ainda vale
+    if (ontem?.ok) for (const [, y] of faixasMin(ontem.h)) if (y > 1440 && agora <= y - 1440) return { tipo: "agora", fim: y };
+    const fs = faixasMin(h);
+    // como valeAgora: o minuto final ainda vale ("até 15:00" vale às 15:00)
+    for (const [x, y] of fs) if (agora >= x && agora <= y) return { tipo: "agora", fim: y };
+    const prox = fs.filter(([x]) => x > agora).sort((a, b) => a[0] - b[0])[0];
+    return prox ? { tipo: "depois", ini: prox[0], fim: prox[1] } : { tipo: "encerrado" };
   }
   function faixaNoTurno(h, w1, w2) {
     // a faixa pode passar da meia-noite (fim + 1440); compara também deslocada de um dia
@@ -1160,6 +1199,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         // várias unidades, mas só uma com horário conhecido (ex.: o app mostra só a primeira): diz qual
         const b = comHorario[0]?.bairro;
         tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}${b ? ` (${b})` : ""}`, `Vale ${fala}, ${falaFaixas(v.h)}${b ? `, na unidade ${b}` : ""}. Os horários das outras unidades não estão cadastrados.`)}</span>`);
+      } else if (alvo === today()) {
+        // hoje: diz o momento (vale agora até X, a partir de Y, ou encerrado), em vez de só listar as faixas
+        const e = etiquetaHoje(c, v.h);
+        tags.unshift(e.tipo === "agora"
+          ? `<span class="tag hoje">${duplo(`Agora · até ${hhmm(e.fim)}`, `Vale agora, até as ${hhmm(e.fim)}.`)}</span>`
+          : e.tipo === "depois"
+          ? `<span class="tag hoje">${duplo(`Hoje a partir das ${hhmm(e.ini)}`, `Vale hoje a partir das ${hhmm(e.ini)}, até as ${hhmm(e.fim)}.`)}</span>`
+          : `<span class="tag off">${duplo("Encerrado hoje", `Hoje já encerrou. Valia ${falaFaixas(v.h)}.`)}</span>`);
       } else tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}`, `Vale ${fala}, ${falaFaixas(v.h)}.`)}</span>`);
     }
     const locTxt = outras.length
@@ -1312,7 +1359,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const el = $("planos");
     if (!ready || !state.cupons.length) { setHidden(el, true); return; }
     const t = today();
-    const nf = (n) => n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+    const nf = (n) => NUM1.format(n);
     const pl = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
     const linhas = [], semValidade = [];
     const resumo = []; let porSemana = 0, proximo = null; // para a linha de resumo
@@ -1612,6 +1659,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     const el = $("notice");
     let msg = "";
     if (state.phase === "ready" && state.copiaDe !== null) msg = `Cópia da carteira${state.copiaDe ? ` de ${fmtDate(state.copiaDe)}` : ""}, só para consulta. Favoritos e cupons usados podem ter mudado depois. Quem tem acesso à carteira vê a versão atualizada entrando no claude.ai antes de abrir o link.`;
+    else if (state.phase === "ready" && state.deCache && state.cacheLento) msg = `Lista guardada neste aparelho (${fmtDate(state.deCache)} ${hhmm(new Date(state.deCache).getHours() * 60 + new Date(state.deCache).getMinutes())}). Atualizando…`;
     else if (state.phase === "ready" && state.slow) msg = "Sem resposta do servidor há alguns segundos. A lista pode estar desatualizada.";
     else if (state.phase === "ready" && state.readOnly) msg = "Você está vendo a carteira em modo leitura. Só a dona ou o dono pode favoritar e marcar cupons como usados.";
     setHidden(el, !msg);
@@ -1854,11 +1902,17 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   /* ---------- banco de dados ---------- */
   let col = null;
   const queues = new Map();
+  // escritas feitas na lista guardada antes de o banco responder; vão ao banco assim que ele chegar
+  const pendentes = [];
   function write(id, patch) {
-    if (!col || state.readOnly) return;
+    if (state.readOnly || (!col && !state.deCache)) return;
     const c = state.cupons.find((x) => x.id === id);
     if (c) Object.assign(c, patch); // resposta imediata; o onSnapshot confirma
     render();
+    if (!col) { pendentes.push([id, patch]); return; }
+    envia(id, patch);
+  }
+  function envia(id, patch) {
     const run = async () => {
       try {
         await col.doc(id).update(patch);
@@ -1882,11 +1936,37 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     queues.set(id, next);
   }
 
+  /* Primeira tela instantânea: a última lista que veio do banco fica guardada no navegador. Ao abrir,
+     ela aparece na hora e é trocada pela do banco quando ele responder (os cartões que não mudaram
+     continuam os mesmos). Favoritos e usados continuam valendo o que está no banco. */
+  const CACHE_KEY = "cupons-em-dobro:cache:v1";
+  function leCache() {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      return c && Array.isArray(c.cupons) && c.cupons.length && typeof c.em === "string" ? c : null;
+    } catch (_) { return null; }
+  }
+  let _cacheTimer = null;
+  function guardaCache() {
+    clearTimeout(_cacheTimer);
+    _cacheTimer = setTimeout(() => {
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons })); }
+      catch (_) { try { localStorage.removeItem(CACHE_KEY); } catch (_) {} } // sem espaço: melhor nenhuma cópia que uma velha
+    }, 1500);
+  }
+
   async function boot() {
     const slowTimer = setTimeout(() => { state.slow = true; render(); }, 10000);
+    const cache = leCache();
+    if (cache && state.phase === "loading") {
+      state.cupons = cache.cupons; state.deCache = cache.em; state.phase = "ready";
+      setTimeout(() => { if (state.deCache) { state.cacheLento = true; render(); } }, 1500);
+      render();
+    }
     const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
     if (!db) { clearTimeout(slowTimer); carregaCopia("nodb"); return; }
     col = db.collection("cupons");
+    for (const [id, patch] of pendentes.splice(0)) envia(id, patch);
     window.claude.use("user").then(async (user) => {
       if (!user) return;
       // can() null = a plataforma não informou: mantém os botões e deixa a escrita decidir
@@ -1894,14 +1974,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (!owner && can === false) { state.readOnly = true; render(); }
     });
     col.onSnapshot((snap) => {
+      if (state.deCache && snap.metadata.fromCache && !snap.size) return; // cache vazio da plataforma: fica a lista guardada
       state.cupons = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      if (!snap.metadata.fromCache) { clearTimeout(slowTimer); state.slow = false; state.phase = "ready"; }
-      else if (snap.size) state.phase = "ready";
+      if (!snap.metadata.fromCache) {
+        clearTimeout(slowTimer); state.slow = false; state.phase = "ready";
+        state.deCache = null; state.cacheLento = false;
+        guardaCache();
+      } else if (snap.size) state.phase = "ready";
       render();
     }, (err) => {
       clearTimeout(slowTimer);
       state.slow = false;
-      if (state.cupons.length) { state.phase = "ready"; toast("A conexão com a carteira caiu. Recarregue a página para ver mudanças novas."); }
+      if (state.cupons.length) { state.phase = "ready"; if (state.deCache) { state.copiaDe = state.deCache; state.readOnly = true; state.deCache = null; } toast("A conexão com a carteira caiu. Recarregue a página para ver mudanças novas."); }
       else { carregaCopia("error"); return; }
       render();
     });
@@ -1916,13 +2000,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (!r.ok) throw new Error(String(r.status));
       const data = await r.json();
       if (!Array.isArray(data.cupons) || !data.cupons.length) throw new Error("cópia vazia");
+      // a lista guardada neste aparelho fica quando é mais nova que a cópia publicada
+      if (state.deCache && data.geradoEm && state.deCache > data.geradoEm) throw new Error("guardada é mais nova");
       state.cupons = data.cupons;
       state.copiaDe = data.geradoEm || "";
       state.readOnly = true;
       state.phase = "ready";
     } catch (_) {
-      state.phase = semCopia;
+      // sem cópia publicada: se há a lista guardada neste aparelho, ela fica, só para consulta
+      if (state.deCache) { state.copiaDe = state.deCache; state.readOnly = true; }
+      else state.phase = semCopia;
     }
+    state.deCache = null; state.cacheLento = false;
     render();
   }
 
@@ -2226,6 +2315,12 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   const ajustaRolagem = () => { document.documentElement.style.scrollPaddingTop = `${Math.ceil(barra.getBoundingClientRect().height) + 8}px`; };
   if (window.ResizeObserver) new ResizeObserver(ajustaRolagem).observe(barra);
   ajustaRolagem();
+
+  // a etiqueta "Agora · até 15:00" depende da hora: redesenha a cada minuto com a página visível
+  // e ao voltar para a aba (o celular congela os timers de abas em segundo plano)
+  const renovaHora = () => { if (!document.hidden && state.phase === "ready") render(); };
+  setInterval(renovaHora, 60000);
+  document.addEventListener("visibilitychange", renovaHora);
 
   render();
   boot();

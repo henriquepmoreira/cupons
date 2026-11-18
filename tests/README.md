@@ -23,6 +23,7 @@ npm test           # página (node:test + Playwright), geocodificador e sincroni
 - `data/geo.json` servido como `geo.json`; `snapshot.json` responde 404;
 - `aba(pg, "onde")` abre o painel Filtros na aba pedida;
 - `ajustar(docs)` muda os cupons antes de abrir, para simular um caso que os dados reais não têm;
+- `atrasoBanco` (ms), `semBanco` e `cache` (`{ em, cupons }` posto no localStorage antes de abrir) simulam banco lento, link aberto sem login e a lista guardada; `esperarCartoes: false` devolve a página logo depois de navegar;
 - data e hora fixas (`abrir({ data: "2026-11-20T12:30:00" })`), localização simulada (`localizacao`), tema, largura e preferências salvas.
 
 As verificações conferem relações ("o chip do feriado tem menos cupons que o de hoje") em vez de números exatos, para os testes não quebrarem quando os dados mudam.
@@ -35,7 +36,8 @@ As verificações conferem relações ("o chip do feriado tem menos cupons que o
 | `mesmo-lugar.test.js` | aviso "Também em…", comparação de ofertas, sugestão de qual usar, "Ver juntos" e foco ao voltar, aviso ao marcar como usado |
 | `filtros.test.js` | atalhos Pet e Kids, aviso "só Tour", comodidades por unidade, shopping, turno, aceita em datas comemorativas, abas do painel (setas e contadores), linha de filtros ativos (remover e foco), sem rolagem lateral no celular |
 | `perto.test.js` | ordem por distância com localização permitida, raio, localização negada, bairro salvo, sem `geo.json` |
-| `lista.test.js` | lotes de 40 e foco do "Mostrar mais", lote mantido ao usar/favoritar, cartões reaproveitados, painéis montados ao abrir, ordem por categoria |
+| `lista.test.js` | lotes de 40 e foco do "Mostrar mais", lote mantido ao usar/favoritar, cartões reaproveitados, painéis montados ao abrir, ordem por categoria, etiqueta "Agora · até / a partir das / Encerrado hoje", topo compacto no celular, mesmo lugar refeito só quando muda um nome |
+| `cache.test.js` | lista guardada no navegador: guardada depois do banco, mostrada na hora com banco lento e trocada pela do banco, aviso só quando demora, favorito antes do banco, sem banco, cópia estragada |
 | `acessibilidade.test.js` | árvore de acessibilidade do Chrome (todo cartão completo; menos de 5 mil nós), poucos nós trocados por favorito, foco nunca sob a barra fixa, axe-core nos temas claro e escuro |
 | `desempenho.test.js` | com a CPU 4× mais lenta, favoritar, atualizar o banco e digitar ficam abaixo de 400 ms |
 | `test_sincronizar.py` | sincronização banco ↔ arquivos: sem diferença, diferença nas duas direções, cupom novo e cupom só no banco |

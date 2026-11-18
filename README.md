@@ -13,7 +13,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps, e atalhos "Pet" e "Kids" (os mesmos chips de comodidades)
 - Botão "Agora, perto": liga "Vale agora" e ordena do mais perto ao mais longe num toque; sem localização, usa o bairro escolhido ou abre a aba Onde
 - Comodidades que só um programa informa aparecem marcadas no chip (ex.: "Opções veganas · só Tour"): o Poa e o Canoas só informam Aceita Pet e Espaço Kids
-- Ordenação: ordem do app, nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
+- Ordenação: padrão (como no app), nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - A lista aparece em lotes de 40 cartões, com o botão "Mostrar mais" no fim (com os 577 de uma vez, o TalkBack no Chrome travava)
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
 - Link de mapa para cada estabelecimento
@@ -21,6 +21,9 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Feriados e datas comemorativas: cupons com `feriados: false` ou `datasComemorativas: false` aparecem como "Não vale hoje (feriado: …)" nesses dias, e o topo avisa os feriados dos próximos 7 dias com quantos cupons eles bloqueiam
 - Mesmo lugar em outro programa: o cartão avisa "Também em Tour Grande Poa (1 disponível) · …", lista os outros cupons (unidade, situação e oferta) e tem "Ver os N juntos", que mostra só esse grupo, com os usados. Ao marcar um como usado, o aviso diz em quais programas ainda tem. Quando a mesma unidade está em dois planos, o cartão sugere qual usar primeiro (o do plano que vence antes) e marca "mesma oferta" ou "oferta diferente" em cada um
 - No celular, só a busca e uma linha de botões que rola de lado ficam presas no topo (Filtros, Ordenar, situação, Favoritos, Vale agora, Agora perto, Pet, Kids); a validade dos planos aparece resumida numa linha que abre com um toque
+- Etiqueta de hoje diz o momento: "Agora · até 15:00" (vale agora), "Hoje a partir das 18:00" (ainda vai valer hoje) ou "Encerrado hoje"; acompanha a hora a cada minuto e ao voltar para a aba
+- Primeira tela na hora: a última lista que veio do banco fica guardada no navegador e aparece antes de o banco responder; quando ele chega, a lista é trocada (favoritos e usados valem o banco). Favoritar nesse intervalo funciona e vai ao banco quando ele responder. Se o banco demorar mais de 1,5 s, um aviso discreto diz que a lista é a guardada
+- No celular, o topo é compacto: título numa linha e os números (disponíveis, favoritos, usados) numa linha abaixo, menores; a busca fica a ~190 px do topo (antes 343)
 - Lista compacta (botão "Compacta"): uma linha por cupom, com o cartão completo ao expandir
 - Quando nada combina, a página sugere qual filtro tirar ("Sem Noite: 12 cupons") e aplica com um toque
 - Ao recarregar a aba, a lista volta ao mesmo ponto (mesmo lote e rolagem), se os filtros forem os mesmos

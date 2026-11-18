@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 35, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 36, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -58,6 +58,11 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
   - **Foco escondido sob a barra fixa:** `scroll-padding-top` acompanha a altura da `.toolbar` (`ResizeObserver`). Antes, navegando para trás, metade dos itens focados ficava sob a barra.
   - axe-core 4.10 (WCAG 2.2 AA + boas práticas), temas claro e escuro, 412 px: lista com lotes, Filtros com Perto de/raio/Data, cartão com os dois painéis abertos: nenhuma violação.
   - O teste com o TalkBack de verdade precisa ser feito no celular; aqui só dá para medir a árvore que ele recebe.
+- **Desempenho e UX (versão 36, 18/11/2026).**
+  - **Lista guardada** (`CACHE_KEY = "cupons-em-dobro:cache:v1"`, `leCache`, `guardaCache`): 1,5 s depois de cada snapshot do servidor, `{ em, cupons }` vai para o localStorage (~500 KB). Em `boot()`, antes de esperar o banco, a lista guardada vira `state.cupons` com `state.deCache = em` e `phase = "ready"`. O primeiro snapshot do servidor troca a lista e limpa `deCache`; snapshot vazio vindo do cache da plataforma é ignorado. Escritas antes do banco (`!col`) ficam em `pendentes` e são enviadas (`envia`) assim que `col` existe. Sem banco e sem `snapshot.json`, a lista guardada fica só para consulta (vira `copiaDe`); com `snapshot.json`, fica a mais nova das duas. Aviso só depois de 1,5 s (`cacheLento`), para não piscar. Medido (CPU 4×, banco respondendo em 1,5 s): primeiro cartão em 1.992 → 391 ms.
+  - **Etiqueta de hoje** (`etiquetaHoje`, `hhmm`): só no ramo de uma unidade e quando a data é hoje; mesma regra de `valeAgora` (o minuto final vale; faixa de ontem que passa da meia-noite conta). `renovaHora` redesenha a cada 60 s com a aba visível e no `visibilitychange`. Datas escolhidas e várias unidades seguem como antes ("Amanhã 18:00–23:00", "Hoje em 2 de 3 unidades").
+  - **Mesmo lugar sem refazer:** `grupos()` guarda o agrupamento por id (`gruposPorId`, union-find O(n²)) e só o refaz quando muda a assinatura id/programa/nome; a cada snapshot só troca os objetos (O(n)). Números com `Intl.NumberFormat` criados uma vez (`NUM1`, `NUM0`, `kmTxt`).
+  - **Topo no celular:** `.eyebrow` só para leitor de tela, `h1` numa linha (`clamp(26px, 8vw, 34px)`), números numa linha (`.stat b` 19 px: abaixo disso o vermelho dos favoritos perde o contraste de texto grande). Busca: `::-webkit-search-cancel-button` escondido (fica só o × da página); "Ordem do app" virou "Padrão (como no app)".
 - **Desempenho e uso (versão 35, 18/11/2026).** CPU 4×, até a tela atualizar: abrir Filtros 248 → 103 ms, chip de turno 466 → 138 ms, chip de shopping 266 → 65 ms, trocar de aba 301 → 79 ms.
   - Contagens: `baseDe(grupo)` calcula uma vez por redesenho quem passa nos outros filtros, e `count()` só testa o chip nesse conjunto; só a aba aberta é montada (`if (aba === "...")`). `semFiltro` entra na chave da base. Chips fora da aba aberta ficam com valores antigos no DOM escondido; ao abrir a aba eles se atualizam (em testes, leia os chips com a aba aberta).
   - `chipsEm(el).innerHTML = …`: se os chips são os mesmos (mesmos `data-*`), atualiza `aria-pressed`, `disabled`, classe e conteúdo no lugar; o botão tocado não é trocado (foco e TalkBack ficam nele, sem layout forçado). `faixasMin` e `diaKey` guardam conversões em cache.
@@ -275,3 +280,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 42. (este commit) botão "Agora, perto"; versão 33
 43. (este commit) barra fixa numa linha rolável e resumo dos planos recolhível; versão 34
 44. (commits a8807e0, 6e1c3c5, fd770b1 e este) contagens mais rápidas, fontes sem bloquear, coordenadas sob demanda, Filtros em tela cheia no celular, lista compacta, sugestões sem resultado, posição ao recarregar; versão 35
+45. (este commit) lista guardada no navegador (primeira tela na hora), etiqueta "Agora · até / Hoje a partir das / Encerrado hoje", topo compacto no celular, agrupamento mesmo lugar em cache, "Padrão (como no app)" e um × só na busca; versão 36

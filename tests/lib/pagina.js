@@ -3,6 +3,7 @@
 // - Os cupons vêm de data/*.json (id = <programa>--<slug>), como no banco.
 // - window.__snap() reenvia o snapshot (simula uma atualização do banco, com objetos novos).
 // - window.__escritas guarda cada update() que a página manda ao banco: [{ id, patch }].
+// - window.__atrasoBanco (ms) atrasa a resposta de claude.use("db") (simula banco lento).
 // - A página é servida em https (a localização do navegador só funciona em contexto seguro).
 // - Para conferir acessibilidade, use a árvore do Chrome (arvoreAcessibilidade) e textContent;
 //   innerText e ariaSnapshot leem o DOM e podem esconder problemas que o TalkBack veria.
@@ -31,6 +32,8 @@ const bancoFalso = `
   window.claude = { use: async (k) => {
     if (k === "user") return { isOwner: async () => true, can: async () => true };
     if (k !== "db") return null;
+    if (window.__semBanco) return null;
+    if (window.__atrasoBanco) await new Promise((r) => setTimeout(r, window.__atrasoBanco));
     return { collection: () => ({
       onSnapshot: (cb) => {
         window.__snap = () => cb({ metadata: { fromCache: false }, size: window.__docs.length,
@@ -59,6 +62,10 @@ async function abrirNavegador() {
  * @param {boolean} [o.geo]        serve data/geo.json (padrão true)
  * @param {string} [o.arquivo]     outra versão da página (padrão cupons.html)
  * @param {(docs: object[]) => object[]|void} [o.ajustar]  muda os cupons antes de abrir
+ * @param {number} [o.atrasoBanco] ms até o banco responder
+ * @param {boolean} [o.semBanco]   sem banco (como quem abre o link sem estar logado)
+ * @param {{em:string, cupons:object[]}} [o.cache]  lista guardada no navegador antes de abrir
+ * @param {boolean} [o.esperarCartoes]  padrão true
  */
 async function abrir(o = {}) {
   const b = await abrirNavegador();
@@ -74,7 +81,8 @@ async function abrir(o = {}) {
   // ajustar(docs) muda os cupons antes de a página abrir (para simular um caso que os dados reais não têm)
   let docs = cupons();
   if (o.ajustar) docs = o.ajustar(docs) || docs;
-  await pg.addInitScript(`window.__docs = ${JSON.stringify(docs)};${bancoFalso}`);
+  await pg.addInitScript(`window.__docs = ${JSON.stringify(docs)};window.__atrasoBanco = ${o.atrasoBanco || 0};window.__semBanco = ${!!o.semBanco};${bancoFalso}`);
+  if (o.cache) await pg.addInitScript(`try { if (!sessionStorage.getItem("__cache_ok")) { localStorage.setItem("cupons-em-dobro:cache:v1", ${JSON.stringify(JSON.stringify(o.cache))}); sessionStorage.setItem("__cache_ok", "1"); } } catch (_) {}`);
   if (o.prefs) await pg.addInitScript(`try { localStorage.setItem("cupons-em-dobro:prefs:v1", ${JSON.stringify(JSON.stringify(o.prefs))}); } catch (_) {}`);
   // CUPONS_HTML=<arquivo> roda os testes contra outra versão da página (útil para ver se um teste pega a regressão)
   const html = fs.readFileSync(o.arquivo || process.env.CUPONS_HTML || path.join(RAIZ, "cupons.html"), "utf8");
@@ -86,6 +94,7 @@ async function abrir(o = {}) {
     : r.fulfill({ contentType: "application/json", body: fs.readFileSync(path.join(RAIZ, "data", "geo.json"), "utf8") })));
   await pg.route(ORIGEM + "snapshot.json", (r) => r.fulfill({ status: 404, body: "" }));
   await pg.goto(ORIGEM);
+  if (o.esperarCartoes === false) return pg;
   await pg.waitForSelector(".ticket");
   await pg.waitForTimeout(300);
   return pg;

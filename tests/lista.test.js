@@ -1,7 +1,7 @@
 // Lotes de 40 cartões, cartões reaproveitados e painéis montados ao abrir.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, aba, fecharFiltros, texto, numero, espera, busca, focado, cartoes } = require("./lib/pagina");
+const { abrir, fechar, aba, fecharFiltros, texto, textos, numero, espera, busca, focado, cartoes } = require("./lib/pagina");
 
 after(fechar);
 
@@ -169,4 +169,74 @@ test("recarregar a aba volta ao mesmo ponto da lista (mesmos filtros)", async ()
   await pg.waitForTimeout(500);
   assert.equal(await cartoes(pg), 80, "o lote carregado volta");
   assert.ok(Math.abs((await pg.evaluate(() => scrollY)) - y) < 60, "a rolagem volta");
+});
+
+test("etiqueta de hoje diz o momento: a partir de, agora até, encerrado (Grazie Mille, quarta 18:00–23:00)", async () => {
+  const card = '.ticket[data-id="poa-em-dobro--grazie-mille-pizzaria"]';
+  const pg = await abrir({ data: "2026-11-18T12:30:00" });
+  await busca(pg, "grazie mille");
+  assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Hoje a partir das 18:00");
+  assert.equal(await texto(pg, `${card} .tag.hoje .sr-only`), "Vale hoje a partir das 18:00, até as 23:00.");
+  // ao voltar para a aba, a etiqueta acompanha a hora
+  const volta = async (hora) => {
+    await pg.clock.setFixedTime(new Date(`2026-11-18T${hora}:00`));
+    await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await espera(pg);
+  };
+  await volta("20:00");
+  assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Agora · até 23:00");
+  assert.equal(await texto(pg, `${card} .tag.hoje .sr-only`), "Vale agora, até as 23:00.");
+  await volta("23:00");
+  assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Agora · até 23:00", "o minuto final ainda vale, como no filtro Vale agora");
+  await volta("23:30");
+  assert.equal(await texto(pg, `${card} .tag.off [aria-hidden]`), "Encerrado hoje");
+  assert.match(await texto(pg, `${card} .tag.off .sr-only`), /^Hoje já encerrou\. Valia /);
+});
+
+test('com "Vale agora", toda etiqueta de uma unidade diz "Agora · até"', async () => {
+  for (const hora of ["12:30", "16:00", "23:50", "00:30"]) {
+    const pg = await abrir({ data: `2026-11-${hora < "06" ? 19 : 18}T${hora}:00` });
+    await pg.click("#agora-toggle");
+    await espera(pg);
+    const tags = await textos(pg, "#grid .tag.hoje [aria-hidden], #grid .tag.off [aria-hidden]");
+    const umaUnidade = tags.filter((t) => !/unidades/.test(t));
+    assert.ok(umaUnidade.length > 0, hora);
+    assert.deepEqual(umaUnidade.filter((t) => !/^Agora · até \d\d:\d\d$/.test(t)), [], hora);
+    await pg.context().close();
+  }
+});
+
+test('ordenação "Padrão (como no app)" e busca com um × só', async () => {
+  const pg = await abrir();
+  assert.equal(await pg.$eval('#sort option[value="app"]', (o) => o.textContent), "Padrão (como no app)");
+  // o Chrome não informa o estilo desse pseudo-elemento; confere a regra que esconde o × do navegador
+  assert.ok(await pg.evaluate(() => [...document.styleSheets].some((ss) => { try { return [...ss.cssRules].some((r) => /::-webkit-search-cancel-button/.test(r.selectorText || "") && r.style.display === "none"); } catch (_) { return false; } })));
+  await busca(pg, "pizza");
+  assert.equal(await pg.$eval("#q-clear", (b) => b.hidden), false, "o × da página aparece");
+});
+
+test("atualização do banco não refaz o agrupamento mesmo lugar; mudar um nome refaz", async () => {
+  const pg = await abrir();
+  await busca(pg, "spoleto");
+  const aviso = () => pg.$$eval("#grid .ticket .outros", (x) => x.length);
+  const n = await aviso();
+  assert.ok(n > 0);
+  await pg.evaluate(() => { window.__docs.find((d) => /spoleto/i.test(d.nome) && d.programa === "tour-grande-poa").nome = "Outro Lugar"; window.__snap(); });
+  await espera(pg, 150);
+  assert.ok((await aviso()) < n, "o nome novo saiu do grupo");
+});
+
+test("topo compacto no celular: título numa linha e a busca perto do topo", async () => {
+  for (const largura of [320, 390, 412]) {
+    const pg = await abrir({ largura });
+    const m = await pg.evaluate(() => ({
+      busca: document.querySelector(".toolbar").getBoundingClientRect().top,
+      h1: document.querySelector("h1").getBoundingClientRect().height,
+      lado: document.documentElement.scrollWidth - innerWidth,
+    }));
+    assert.ok(m.busca < (largura === 320 ? 240 : 200), `${largura}px: busca a ${Math.round(m.busca)} px do topo (antes 343)`);
+    assert.ok(m.h1 < 40, `${largura}px: título numa linha (${Math.round(m.h1)} px)`);
+    assert.equal(m.lado, 0, `${largura}px: sem rolagem lateral`);
+    await pg.context().close();
+  }
 });
