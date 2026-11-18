@@ -103,7 +103,7 @@ Duas gravações de tela (11 partes de 90 s, 720 px, 6 quadros/s) mostraram a te
 
 ## Canoas em Dobro
 
-São 133 cupons: 99 de 34 prints da aba Cupons (a Família Kabana saiu do programa e o segundo Urban 1736 era um erro do app; os dois foram apagados), 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger) e 32 já usados, vistos em prints de 17/11 (ver "Cupons já usados"). Na captura original a lista parecia **não terminar**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
+São 134 cupons: 99 de 34 prints da aba Cupons (a Família Kabana saiu do programa e o segundo Urban 1736 era um erro do app; os dois foram apagados), 2 vistos no vídeo de 12/11 (Paradouro Café e The West Burger) 32 já usados, vistos em prints de 17/11 (ver "Cupons já usados"), e o Degustar no Bairro, visto no vídeo de 17/11 (ver "Conferência das listas"). Na captura original a lista parecia **não terminar**: depois do Grano Forneria vêm Paradouro Café, Guido Café & Cia e The West Burger, e embaixo deste há pelo menos mais um cartão, com o nome escondido pela barra de navegação. A lista carrega mais cupons quando chega ao fim.
 
 - Não há pontos de anúncio sem emenda: em todos os prints o cupom seguinte aparece no rodapé do anterior.
 - **Dois cupons do Comidas de Boteco**, com ofertas diferentes, são registrados como cupons separados. O segundo Urban 1736 que aparecia na lista era um erro do app (confirmado em 17/11) e foi apagado.
@@ -166,6 +166,19 @@ Dois zips com 44 prints mostraram os cupons já usados nos três apps. No Poa e 
 - **Tour Grande Poa:** 34 vouchers novos (ordem 204–237). Chiquinho Havan, que já estava na carteira, foi marcado como usado. O Cachorro do Bigode usado é outro voucher (ordem 237); o da carteira, de Cristo Redentor, continua disponível e passou a se chamar "Cachorro do Bigode - Cristo Redentor" (confirmado em 17/11); Manos Fast Food já tinha sido marcado na página em 16/11 e o Don Carlone em 11/11. O Ah! Casa usado oferece "um salgado ou doce", diferente do voucher que está na carteira ("qualquer prato participante"), então entrou como outro cupom. O "Woking Thai Food - …" usado é o de Canoas (confirmado em 17/11), que não estava na carteira, e entrou como voucher novo (ordem 236). No Canoas em Dobro, o Woking Thai Food usado também foi confirmado.
 - **Nomes cortados no app:** Pastel com Borda C…, Village Grill Restau… (Poa); Zanardi Padaria &…, El Mago Parrilla y B…, BBQ Pizzas Artesa…, Salvador Bar e Cozi… (Canoas); Fiesckis Pizzas Cano…, Wish Burguer - Can…, Quiero Café - ParkShopping Can…, Helena Burger Cano… (Tour). Completados pelo logo: Cantina Famiglia Lando, La Bella Donna Pizzaria, Ventralis BBQ e Burger, Boxfim 24 de Outubro, Louis Hamburgueria.
 - **Família Kabana Pizzaria:** saiu do programa (confirmado em 17/11) e foi apagada do arquivo e do banco. Os cupons seguintes do Canoas andaram uma posição.
+
+## Conferência das listas (vídeos de 17/11/2026)
+
+Duas gravações rolando a lista inteira, sem abrir os cupons: Canoas em Dobro às 18:56 (94 s, em duas partes) e Tour Grande Poa às 18:58 (199 s, em três partes; os arquivos vieram todos com o nome "tour_parte_NN"). Cada quadro foi conferido em imagem, com a ajuda do OCR para achar os nomes.
+
+- **Canoas em Dobro:** a ordem bate com a carteira do Kampeki Sushi ao Manjericão Toscano, e os 35 usados do fim da lista (Paradouro Café ao Amo Café) batem um a um.
+  - **Cupom novo:** Degustar no Bairro, entre o Xis Rei e o The Big Mamma (uma garrafa de vinho boscato, igual ou de menor valor; sem favorito). Entrou na posição 78 e os seguintes andaram uma posição. Não tem detalhes.
+  - **Ofertas mudadas:** Darna (agora "uma sequência árabe") e Spoleto (filé de frango no lugar de filé de sobrecoxa).
+  - **Sumiram da lista:** Guacamole Taqueria e Grano Forneria. Não aparecem nem entre os disponíveis nem entre os usados (em preto e branco no fim). Continuam na carteira até o usuário dizer se saíram do programa.
+- **Tour Grande Poa:** a lista de vouchers disponíveis bate com a carteira, na mesma ordem, de Ah! Casa a Vino! Novo Hamburgo. Os três usados que já estavam na carteira (Don Carlone, Chiquinho Havan e Manos Fast Food) não aparecem, como esperado. As ofertas dos 200 cartões foram comparadas com a carteira.
+  - **Cupom novo:** Helena Burger POA, entre o Funny Feelings e o Inner (qualquer hambúrguer, igual ou de menor valor; sem asterisco, sem favorito). É outro voucher, diferente do Helena Burger Cano… já usado. Entrou na posição 159 e os seguintes andaram uma posição. Não tem detalhes.
+  - **Oferta mudada:** Darna Cozinha Mediterrânea (agora "uma sequência árabe individual", ganhe outra igual, sem asterisco; antes era "um prato participante*", igual ou de menor valor).
+  - **Sumiu da lista:** Go Coffee São Leopoldo. A lista do vídeo não mostra os usados do Tour, então pode ter sido usado ou ter saído do programa. Continua na carteira como disponível até o usuário confirmar.
 
 ## Pendências da fase 1 (Poa em Dobro)
 
