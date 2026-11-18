@@ -241,6 +241,93 @@ test("topo compacto no celular: título numa linha e a busca perto do topo", asy
   }
 });
 
+test("os quatro atalhos da barra cabem inteiros no celular, de 320 a 412 px", async () => {
+  for (const largura of [320, 360, 390, 412]) {
+    const pg = await abrir({ largura });
+    const m = await pg.evaluate(() => {
+      const c = document.querySelector(".controls");
+      return { sobra: c.scrollWidth - c.clientWidth, fav: document.getElementById("fav-toggle").getBoundingClientRect().right, largura: innerWidth };
+    });
+    assert.equal(m.sobra, 0, `${largura}px: a linha de atalhos rola de lado (${m.sobra} px a mais)`);
+    assert.ok(m.fav <= m.largura - 16, `${largura}px: o coração fica cortado (termina em ${Math.round(m.fav)} px)`);
+    await pg.context().close();
+  }
+});
+
+test("celular: a barra fixa some ao rolar para baixo e volta ao rolar para cima ou com o foco na busca", async () => {
+  const pg = await abrir();
+  const recolhida = () => pg.$eval(".toolbar", (b) => b.classList.contains("recolhida"));
+  const rola = async (y) => { await pg.evaluate((y) => scrollTo(0, y), y); await espera(pg, 60); };
+  await rola(200);
+  assert.equal(await recolhida(), false, "no começo da página ela fica");
+  await rola(900); await rola(1500);
+  assert.equal(await recolhida(), true, "rolando para baixo ela some");
+  assert.equal(await pg.$eval(".toolbar", (b) => getComputedStyle(b).visibility), "visible", "continua na árvore de acessibilidade");
+  await rola(1400);
+  assert.equal(await recolhida(), false, "rolando para cima ela volta");
+  await rola(2200);
+  assert.equal(await recolhida(), true);
+  await pg.focus("#q");
+  assert.equal(await recolhida(), false, "o foco na busca traz a barra de volta");
+  await rola(3000);
+  assert.equal(await recolhida(), false, "com o foco dentro dela, não some");
+  await pg.context().close();
+});
+
+test("computador: a barra fixa nunca some", async () => {
+  const pg = await abrir({ largura: 1200 });
+  for (const y of [900, 1800, 2700]) { await pg.evaluate((y) => scrollTo(0, y), y); await espera(pg, 60); }
+  assert.equal(await pg.$eval(".toolbar", (b) => b.classList.contains("recolhida")), false);
+  await pg.context().close();
+});
+
+test("lista nova: os primeiros cartões aparecem na hora e o resto do lote logo depois, na ordem certa", async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  const imediato = await pg.evaluate(() => {
+    const s = document.getElementById("sort");
+    s.value = "az"; s.dispatchEvent(new Event("change", { bubbles: true }));
+    return document.querySelectorAll("#grid .ticket").length;
+  });
+  assert.ok(imediato < 40, `primeira etapa com ${imediato} cartões (antes eram os 40 de uma vez)`);
+  await espera(pg, 150);
+  const nomes = await textos(pg, "#grid .ticket .tname");
+  assert.equal(nomes.length, 40, "o lote inteiro entra logo depois");
+  const ordenados = [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base", numeric: true }));
+  assert.deepEqual(nomes, ordenados, "na ordem certa");
+});
+
+test("lista nova: um redesenho no meio (banco, favorito) monta a lista inteira na hora", async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  const n = await pg.evaluate(() => {
+    const s = document.getElementById("sort");
+    s.value = "az"; s.dispatchEvent(new Event("change", { bubbles: true }));
+    window.__snap();
+    return document.querySelectorAll("#grid .ticket").length;
+  });
+  assert.equal(n, 40);
+  await espera(pg, 150);
+  assert.equal(await cartoes(pg), 40, "o resto atrasado não duplica nem tira cartões");
+});
+
+test('"Voltar ao topo" aparece depois de duas telas, some com aviso na tela e leva o foco ao título', async () => {
+  const pg = await abrir();
+  const visivel = () => pg.$eval("#topo", (b) => !b.hidden && getComputedStyle(b).display !== "none");
+  assert.equal(await visivel(), false, "no começo da página não aparece");
+  await pg.click("#mais-btn"); await espera(pg, 100);
+  await pg.evaluate(() => scrollTo(0, innerHeight * 3)); await espera(pg, 100);
+  assert.equal(await visivel(), true, "depois de duas telas aparece");
+  await pg.$eval("#toast", (t) => { t.hidden = false; });
+  assert.equal(await visivel(), false, "some enquanto há aviso no mesmo canto");
+  await pg.$eval("#toast", (t) => { t.hidden = true; });
+  await pg.click("#topo");
+  await pg.waitForFunction(() => scrollY === 0, null, { timeout: 3000 });
+  assert.equal(await pg.evaluate(() => document.activeElement.tagName), "H1", "foco no título");
+  await espera(pg, 100);
+  assert.equal(await visivel(), false, "no topo, o botão some");
+});
+
 // bloco "Valendo agora" (topo da lista)
 const LUGARES_AGORA = { lugares: [{ id: "casa", nome: "Casa", lat: -30.0256, lng: -51.2085 }] };
 

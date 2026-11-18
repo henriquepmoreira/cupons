@@ -14,13 +14,14 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Botão "Agora, perto": liga "Vale agora" e ordena do mais perto ao mais longe num toque; sem localização, usa o bairro escolhido ou abre a aba Onde
 - Comodidades que só um programa informa aparecem marcadas no chip (ex.: "Opções veganas · só Tour"): o Poa e o Canoas só informam Aceita Pet e Espaço Kids
 - Ordenação: padrão (como no app), nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
-- A lista aparece em lotes de 40 cartões, com o botão "Mostrar mais" no fim (com os 577 de uma vez, o TalkBack no Chrome travava)
+- A lista aparece em lotes de 40 cartões, com o botão "Mostrar mais" no fim (com os 577 de uma vez, o TalkBack no Chrome travava). Ao buscar, filtrar ou trocar a ordem, os 12 primeiros aparecem na hora e o resto do lote logo em seguida
+- Botão "Topo" no canto de baixo, depois de duas telas de rolagem: volta ao começo com o foco no título
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
 - Link de mapa para cada estabelecimento
 - Validade de cada plano no topo, com os dias que faltam e quantos cupons por dia e por semana dão conta dos disponíveis (Poa em Dobro até 05/04/2027, Tour Grande Poa até 05/03/2027, Canoas em Dobro até 08/04/2027)
 - Feriados e datas comemorativas: cupons com `feriados: false` ou `datasComemorativas: false` aparecem como "Não vale hoje (feriado: …)" nesses dias, e o topo avisa os feriados dos próximos 7 dias com quantos cupons eles bloqueiam
 - Mesmo lugar em outro programa: o cartão avisa "Também em Tour Grande Poa (1 disponível) · …", lista os outros cupons (unidade, situação e oferta) e tem "Ver os N juntos", que mostra só esse grupo, com os usados. Ao marcar um como usado, o aviso diz em quais programas ainda tem. Quando a mesma unidade está em dois planos, o cartão sugere qual usar primeiro (o do plano que vence antes) e marca "mesma oferta" ou "oferta diferente" em cada um
-- No celular, só a busca e uma linha de botões que rola de lado ficam presas no topo (Filtros, Ordenar, situação, Favoritos, Vale agora, Agora perto, Pet, Kids); a validade dos planos aparece resumida numa linha que abre com um toque
+- No celular, só a busca e a linha dos quatro atalhos ficam presas no topo, inteiras de 320 px para cima; a barra some ao rolar a lista para baixo e volta ao rolar para cima (ou quando o foco chega nela); a validade dos planos aparece resumida numa linha que abre com um toque
 - Etiqueta de hoje diz o momento: "Agora · até 15:00" (vale agora), "Hoje a partir das 18:00" (ainda vai valer hoje) ou "Encerrado hoje"; acompanha a hora a cada minuto e ao voltar para a aba
 - Primeira tela na hora: a última lista que veio do banco fica guardada no navegador e aparece antes de o banco responder; quando ele chega, a lista é trocada (favoritos e usados valem o banco). Favoritar nesse intervalo funciona e vai ao banco quando ele responder. Se o banco demorar mais de 1,5 s, um aviso discreto diz que a lista é a guardada
 - No celular, o topo é compacto: título numa linha e os números (disponíveis, favoritos, usados) numa linha abaixo, menores; a busca fica a ~190 px do topo (antes 343)
@@ -161,7 +162,7 @@ Dentro do claude.ai a página não recebe a localização do aparelho. A pasta `
 
 ## Barra de cima e tempo estimado
 
-- A barra tem só quatro atalhos numa linha: **Filtros**, **Perto de mim**, **Vale agora** e **Favoritos** (no celular, rótulos curtos "Perto", "Agora" e só o coração; o leitor de tela ouve o nome completo). Situação (Disponíveis/Usados/Todos), Ordenar e Compacta ficam no topo do painel Filtros, em "Lista". Pet e Kids continuam nas comodidades (Filtros → O quê).
+- A barra tem só quatro atalhos numa linha: **Filtros**, **Perto de mim**, **Vale agora** e **Favoritos** (no celular, rótulos curtos "Perto", "Agora" e só o coração; o leitor de tela ouve o nome completo). No celular os quatro dividem a largura e cabem inteiros de 320 px para cima; a barra se recolhe ao rolar para baixo e volta ao rolar para cima. Situação (Disponíveis/Usados/Todos), Ordenar e Compacta ficam no topo do painel Filtros, em "Lista". Pet e Kids continuam nas comodidades (Filtros → O quê).
 - Toda distância vem com o tempo estimado: a pé até 1,5 km (caminho ~30% maior que a linha reta, 4,8 km/h) e de carro acima disso (~40% maior, ~25 km/h, mais 2 min), ex.: "350 m · 6 min a pé", "4,2 km · ~16 min de carro".
 
 ## Atalho "Perto de mim"
