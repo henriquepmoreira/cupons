@@ -1807,12 +1807,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   let posicaoSalva = null, rolarPara = null;
   try { posicaoSalva = JSON.parse(sessionStorage.getItem(POS_KEY) || "null"); } catch (_) {}
   let _posTimer = null;
+  function guardaPosicaoJa() {
+    clearTimeout(_posTimer);
+    if (state.phase !== "ready" || state.grupo || state.filtersOpen) return;
+    try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY) })); } catch (_) {}
+  }
   function guardaPosicao() {
     clearTimeout(_posTimer);
-    _posTimer = setTimeout(() => {
-      if (state.phase !== "ready" || state.grupo || state.filtersOpen) return;
-      try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY) })); } catch (_) {}
-    }, 300);
+    _posTimer = setTimeout(guardaPosicaoJa, 300);
   }
   addEventListener("scroll", guardaPosicao, { passive: true });
   function assinatura() { // o que define a lista; marcar como usado ou favoritar não muda o lote
@@ -2157,12 +2159,38 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       return c && Array.isArray(c.cupons) && c.cupons.length && typeof c.em === "string" ? c : null;
     } catch (_) { return null; }
   }
+  // Lista guardada no aparelho (e a cópia publicada, gerada do mesmo jeito por scripts/gerar-snapshot.py):
+  // sem valores vazios (null, listas vazias, false onde faltar quer dizer o mesmo) e sem as regras,
+  // que só o painel aberto e a busca usam. ~517 -> ~367 KB para ler na abertura.
+  // feriados/datasComemorativas: false quer dizer "não vale" e ficam.
+  const FALSO_OPCIONAL = new Set(["favorito", "usado", "maisUnidades", "verRegras"]);
+  function enxuto(c) {
+    const o = {};
+    for (const k in c) {
+      const v = c[k];
+      if (k === "regras" || v == null || (Array.isArray(v) && !v.length) || (v === false && FALSO_OPCIONAL.has(k))) continue;
+      o[k] = v;
+    }
+    return o;
+  }
+  // cópia publicada sem regras: elas vêm de regras.json ({ id: texto }) em segundo plano
+  async function carregaRegras(arquivo) {
+    try {
+      const r = await fetch(arquivo, { cache: "no-cache" });
+      if (!r.ok) return;
+      const regras = await r.json();
+      if (state.copiaDe === null) return; // o banco chegou antes: ele já traz as regras
+      // objetos novos: o texto de busca e os demais caches de cada cupom são refeitos
+      state.cupons = state.cupons.map((c) => (regras[c.id] && !c.regras ? { ...c, regras: regras[c.id] } : c));
+      render();
+    } catch (_) {}
+  }
   let _cacheTimer = null;
   function guardaCache() {
     clearTimeout(_cacheTimer);
     // ~500 KB de JSON: grava quando o navegador estiver ocioso, para não atrasar o próximo toque
     _cacheTimer = setTimeout(() => ocioso(() => {
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons })); }
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons.map(enxuto) })); }
       catch (_) { try { localStorage.removeItem(CACHE_KEY); } catch (_) {} } // sem espaço: melhor nenhuma cópia que uma velha
     }), 1500);
   }
@@ -2237,6 +2265,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.copiaDe = data.geradoEm || "";
       state.readOnly = true;
       state.phase = "ready";
+      if (typeof data.regras === "string") ocioso(() => carregaRegras(data.regras));
     } catch (_) {
       // sem cópia publicada: se há a lista guardada neste aparelho, ela fica, só para consulta
       if (state.deCache) { state.copiaDe = state.deCache; state.readOnly = true; }
@@ -2593,13 +2622,23 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 
   // Site do GitHub Pages (docs/, gerado por scripts/gerar-site.py com a marca "cupons-site"): o service worker
   // guarda a página e os dados no aparelho (abre na hora, até sem sinal). No artifact a marca não existe.
+  // Site do Pages: com página nova guardada pelo service worker, recarrega sozinho na próxima vez que a
+  // aba for para segundo plano (ninguém vê a troca; a posição na lista volta pelo sessionStorage).
+  // Já em segundo plano, recarrega na hora. Antes, um aviso pedia para fechar e abrir de novo.
+  let _versaoNova = false;
+  function versaoNova() {
+    if (_versaoNova) return;
+    _versaoNova = true;
+    if (document.hidden) { guardaPosicaoJa(); location.reload(); return; }
+    document.addEventListener("visibilitychange", () => { if (document.hidden) { guardaPosicaoJa(); location.reload(); } });
+  }
   if (document.querySelector('meta[name="cupons-site"]') && "serviceWorker" in navigator) {
     try {
       navigator.serviceWorker.register("sw.js").catch(() => {});
       navigator.serviceWorker.addEventListener("message", (e) => {
         const tipo = e.data && e.data.tipo;
         if (tipo === "snapshot" && state.copiaDe !== null) carregaCopia("nodb"); // cópia nova: troca a lista na hora
-        else if (tipo === "pagina") toast("Há uma versão nova do site. Feche e abra de novo para ver.");
+        else if (tipo === "pagina") versaoNova();
       });
       navigator.serviceWorker.startMessages(); // com addEventListener, as mensagens só chegam depois disto
     } catch (_) {}

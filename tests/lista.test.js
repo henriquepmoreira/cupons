@@ -399,3 +399,20 @@ test('"Valendo agora" fica escondido de madrugada, quando nada vale', async () =
   const pg = await abrir2({ data: "2026-11-18T05:10:00" });
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
 });
+
+test("site: com página nova, recarrega sozinho quando a aba vai para segundo plano (e volta ao mesmo ponto)", async () => {
+  const pg = await abrir({ site: true });
+  await pg.evaluate(() => { window.__marca = 1; scrollTo(0, 600); });
+  await espera(pg, 400);
+  // o service worker avisa que guardou uma página nova
+  await pg.evaluate(() => navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: { tipo: "pagina" } })));
+  await espera(pg, 100);
+  assert.equal(await pg.evaluate(() => window.__marca), 1, "com a aba visível, nada acontece");
+  assert.equal(await pg.$eval("#toast", (t) => t.hidden), true, "sem aviso pedindo para fechar e abrir");
+  const nav = pg.waitForEvent("framenavigated");
+  await pg.evaluate(() => { Object.defineProperty(document, "hidden", { configurable: true, get: () => true }); document.dispatchEvent(new Event("visibilitychange")); });
+  await nav;
+  await pg.waitForSelector(".ticket"); await espera(pg, 400);
+  assert.equal(await pg.evaluate(() => window.__marca), undefined, "recarregou");
+  assert.ok(Math.abs((await pg.evaluate(() => scrollY)) - 600) < 5, "voltou ao mesmo ponto da lista");
+});
