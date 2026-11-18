@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 26, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 27, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -237,4 +237,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 33. perto de mim: `data/geo.json`, `scripts/geocodificar.py`, ordenação "Mais perto" e raio
 34. desempenho (cartões reaproveitados), `content-visibility` retirado, geocodificação por bairro, acessibilidade para o TalkBack (lotes de 40, painéis sob demanda, escritas só quando mudam, foco fora da barra fixa) e `data/geo.json` completo: tudo publicado junto na versão 26
 35. `e03428e` testes automáticos em `tests/` (30 da página + 5 do geocodificador)
-36. (este commit) prints de 17/11: nomes do Machry, Ponto Zero e Mark - Harmonia; detalhes do PopCorn e do Pallina; unidades extras do Mark e etiqueta para unidades sem horário. **Arquivos atualizados; o banco ainda não** (a gravação espera a confirmação do usuário)
+36. (este commit) prints de 17/11: nomes do Machry, Ponto Zero e Mark - Harmonia; detalhes do PopCorn e do Pallina; unidades extras do Mark e etiqueta para unidades sem horário. arquivos e banco atualizados (batch com `if_version`, autorizado pelo usuário), página publicada na versão 27
