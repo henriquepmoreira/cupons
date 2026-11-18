@@ -485,7 +485,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="fgroup">
     <h2 id="f-tipo-h">Categoria no app</h2>
     <div class="fchips" id="f-tipo" role="group" aria-labelledby="f-tipo-h"></div>
-    <p class="fnote">Como o app mostra na tela do cupom (ex.: Culinária Internacional, Saudável, ParkShopping Canoas). Por enquanto só no Canoas em Dobro.</p>
+    <p class="fnote">Como o app mostra na tela do cupom (ex.: Culinária Internacional, Saudável, ParkShopping Canoas). Só no Poa em Dobro e no Canoas em Dobro; o Tour não mostra categoria na tela do cupom.</p>
   </div>
   <div class="fgroup">
     <h2 id="f-ganhe-h">O que você ganha</h2>
@@ -505,9 +505,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     <h2 id="f-quando-h">Quando usar</h2>
     <div class="fchips" id="f-quando" role="group" aria-labelledby="f-quando-h">
       <button type="button" class="fchip" data-quando="agora">Vale agora <span class="n"></span></button>
-      <button type="button" class="fchip" data-quando="feriados">Aceita em feriados <span class="n"></span></button>
+      <button type="button" class="fchip" data-aceita="feriados">Aceita em feriados <span class="n"></span></button>
+      <button type="button" class="fchip" data-aceita="datas">Aceita em datas comemorativas <span class="n"></span></button>
     </div>
-    <p class="fnote">Considera só os cupons com dias e horários cadastrados.</p>
+    <p class="fnote">"Vale agora" considera só os cupons com dias e horários cadastrados. "Aceita em…" segue o ✓ do app; marcando os dois, o cupom precisa aceitar os dois.</p>
   </div>
   <div class="fgroup">
     <h2 id="f-data-h">Data</h2>
@@ -520,6 +521,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     <p class="fnote">Mostra os cupons que valem em pelo menos um dos dias marcados. Só conta os cupons com dias e horários cadastrados.</p>
   </div>
   <div class="fgroup">
+    <h2 id="f-turno-h">Turno</h2>
+    <div class="fchips" id="f-turno" role="group" aria-labelledby="f-turno-h"></div>
+    <p class="fnote">Cupons que valem em algum momento da faixa, na data escolhida em "Data", nos dias marcados em "Dias da semana" ou, sem nenhum dos dois, em qualquer dia.</p>
+  </div>
+  <div class="fgroup">
     <h2 id="f-comod-h">Comodidades e diferenciais</h2>
     <div class="fchips" id="f-comod" role="group" aria-labelledby="f-comod-h"></div>
     <p class="fnote">Mostra os cupons que têm todas as marcadas. O Poa em Dobro e o Canoas em Dobro só informam Aceita Pet e Espaço Kids; as outras comodidades vêm só do Tour. Pet e Kids também ficam na barra de cima.</p>
@@ -527,6 +533,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   <div class="fgroup">
     <h2 id="f-cidade-h">Cidade</h2>
     <div class="fchips" id="f-cidade" role="group" aria-labelledby="f-cidade-h"></div>
+  </div>
+  <div class="fgroup">
+    <h2 id="f-shopping-h">Shopping e centro comercial</h2>
+    <div class="fchips" id="f-shopping" role="group" aria-labelledby="f-shopping-h"></div>
+    <p class="fnote">Deduzido do endereço de cada unidade (ex.: Av. Diário de Notícias, 300 = BarraShoppingSul). Cupons com várias unidades contam se alguma fica no lugar.</p>
   </div>
   <div class="fgroup">
     <h2 id="f-bairro-h">Região (bairro)</h2>
@@ -631,7 +642,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     copiaDe: null, // data da cópia somente leitura, quando o banco não está disponível
     q: "", status: "disponiveis", fav: false, sort: "app",
     programas: new Set(), categorias: new Set(), ganhe: null, regras: null,
-    quando: null, data: null, cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
+    quando: null, data: null, aceita: new Set(), turnos: new Set(), shoppings: new Set(), cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
     geo: null, geoFalhou: false, // coordenadas das unidades (geo.json, gerado por scripts/geocodificar.py)
     perto: null, // ponto de partida: { lat, lng, rotulo, tipo: "gps" | "bairro", chave }
     pertoPendente: null, // bairro salvo nas preferências, aplicado quando geo.json chegar
@@ -650,7 +661,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       state.categorias = new Set(p.categorias || []);
       state.ganhe = p.ganhe || null;
       state.regras = p.regras || null;
-      state.quando = ["agora", "feriados"].includes(p.quando) ? p.quando : null;
+      state.quando = p.quando === "agora" ? "agora" : null;
+      // "Aceita em feriados" saiu de "Quando" e virou um conjunto (feriados, datas comemorativas)
+      state.aceita = new Set([...(p.aceita || []), ...(p.quando === "feriados" ? ["feriados"] : [])].filter((x) => x === "feriados" || x === "datas"));
+      state.turnos = new Set((p.turnos || []).filter((x) => ["manha", "almoco", "tarde", "noite", "madrugada"].includes(x)));
+      state.shoppings = new Set(p.shoppings || []);
       // o antigo "Vale hoje" virou a data de hoje; datas que já passaram ou fora da semana são descartadas
       const t0 = today();
       if (p.quando === "hoje" || p.data === "hoje") state.data = t0;
@@ -670,7 +685,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
         pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
-        quando: state.quando, data: state.data === today() ? "hoje" : state.data, cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
+        quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
   }
@@ -867,6 +882,62 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     return mapa;
   }
 
+  /* ---------- shopping e centro comercial ----------
+     Pelo endereço de cada unidade (sem acento, minúsculas). A "categoria no app" do Poa e do Canoas não serve:
+     vale para o cupom inteiro e, em redes, lista vários shoppings de uma vez. */
+  const SHOPPINGS = [
+    ["BarraShoppingSul", /diario de noticias\D*300\b/],
+    ["Bourbon Carlos Gomes", /carlos gomes\D*707\b/],
+    ["Bourbon Country", /tulio de rose\D*80\b|bourbon shopping country/],
+    ["Bourbon Ipiranga", /ipiranga\D*5200\b/],
+    ["Bourbon Novo Hamburgo", /nacoes unidas\D*2001\b/],
+    ["Cais Embarcadero", /maua\D*1050\b|embarcadero/],
+    ["Garden & Containers", /acucena\D*1575\b|garden/],
+    ["Iguatemi", /joao wallig\D*1800\b|iguatemi/],
+    ["Mercado Público", /mercado publico|glenio peres/],
+    ["Moinhos Shopping", /olavo barreto viana\D*36\b|moinhos shopping/],
+    ["ParkShopping Canoas", /farroupilha\D*4545\b|parkshopping/],
+    ["Parque Harmonia", /edvaldo pereira paiva\D*63\b|parque harmonia/],
+    ["Pontal Shopping", /padre cacique\D*2893\b|shopping pontal/],
+    ["Shopping João Pessoa", /joao pessoa\D*1831\b/],
+    ["Shopping Paseo", /wenceslau escobar\D*1823\b|paseo/],
+    ["Shopping Praia de Belas", /praia de belas\D*1181\b|shopping praia de belas/],
+    ["Shopping Total", /cristovao colombo\D*545\b/],
+    ["Stop Food Park", /boqueirao\D*2221\b|stop food park/],
+    ["Viva Open Mall", /nilo pecanha\D*3228\b|open mall/],
+    ["5ª Avenida Center", /vinte e quatro de outubro\D*111\b|avenida center/],
+  ];
+  const shoppingDaUnidade = (u) => { const e = norm(u?.endereco || ""); return (SHOPPINGS.find(([, re]) => re.test(e)) || [])[0] || null; };
+  const _shop = new WeakMap();
+  function shoppingsDe(c) {
+    if (!_shop.has(c)) _shop.set(c, [...new Set(unidadesDe(c).map(shoppingDaUnidade).filter(Boolean))]);
+    return _shop.get(c);
+  }
+
+  /* ---------- turno ---------- */
+  const TURNOS = [ // id, nome, faixa visual, faixa falada, início e fim em minutos (madrugada passa da meia-noite)
+    ["manha", "Manhã", "até 11h", "até as 11 horas", 360, 660],
+    ["almoco", "Almoço", "11h–15h", "das 11 às 15 horas", 660, 900],
+    ["tarde", "Tarde", "15h–18h", "das 15 às 18 horas", 900, 1080],
+    ["noite", "Noite", "18h–23h", "das 18 às 23 horas", 1080, 1380],
+    ["madrugada", "Madrugada", "depois das 23h", "depois das 23 horas", 1380, 1800],
+  ];
+  const minutos = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + (m || 0); };
+  function faixaNoTurno(h, w1, w2) {
+    return faixas(h).some(([a, b]) => {
+      const x = minutos(a); let y = minutos(b); if (y <= x) y += 1440; // faixa que passa da meia-noite
+      return [0, 1440, -1440].some((d) => x + d < w2 && y + d > w1);
+    });
+  }
+  function valeNoTurno(c, id) {
+    const t = TURNOS.find((x) => x[0] === id); if (!t) return false;
+    let hs;
+    if (state.data) { const v = valeEm(c, state.data); hs = v?.ok ? [v.h] : []; }
+    else if (state.dias.size) hs = [...state.dias].map((d) => horDe(c)[d]).filter(Boolean);
+    else hs = temHorario(c) ? Object.values(horDe(c)) : [];
+    return hs.some((h) => faixaNoTurno(h, t[4], t[5]));
+  }
+
   /* ---------- derivações ---------- */
   const _hay = new WeakMap(); // texto de busca de cada cupom; o objeto muda a cada atualização do banco, e o cache junto
   function matchesSearch(c, words) {
@@ -875,7 +946,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     if (hay === undefined) {
       const us = unidadesDe(c).flatMap((u) => [u.bairro, u.cidade, u.endereco]);
       hay = norm([c.nome, c.item, c.categoria, PROG[c.programa]?.nome, c.ganhe ? GANHE_TXT[c.ganhe] : "",
-        ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" ")].join(" "));
+        ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" "), shoppingsDe(c).join(" ")].join(" "));
       _hay.set(c, hay);
     }
     return words.every((w) => hay.includes(w));
@@ -895,8 +966,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }
     if (skip !== "quando" && state.quando) {
       if (state.quando === "agora" && !valeAgora(c)) return false;
-      if (state.quando === "feriados" && (c.feriados !== true || planoVencido(c, today()))) return false;
     }
+    if (skip !== "aceita" && state.aceita.size) {
+      if (planoVencido(c, today())) return false;
+      if (state.aceita.has("feriados") && c.feriados !== true) return false;
+      if (state.aceita.has("datas") && c.datasComemorativas !== true) return false;
+    }
+    if (skip !== "turno" && state.turnos.size && ![...state.turnos].some((id) => valeNoTurno(c, id))) return false;
+    if (skip !== "shopping" && state.shoppings.size && !shoppingsDe(c).some((x) => state.shoppings.has(x))) return false;
     if (skip !== "data" && state.data && !valeEm(c, state.data)?.ok) return false;
     if (skip !== "raio" && state.raio && state.perto) { const d = distDe(c); if (!d || d.km > state.raio) return false; }
     if (skip !== "cidade" && state.cidades.size && !cidadesDe(c).some((x) => state.cidades.has(x))) return false;
@@ -924,7 +1001,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }[state.sort] || byApp;
     return list.sort(cmp);
   }
-  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + (state.raio && state.perto ? 1 : 0) + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
+  const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + (state.raio && state.perto ? 1 : 0) + state.aceita.size + state.turnos.size + state.shoppings.size + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
@@ -961,7 +1038,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     }
     const locTxt = outras.length
       ? [listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean).join(" · ")
-      : u ? [u.bairro, u.cidade].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
+      : u ? [u.bairro, u.cidade, shoppingDaUnidade(u)].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
     const dist = distDe(c);
     const distHtml = dist ? `<span class="dist">${duplo(`${dist.aprox ? "≈ " : ""}${fmtKm(dist.km)}`, `A ${dist.aprox ? "cerca de " : ""}${falaKm(dist.km)} de ${state.perto.rotulo}${outras.length ? ", na unidade mais perto" : ""}.`)}</span>` : "";
     const loc = locTxt || distHtml ? `<p class="loc">${distHtml}${distHtml && locTxt ? '<span aria-hidden="true"> · </span>' : ""}${esc(locTxt)}</p>` : "";
@@ -1197,12 +1274,24 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     // "Vale agora" e Data se excluem (tocar num desliga o outro): cada contagem ignora o filtro que vai sair
     const semFiltro = (campo, fn) => { const salvo = state[campo]; state[campo] = null; try { return fn(); } finally { state[campo] = salvo; } };
     renderPerto(count);
-    const quandoPred = { agora: valeAgora, feriados: (c) => c.feriados === true && !planoVencido(c, t) };
-    $("f-quando").querySelectorAll("button").forEach((b) => {
-      setAttr(b, "aria-pressed", String(state.quando === b.dataset.quando));
-      const fn = () => count("quando", quandoPred[b.dataset.quando]);
-      htmlDe(b.querySelector(".n")).innerHTML = nCupons(b.dataset.quando === "agora" ? semFiltro("data", fn) : fn());
+    const bAgora = $("f-quando").querySelector('[data-quando="agora"]');
+    setAttr(bAgora, "aria-pressed", String(state.quando === "agora"));
+    htmlDe(bAgora.querySelector(".n")).innerHTML = nCupons(semFiltro("data", () => count("quando", valeAgora)));
+    $("f-quando").querySelectorAll("button[data-aceita]").forEach((b) => {
+      const k = b.dataset.aceita;
+      setAttr(b, "aria-pressed", String(state.aceita.has(k)));
+      htmlDe(b.querySelector(".n")).innerHTML = nCupons(count("aceita", (c) => !planoVencido(c, t)
+        && (k === "feriados" ? c.feriados === true : c.datasComemorativas === true)
+        && [...state.aceita].filter((x) => x !== k).every((x) => (x === "feriados" ? c.feriados === true : c.datasComemorativas === true))));
     });
+    htmlDe($("f-turno")).innerHTML = TURNOS.map(([id, nome, vis, fala]) =>
+      `<button type="button" class="fchip" data-turno="${id}" aria-pressed="${state.turnos.has(id)}">${duplo(`${nome} · ${vis}`, `${nome}, ${fala}`)} <span class="n">${nCupons(count("turno", (c) => valeNoTurno(c, id)))}</span></button>`).join("");
+    const shopCount = {};
+    for (const c of state.cupons) if (passes(c, "shopping") && matchesSearch(c, words)) for (const x of shoppingsDe(c)) shopCount[x] = (shopCount[x] || 0) + 1;
+    const shops = [...new Set(state.cupons.flatMap(shoppingsDe))].sort(collator.compare);
+    htmlDe($("f-shopping")).innerHTML = shops.length
+      ? shops.map((x) => `<button type="button" class="fchip" data-shopping="${esc(x)}" aria-pressed="${state.shoppings.has(x)}">${esc(x)} <span class="n">${nCupons(shopCount[x] || 0)}</span></button>`).join("")
+      : '<span class="fnote">Nenhum endereço de shopping cadastrado ainda.</span>';
     const cidCount = {};
     for (const c of state.cupons) if (passes(c, "cidade") && matchesSearch(c, words)) for (const cid of cidadesDe(c)) cidCount[cid] = (cidCount[cid] || 0) + 1;
     const cidades = [...new Set(state.cupons.flatMap(cidadesDe))].sort(collator.compare);
@@ -1283,7 +1372,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   let assinaturaLista = "";
   function assinatura() { // o que define a lista; marcar como usado ou favoritar não muda o lote
     return JSON.stringify([state.q.trim(), state.status, state.fav, state.sort, [...state.programas], [...state.categorias], state.ganhe,
-      state.regras, state.quando, state.data, [...state.cidades], [...state.tipos], [...state.comods], [...state.dias], [...state.bairros],
+      state.regras, state.quando, state.data, [...state.aceita], [...state.turnos], [...state.shoppings], [...state.cidades], [...state.tipos], [...state.comods], [...state.dias], [...state.bairros],
       state.raio, state.perto ? [state.perto.lat, state.perto.lng] : null]);
   }
   let gridDeCartoes = false; // a grade contém só cartões (ou grupos de cartões) montados abaixo
@@ -1405,7 +1494,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
      Cada render recria botões com innerHTML. Sem isto, o foco do TalkBack cai no topo da página
      depois de cada filtro, favorito ou "usado". Guardamos uma descrição do elemento focado e
      devolvemos o foco ao equivalente recriado. */
-  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-raio", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
+  const FOCO_ATTRS = ["data-act", "data-cat", "data-tipo", "data-comod", "data-cidade", "data-dia", "data-data", "data-raio", "data-aceita", "data-turno", "data-shopping", "data-bairro", "data-prog", "data-ganhe", "data-regras", "data-quando", "data-status"];
   let focoPendente = null; // lista de seletores; o primeiro que existir recebe o foco
   function descreveFoco() {
     const el = document.activeElement;
@@ -1642,10 +1731,20 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     savePrefs(); render();
   });
   $("f-quando").addEventListener("click", (e) => {
+    const a = e.target.closest("button[data-aceita]");
+    if (a) { toggleSet(state.aceita, a.dataset.aceita); savePrefs(); render(); return; }
     const b = e.target.closest("button[data-quando]"); if (!b) return;
     state.quando = state.quando === b.dataset.quando ? null : b.dataset.quando;
     if (state.quando === "agora") state.data = null; // "agora" já é hoje
     savePrefs(); render();
+  });
+  $("f-turno").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-turno]"); if (!b) return;
+    toggleSet(state.turnos, b.dataset.turno); savePrefs(); render();
+  });
+  $("f-shopping").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-shopping]"); if (!b) return;
+    toggleSet(state.shoppings, b.dataset.shopping); savePrefs(); render();
   });
   $("f-data").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-data]"); if (!b) return;
@@ -1700,7 +1799,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       if (e && e.el === card) e.html = html; // o cartão na tela agora é igual a este HTML
     }
   }, true);
-  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.raio = null; state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
+  function clearFilters() { state.categorias.clear(); state.ganhe = null; state.regras = null; state.quando = null; state.data = null; state.raio = null; state.aceita.clear(); state.turnos.clear(); state.shoppings.clear(); state.cidades.clear(); state.tipos.clear(); state.comods.clear(); state.dias.clear(); state.bairros.clear(); }
   function clearAll() { clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; savePrefs(); render(); }
   $("filters-clear").addEventListener("click", () => { clearFilters(); savePrefs(); render(); });
   $("result-clear").addEventListener("click", clearAll);

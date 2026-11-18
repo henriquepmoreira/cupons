@@ -74,7 +74,7 @@ test("depois da validade, o plano aparece como vencido", async () => {
   const tags = await textos(pg, ".tag.off");
   assert.ok(tags.length > 0 && tags.every((t) => t === "Plano vencido em 05/03/27"));
   await pg.click("#filters-toggle");
-  assert.equal(numero(await texto(pg, '#f-quando [data-quando="feriados"] .n')), 0, "vencido não conta em Aceita em feriados");
+  assert.equal(numero(await texto(pg, '#f-quando [data-aceita="feriados"] .n')), 0, "vencido não conta em Aceita em feriados");
 });
 
 test('a preferência antiga "Vale hoje" vira a data de hoje', async () => {
