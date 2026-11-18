@@ -58,6 +58,7 @@ async function abrirNavegador() {
  * @param {{latitude:number, longitude:number}} [o.localizacao]  com permissão concedida
  * @param {boolean} [o.geo]        serve data/geo.json (padrão true)
  * @param {string} [o.arquivo]     outra versão da página (padrão cupons.html)
+ * @param {(docs: object[]) => object[]|void} [o.ajustar]  muda os cupons antes de abrir
  */
 async function abrir(o = {}) {
   const b = await abrirNavegador();
@@ -70,7 +71,10 @@ async function abrir(o = {}) {
   pg.erros = [];
   pg.on("pageerror", (e) => pg.erros.push(e.message));
   if (o.data) await pg.clock.setFixedTime(new Date(o.data));
-  await pg.addInitScript(`window.__docs = ${JSON.stringify(cupons())};${bancoFalso}`);
+  // ajustar(docs) muda os cupons antes de a página abrir (para simular um caso que os dados reais não têm)
+  let docs = cupons();
+  if (o.ajustar) docs = o.ajustar(docs) || docs;
+  await pg.addInitScript(`window.__docs = ${JSON.stringify(docs)};${bancoFalso}`);
   if (o.prefs) await pg.addInitScript(`try { localStorage.setItem("cupons-em-dobro:prefs:v1", ${JSON.stringify(JSON.stringify(o.prefs))}); } catch (_) {}`);
   // CUPONS_HTML=<arquivo> roda os testes contra outra versão da página (útil para ver se um teste pega a regressão)
   const html = fs.readFileSync(o.arquivo || process.env.CUPONS_HTML || path.join(RAIZ, "cupons.html"), "utf8");

@@ -76,8 +76,26 @@ test("ordem por categoria agrupa e respeita o lote", async () => {
   assert.equal(await pg.$$eval("#grid > .ticket", (t) => t.length), 40);
 });
 
+test("várias unidades com horário: a etiqueta conta em quantas vale (Mark, horários reais de 17/11)", async () => {
+  const card = '.ticket[data-id="tour-grande-poa--mark-harmonia"]';
+  let pg = await abrir({ data: "2026-11-17T12:30:00" }); // terça: as três unidades valem
+  await busca(pg, "harmonia");
+  assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Hoje em 3 de 3 unidades");
+  await pg.context().close();
+  pg = await abrir({ data: "2026-11-18T12:30:00" }); // quarta: a unidade Auxiliadora não vale
+  await busca(pg, "harmonia");
+  assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Hoje em 2 de 3 unidades");
+  await pg.click(`${card} .det:not(.outros) summary`);
+  await espera(pg);
+  assert.equal(await pg.$$eval(`${card} .det-body table.hor`, (t) => t.length), 3, "uma tabela por unidade");
+});
+
 test("várias unidades com só um horário conhecido: a etiqueta diz qual unidade", async () => {
-  const pg = await abrir({ data: "2026-11-17T12:30:00" }); // terça
+  // simula o Mark antes dos prints com os horários das outras unidades
+  const pg = await abrir({
+    data: "2026-11-17T12:30:00", // terça
+    ajustar: (docs) => { for (const u of docs.find((d) => d.slug === "mark-harmonia").outrasUnidades) u.horarios = null; },
+  });
   await busca(pg, "harmonia");
   const card = '.ticket[data-id="tour-grande-poa--mark-harmonia"]';
   assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Hoje 18:00–23:00 (Praia de Belas)");

@@ -1944,6 +1944,11 @@
 "lng": -51.200696,
 "precisao": "bairro"
 },
+"Rua Felipe Camarão Nº 383|Bom Fim|Porto Alegre": {
+"lat": -30.033215,
+"lng": -51.209758,
+"precisao": "rua"
+},
 "Rua Felipe Neri Nº 332|Auxiliadora|Porto Alegre": {
 "lat": -30.022871,
 "lng": -51.192299,
@@ -2202,6 +2207,11 @@
 "Rua Jari, Nº 692|Passo da Areia|Porto Alegre": {
 "lat": -30.015991,
 "lng": -51.167332,
+"precisao": "rua"
+},
+"Rua Joaquim Nabuco Nº 383|Cidade Baixa|Porto Alegre": {
+"lat": -30.042527,
+"lng": -51.222419,
 "precisao": "rua"
 },
 "Rua Joaquim Nabuco, Nº 281|Cidade Baixa|Porto Alegre": {
