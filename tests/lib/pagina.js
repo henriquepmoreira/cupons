@@ -30,11 +30,17 @@ const documento = (html) => `<!doctype html><html><head><meta charset=utf8><meta
 const bancoFalso = `
   window.__escritas = [];
   window.claude = { use: async (k) => {
-    if (k === "user") return { isOwner: async () => true, can: async () => true };
+    if (k === "user") return { isOwner: async () => true, can: async () => true, id: async () => "u_teste" };
     if (k !== "db") return null;
     if (window.__semBanco) return null;
     if (window.__atrasoBanco) await new Promise((r) => setTimeout(r, window.__atrasoBanco));
-    return { collection: () => ({
+    return { collection: (caminho) => (String(caminho).startsWith("data/users/") ? {
+      // área privada de quem está logado: só o documento "lugares" (window.__lugares)
+      doc: (id) => ({ onSnapshot: (cb) => {
+        setTimeout(() => cb({ id, exists: !!window.__lugares, data: () => window.__lugares, metadata: { fromCache: false, hasPendingWrites: false } }), 10);
+        return () => {};
+      } }),
+    } : {
       onSnapshot: (cb) => {
         window.__snap = () => cb({ metadata: { fromCache: false }, size: window.__docs.length,
           docs: window.__docs.map((d) => ({ id: d.id, data: () => ({ ...d }) })) });
@@ -65,6 +71,7 @@ async function abrirNavegador() {
  * @param {number} [o.atrasoBanco] ms até o banco responder
  * @param {boolean} [o.semBanco]   sem banco (como quem abre o link sem estar logado)
  * @param {{em:string, cupons:object[]}} [o.cache]  lista guardada no navegador antes de abrir
+ * @param {{lugares: object[]}} [o.lugares]  documento data/users/<id>/lugares ("Meus lugares")
  * @param {boolean} [o.esperarCartoes]  padrão true
  */
 async function abrir(o = {}) {
@@ -81,7 +88,7 @@ async function abrir(o = {}) {
   // ajustar(docs) muda os cupons antes de a página abrir (para simular um caso que os dados reais não têm)
   let docs = cupons();
   if (o.ajustar) docs = o.ajustar(docs) || docs;
-  await pg.addInitScript(`window.__docs = ${JSON.stringify(docs)};window.__atrasoBanco = ${o.atrasoBanco || 0};window.__semBanco = ${!!o.semBanco};${bancoFalso}`);
+  await pg.addInitScript(`window.__docs = ${JSON.stringify(docs)};window.__atrasoBanco = ${o.atrasoBanco || 0};window.__semBanco = ${!!o.semBanco};window.__lugares = ${JSON.stringify(o.lugares || null)};${bancoFalso}`);
   if (o.cache) await pg.addInitScript(`try { if (!sessionStorage.getItem("__cache_ok")) { localStorage.setItem("cupons-em-dobro:cache:v1", ${JSON.stringify(JSON.stringify(o.cache))}); sessionStorage.setItem("__cache_ok", "1"); } } catch (_) {}`);
   if (o.prefs) await pg.addInitScript(`try { localStorage.setItem("cupons-em-dobro:prefs:v1", ${JSON.stringify(JSON.stringify(o.prefs))}); } catch (_) {}`);
   // CUPONS_HTML=<arquivo> roda os testes contra outra versão da página (útil para ver se um teste pega a regressão)

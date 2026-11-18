@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**. O branch padrão não tem nada disso e não existe PR. Numa sessão nova, comece por `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 39, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 40, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -288,4 +288,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 48. (f80153d) página republicada (versão 37) só para atualizar a cópia sem login: `snapshot.json` com os 679 cupons de 18/11, gerado da exportação do banco conferida com `sincronizar.py`; `cupons.html` e `geo.json` iguais à versão 36.
 49. (c739c98) detalhes do Degustar no Bairro (completos) e do Helena Burger POA (unidade, feriados e datas) por prints de 18/11; dois endereços novos em `data/geo.json`. Banco atualizado e conferido. Página republicada depois (versão 38) com `geo.json` e cópia sem login novos.
 50. (9e91e32) versão 38 publicada; autorização permanente para republicar registrada na regra 5.
-51. (este commit) horários (domingo a quinta, 18:30–23:00) e comodidade do Helena Burger POA por prints de 18/11; banco conferido; versão 39 publicada.
+51. (1b21c46) horários (domingo a quinta, 18:30–23:00) e comodidade do Helena Burger POA por prints de 18/11; banco conferido; versão 39 publicada.
+52. (este commit) "Meus lugares" em "Perto de" (README, seção própria): lugar Casa gravado em `data/users/me/lugares` (privado; coordenada fora do repositório), página lê com `user.id()` + `onSnapshot`, "Agora, perto" sem GPS usa o primeiro lugar; banco falso dos testes com área privada e 2 testes novos (64 no total); camadas do My Maps (`mapa/*.csv`) regeneradas; versão 40 publicada.

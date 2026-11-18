@@ -750,7 +750,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     quando: null, data: null, aceita: new Set(), turnos: new Set(), shoppings: new Set(), cidades: new Set(), tipos: new Set(), comods: new Set(), dias: new Set(), bairros: new Set(), abertos: new Set(),
     geo: null, geoFalhou: false, // coordenadas das unidades (geo.json, gerado por scripts/geocodificar.py)
     perto: null, // ponto de partida: { lat, lng, rotulo, tipo: "gps" | "bairro", chave }
-    pertoPendente: null, // bairro salvo nas preferências, aplicado quando geo.json chegar
+    pertoPendente: null, // bairro ou lugar salvo nas preferências, aplicado quando geo.json (ou os lugares) chegar
+    lugares: [], lugaresProntos: false, // "Meus lugares" (casa, trabalho…): ficam em data/users/<id>/lugares, privados, só para quem está logado
     raio: null, // distância máxima em km
     abaFiltros: "quando", // aba aberta no painel de filtros
     planosAbertos: false, // detalhe dos planos no topo
@@ -1030,6 +1031,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     _bairrosRef = { geo: state.geo, n: state.cupons.length, mapa };
     return mapa;
   }
+
+  // ponto de partida pela chave do seletor: "lugar:<id>" (Meus lugares) ou "cidade|bairro"
+  function refPorChave(k) {
+    if (typeof k !== "string" || !k) return null;
+    if (k.startsWith("lugar:")) {
+      const l = state.lugares.find((x) => `lugar:${x.id}` === k);
+      return l ? { lat: l.lat, lng: l.lng, rotulo: l.nome } : null;
+    }
+    const b = bairrosRef().get(k);
+    return b ? { lat: b.lat, lng: b.lng, rotulo: `${b.bairro} (${b.cidade})` } : null;
+  }
+  const pertoDe = (k) => { const r = refPorChave(k); return r ? { ...r, tipo: "bairro", chave: k } : null; };
 
   /* ---------- shopping e centro comercial ----------
      Pelo endereço de cada unidade (sem acento, minúsculas). A "categoria no app" do Poa e do Canoas não serve:
@@ -1404,12 +1417,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
   function renderPerto(count) {
     const sel = $("perto-bairro"), refs = bairrosRef();
-    if (sel.dataset.n !== String(refs.size)) { // monta a lista só quando muda
+    const sigLugares = state.lugares.map((l) => `${l.id}:${l.nome}`).join("|");
+    if (sel.dataset.n !== `${refs.size}#${sigLugares}`) { // monta a lista só quando muda
       const porCidade = new Map();
       for (const [k, b] of refs) { if (!porCidade.has(b.cidade)) porCidade.set(b.cidade, []); porCidade.get(b.cidade).push([k, b]); }
-      htmlDe(sel).innerHTML = '<option value="">Ou escolha um bairro…</option>' + [...porCidade].sort(([a], [b]) => (a === "Porto Alegre" ? -1 : b === "Porto Alegre" ? 1 : collator.compare(a, b)))
+      const meus = state.lugares.length
+        ? `<optgroup label="Meus lugares">${state.lugares.map((l) => `<option value="lugar:${esc(l.id)}">${esc(l.nome)}</option>`).join("")}</optgroup>` : "";
+      htmlDe(sel).innerHTML = `<option value="">${state.lugares.length ? "Ou escolha um lugar ou bairro…" : "Ou escolha um bairro…"}</option>` + meus + [...porCidade].sort(([a], [b]) => (a === "Porto Alegre" ? -1 : b === "Porto Alegre" ? 1 : collator.compare(a, b)))
         .map(([cid, xs]) => `<optgroup label="${esc(cid)}">${xs.sort(([, a], [, b]) => collator.compare(a.bairro, b.bairro)).map(([k, b]) => `<option value="${esc(k)}">${esc(b.bairro)}</option>`).join("")}</optgroup>`).join("");
-      sel.dataset.n = String(refs.size);
+      sel.dataset.n = `${refs.size}#${sigLugares}`;
+      setAttr(sel, "aria-label", state.lugares.length ? "Perto de um dos seus lugares ou de um bairro" : "Perto de um bairro");
     }
     sel.value = state.perto?.tipo === "bairro" ? state.perto.chave : "";
     sel.classList.toggle("on", state.perto?.tipo === "bairro");
@@ -1861,8 +1878,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   // bairro salvo da última visita: só dá para aplicar quando as coordenadas e os cupons já chegaram
   function aplicaPertoPendente() {
     if (!state.pertoPendente || state.perto || !state.geo || !state.cupons.length) return;
-    const b = bairrosRef().get(state.pertoPendente);
-    if (b) state.perto = { lat: b.lat, lng: b.lng, rotulo: `${b.bairro} (${b.cidade})`, tipo: "bairro", chave: state.pertoPendente };
+    // lugar salvo: espera os lugares chegarem do banco antes de desistir dele
+    if (state.pertoPendente.startsWith("lugar:") && !state.lugaresProntos) return;
+    const p = pertoDe(state.pertoPendente);
+    if (p) state.perto = p;
     state.pertoPendente = null;
   }
 
@@ -1972,6 +1991,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       // can() null = a plataforma não informou: mantém os botões e deixa a escrita decidir
       const [owner, can] = await Promise.all([user.isOwner(), user.can("data.write")]);
       if (!owner && can === false) { state.readOnly = true; render(); }
+      lerLugares(db, user);
     });
     col.onSnapshot((snap) => {
       if (state.deCache && snap.metadata.fromCache && !snap.size) return; // cache vazio da plataforma: fica a lista guardada
@@ -1989,6 +2009,24 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
       else { carregaCopia("error"); return; }
       render();
     });
+  }
+
+  /* "Meus lugares": pontos de partida pessoais (casa, trabalho), gravados pelo Claude em
+     data/users/<id>/lugares = { lugares: [{ id, nome, lat, lng }] }. Ficam na área privada de quem está
+     logado: não entram no código da página, na cópia sem login nem no repositório. */
+  async function lerLugares(db, user) {
+    let id = null;
+    try { id = typeof user.id === "function" ? await user.id() : null; } catch (_) {}
+    if (!id) { state.lugaresProntos = true; render(); return; }
+    db.collection(`data/users/${id}`).doc("lugares").onSnapshot((snap) => {
+      const xs = snap.exists && Array.isArray(snap.data()?.lugares) ? snap.data().lugares : [];
+      state.lugares = xs.filter((l) => l && typeof l.id === "string" && typeof l.nome === "string" && Number.isFinite(l.lat) && Number.isFinite(l.lng))
+        .map((l) => ({ id: l.id, nome: l.nome, lat: l.lat, lng: l.lng }));
+      if (!snap.metadata?.fromCache) state.lugaresProntos = true;
+      // o lugar escolhido mudou de coordenada ou sumiu: atualiza o ponto de partida
+      if (state.perto?.chave?.startsWith("lugar:")) state.perto = pertoDe(state.perto.chave);
+      render();
+    }, () => { state.lugaresProntos = true; render(); });
   }
 
   // Quem abre o link sem estar logado no claude.ai não recebe o banco. Nesse caso a página
@@ -2055,6 +2093,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   }
   // sem localização: com ponto de partida já escolhido (bairro ou localização anterior), usa ele; senão abre a aba Onde
   function semLocalizacao(msg, aproveita) {
+    // sem ponto escolhido, mas com um lugar salvo (ex.: Casa): parte dele
+    if (!state.perto && state.lugares.length) { state.perto = pertoDe(`lugar:${state.lugares[0].id}`); aproveita = true; }
     if (aproveita && state.perto) { state.sort = "perto"; savePrefs(); render(); toast(`${msg} Usando ${state.perto.rotulo === "você" ? "sua última localização" : state.perto.rotulo}.`); }
     else falhaLocalizacao(msg);
   }
@@ -2077,9 +2117,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
     pedeLocalizacao();
   });
   $("perto-bairro").addEventListener("change", (e) => {
-    const k = e.target.value, b = bairrosRef().get(k);
-    if (!b) { state.perto = null; state.pertoPendente = null; if (state.sort === "perto") state.sort = "app"; }
-    else { state.perto = { lat: b.lat, lng: b.lng, rotulo: `${b.bairro} (${b.cidade})`, tipo: "bairro", chave: k }; state.sort = "perto"; }
+    const k = e.target.value, p = pertoDe(k);
+    if (!p) { state.perto = null; state.pertoPendente = null; if (state.sort === "perto") state.sort = "app"; }
+    else { state.perto = p; state.sort = "perto"; }
     savePrefs(); render();
   });
   $("f-raio").addEventListener("click", (e) => {

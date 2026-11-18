@@ -111,3 +111,37 @@ test("geo.json só é baixado quando algo usa distância ou bairro", async () =>
   assert.equal(pedidos.length, 1);
   assert.ok(await pg.$$eval("#perto-bairro option", (o) => o.length) > 10);
 });
+
+// "Meus lugares": ponto de partida pessoal, lido da área privada do banco (coordenada de teste, não real)
+const LUGARES = { lugares: [{ id: "casa", nome: "Casa", lat: -29.9177, lng: -51.1836 }] };
+
+test('"Meus lugares" aparece primeiro no seletor, ordena a partir dele e fica salvo', async () => {
+  let pg = await abrir({ data: "2026-11-17T12:30:00", lugares: LUGARES });
+  await aba(pg, "onde");
+  await pg.waitForTimeout(300);
+  const grupos = await pg.$$eval("#perto-bairro optgroup", (gs) => gs.map((g) => g.label));
+  assert.equal(grupos[0], "Meus lugares");
+  assert.equal(await pg.$eval("#perto-bairro", (s) => s.getAttribute("aria-label")), "Perto de um dos seus lugares ou de um bairro");
+  await pg.selectOption("#perto-bairro", "lugar:casa");
+  await espera(pg, 200);
+  assert.match(await texto(pg, "#result-count"), /do mais perto ao mais longe de Casa$/);
+  const prefs = await pg.evaluate(() => JSON.parse(localStorage.getItem("cupons-em-dobro:prefs:v1")));
+  assert.equal(prefs.pertoBairro, "lugar:casa");
+  // a primeira distância é a de um cupom em Canoas, perto do ponto
+  const d = await textos(pg, "#grid .ticket .loc .dist > span[aria-hidden]");
+  assert.ok(km(d[0]) < 3, `primeira distância: ${d[0]}`);
+  await pg.reload();
+  await pg.waitForSelector(".ticket");
+  await pg.waitForTimeout(800);
+  assert.match(await texto(pg, "#result-count"), /mais longe de Casa$/, "volta com o lugar escolhido");
+  assert.deepEqual(pg.erros, []);
+});
+
+test('"Agora, perto" sem localização e sem bairro usa o primeiro lugar salvo', async () => {
+  const pg = await abrir({ data: "2026-11-17T12:30:00", lugares: LUGARES });
+  await pg.click("#agora-perto");
+  await pg.waitForTimeout(800);
+  assert.match(await texto(pg, "#toast-msg"), /Usando Casa\.$/);
+  assert.match(await texto(pg, "#result-count"), /mais longe de Casa$/);
+  assert.equal(await pg.$eval("#filters", (e) => e.hidden), true, "não abre o painel");
+});

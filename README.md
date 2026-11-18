@@ -147,6 +147,14 @@ As gravações de tela abriram todos os cupons da lista, do Sabor de Luna à Fer
 - **Visita que juntou dois cupons:** Bierkeller e Hanko Sushi (separados pelos quadros).
 - **Depois do Di Toni:** o vídeo de 16/11 mostra, sem abrir, mais cupons. Os prints de 17/11 confirmaram que são cupons já usados (ver "Cupons já usados").
 
+## Meus lugares (ponto de partida pessoal)
+
+A página não recebe a localização do aparelho dentro do claude.ai (nem no app do iOS nem no navegador; a capacidade não existe para esta conta). Para não depender só do centro do bairro, "Perto de" mostra primeiro o grupo **Meus lugares**, com pontos exatos (ex.: Casa).
+
+- Ficam no banco, em `data/users/<id>/lugares` = `{ "lugares": [{ "id", "nome", "lat", "lng" }] }`. Essa área é privada de quem está logado: outros visitantes não leem, e os lugares não entram no código da página, na cópia sem login nem no repositório. **Não ponha endereço nem coordenada da casa em arquivos do repositório.**
+- Para adicionar ou mudar um lugar: `ArtifactData` com `collection: "data/users/me"`, `doc_id: "lugares"` (o `me` vira o id do usuário). A página atualiza sozinha (`onSnapshot`).
+- O lugar escolhido fica salvo nas preferências do navegador (`pertoBairro: "lugar:<id>"`). Sem GPS e sem ponto escolhido, "Agora, perto" e "Mais perto" partem do primeiro lugar da lista.
+
 ## Mapa no Google My Maps (`mapa/`)
 
 `python3 scripts/gerar-mapa.py` gera um CSV por programa em `mapa/`. Cada CSV vira uma camada no Google My Maps: [google.com/maps/d](https://www.google.com/maps/d/) > Criar um novo mapa > Adicionar camada > Importar > escolher o CSV > marcar **Endereço** para posicionar os marcadores > **Nome** como título. O próprio My Maps transforma os endereços em pontos.
