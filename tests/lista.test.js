@@ -499,3 +499,21 @@ test("lista completa: o ✓ rápido não aparece nem é lido", async () => {
   const pg = await abrir();
   assert.equal(await pg.$eval("#grid .ticket [data-act=usar]", (b) => getComputedStyle(b).display), "none");
 });
+
+test('site: sem banco, "Marcar na carteira ↗" abre o claude.ai em outra aba, nos cartões e no aviso', async () => {
+  const { cupons: todos } = require("./lib/pagina");
+  const snapshot = { geradoEm: "2026-11-18", cupons: todos() };
+  const pg = await abrir({ site: true, semBanco: true, snapshot });
+  const link = await pg.$eval("#grid .ticket a.carteira", (a) => ({ href: a.href, alvo: a.target, rotulo: a.getAttribute("aria-label"), txt: a.textContent.trim() }));
+  assert.equal(link.href, "https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc");
+  assert.equal(link.alvo, "_blank");
+  assert.match(link.rotulo, /^Marcar .+ na carteira do claude\.ai \(abre em outra aba\)$/);
+  assert.match(link.txt, /^Marcar na carteira/);
+  assert.equal(await pg.$("#grid .ticket [data-act=use]"), null, "sem o botão desativado");
+  assert.equal(await pg.$eval("#notice a", (a) => a.href), "https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc");
+  await pg.context().close();
+  // fora do site (cópia sem login do artifact), continua como antes
+  const pg2 = await abrir({ semBanco: true, snapshot });
+  assert.equal(await pg2.$("#grid .ticket a.carteira"), null);
+  assert.equal(await pg2.$("#notice a"), null);
+});
