@@ -8,7 +8,7 @@ Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**, que é o **branch padrão** do repositório (não existe `main`). Desde 18/11/2026 o trabalho das sessões entra nele por pull request; o site do GitHub Pages publica a pasta `/docs` dele. Numa sessão nova: `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele; antes, confira se há PR aberto de outra sessão ainda não juntado. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 46, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 47, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -325,3 +325,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 59. (este commit) autorização permanente para publicar registrada para todas as sessões (`CLAUDE.md` na raiz e `.claude/settings.json` liberando a ferramenta Artifact); versão 44 publicada (banco e arquivos iguais, cópia sem login sem mudança).
 60. (commits de 18/11, noite) testes no GitHub a cada push e PR; lista compacta como padrão; ícones do cartão como máscara CSS e `contain`; duas etapas nas ordens agrupadas; cópia enxuta com `regras.json` à parte; Archivo menor; site troca de versão sozinho; 83 testes da página e 11 dos scripts; versão 45 publicada e site `docs/` regenerado.
 61. (commits de 19/11) marcas guardadas à parte; fontes na instalação do site; geo.json compacto; agrupamento por baldes; limites de tamanho nos testes; compacta prática (toque na linha, ✓ rápido, foco só em visível); busca tolerante; Radio Agulha usado (18/11) levado para o arquivo; 95 testes da página e 11 dos scripts; versão 46 publicada e `docs/` regenerado.
+62. (687bb77) ✓ da linha compacta no canto de baixo (no cabeçalho, quebrava nomes e o teste da compacta falhou no GitHub); versão 47 publicada.
