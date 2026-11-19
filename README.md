@@ -35,7 +35,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Filtros que imitam os painéis dos apps (prints de 17/11/2026): turno (manhã, almoço, tarde, noite, madrugada), aceita em feriados e em datas comemorativas, e shopping/centro comercial (20 locais, deduzidos do endereço de cada unidade; o nome do shopping também aparece no cartão e na busca)
 - Perto de mim: ordenação "Mais perto" e, em Filtros, o grupo "Perto de" (minha localização ou um bairro como ponto de partida, e raio de 1, 2, 5 ou 10 km). O cartão mostra a distância em linha reta até a unidade mais perto. As coordenadas ficam em `data/geo.json`, publicado junto com a página, e vêm de `scripts/geocodificar.py` (OpenStreetMap)
 - Filtro "Data" para planejar: filtra os cupons que valem numa data dos próximos 7 dias (com feriados e validade) e mostra no cartão o horário dessa data
-- Acessível a leitores de tela (TalkBack, VoiceOver, NVDA): o foco não se perde ao filtrar, favoritar ou marcar como usado, o total de cupons é anunciado, e cada botão diz de qual cupom é
+- Acessível a leitores de tela (TalkBack, VoiceOver, NVDA): o foco não se perde ao filtrar, favoritar ou marcar como usado (nem quando o botão tocado some), o total de cupons e os avisos são anunciados, cada botão diz de qual cupom é, títulos chegam ao leitor como foram escritos (não em maiúsculas), símbolos da tela (·, ×, ✓) não são falados e as regras do estabelecimento são uma lista
 
 ## Onde os dados ficam
 

@@ -21,7 +21,8 @@ const chipsData = async (pg) => {
 test("topo mostra a validade de cada plano e avisa o feriado da semana", async () => {
   const pg = await abrir({ data: "2026-11-17T12:30:00" });
   const planos = await texto(pg, "#planos");
-  assert.match(planos, /Tour Grande Poa vale até 05\/03\/27 · faltam 108 dias/);
+  // " · " é só da tela; o leitor ouve ", " (texto .sr-only)
+  assert.match(planos, /Tour Grande Poa vale até 05\/03\/27 · , faltam 108 dias/);
   assert.match(planos, /Poa em Dobro vale até 05\/04\/27/);
   assert.match(planos, /Canoas em Dobro vale até 08\/04\/27/);
   assert.match(planos, /Sexta \(20\/11\) é feriado \(Consciência Negra\): \d+ cupons disponíveis não valem nesse dia/);
