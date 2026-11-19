@@ -539,3 +539,28 @@ test("gravação recusada: a tela volta ao estado real e o aviso diz qual cupom 
   assert.ok(await pg.$(`.ticket[data-id="${id}"]`), "cupom não marcado como usado volta à lista");
   assert.equal(await pg.evaluate(() => window.__escritas.length), 0);
 });
+
+// Teste de estresse de 19/11/2026 (décima segunda rodada): o foco do TalkBack não é o foco do navegador
+test("aviso com Desfazer não some com o tempo curto; fecha no próximo toque fora dele", async () => {
+  const pg = await abrir({ largura: 412 });
+  await pg.click("#grid .ticket [data-act=use]");
+  await espera(pg, 11000);
+  assert.equal(await pg.$eval("#toast", (t) => t.hidden), false, "depois de 11 s o Desfazer continua lá (o leitor pode estar chegando nele)");
+  await pg.click("#grid .ticket .heart");
+  await espera(pg, 150);
+  assert.equal(await pg.$eval("#toast", (t) => t.hidden), true, "tocar em outra coisa fecha");
+});
+
+test("recarregar a aba (Chrome do Android descarta abas) devolve o foco ao cupom que estava na tela", async () => {
+  const pg = await abrir({ largura: 412 });
+  await pg.click("#mais-btn");
+  await espera(pg, 300);
+  await pg.evaluate(() => { document.querySelector("#grid .ticket:nth-child(55)").scrollIntoView({ block: "start" }); scrollBy(0, -120); });
+  await espera(pg, 800);
+  const naTela = await pg.evaluate(() => { const topo = document.querySelector(".toolbar").getBoundingClientRect().bottom; return [...document.querySelectorAll("#grid .ticket")].find((t) => t.getBoundingClientRect().bottom > topo + 40).dataset.id; });
+  await pg.reload();
+  await pg.waitForSelector(".ticket");
+  await espera(pg, 1200);
+  assert.equal(await pg.evaluate(() => document.activeElement.closest(".ticket")?.dataset.id), naTela, "o foco do navegador tinha ficado no 41º (Mostrar mais); vale o cupom na tela");
+  assert.equal(await pg.evaluate(() => document.activeElement.classList.contains("tname")), true);
+});
