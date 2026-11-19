@@ -2564,12 +2564,20 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   function write(id, patch) {
     if (state.readOnly || (!col && !state.deCache)) return;
     const c = state.cupons.find((x) => x.id === id);
+    const antes = c ? Object.fromEntries(Object.keys(patch).map((k) => [k, c[k] ?? null])) : null;
     if (c) Object.assign(c, patch); // resposta imediata; o onSnapshot confirma
     render();
-    if (!col) { pendentes.push([id, patch]); return; }
-    envia(id, patch);
+    if (!col) { pendentes.push([id, patch, antes]); return; }
+    envia(id, patch, antes);
   }
-  function envia(id, patch) {
+  // Se o banco recusar, a tela volta ao que era (antes, o coração ficava marcado e o cupom "usado" sumia
+  // da lista sem ter sido gravado; o leitor de tela ouvia um estado que não existia)
+  function desfazLocal(id, antes) {
+    const c = antes && state.cupons.find((x) => x.id === id);
+    if (c) Object.assign(c, antes);
+    return c ? ` ${c.nome} ficou como estava.` : "";
+  }
+  function envia(id, patch, antes) {
     const run = async () => {
       try {
         await col.doc(id).update(patch);
@@ -2578,13 +2586,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           await new Promise((r) => setTimeout(r, 600 + Math.random() * 900));
           try { await col.doc(id).update(patch); return; } catch (e2) { e = e2; }
         }
+        const ficou = desfazLocal(id, antes);
         if (e && (e.code === "invalid_argument" || e.code === "not_granted")) {
           state.readOnly = true;
-          toast("Esta carteira está em modo leitura para você.");
+          toast(`Esta carteira está em modo leitura para você.${ficou}`);
         } else if (e && e.code === "quota_exceeded") {
-          toast("O espaço de dados da carteira acabou. A alteração não foi salva.");
+          toast(`O espaço de dados da carteira acabou. A alteração não foi salva.${ficou}`);
         } else {
-          toast("Não foi possível salvar. Tente de novo em instantes.");
+          toast(`Não foi possível salvar. Tente de novo em instantes.${ficou}`);
         }
         render();
       }
@@ -2687,7 +2696,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
     if (!db) { clearTimeout(slowTimer); carregaCopia("nodb"); return; }
     col = db.collection("cupons");
-    for (const [id, patch] of pendentes.splice(0)) envia(id, patch);
+    for (const [id, patch, antes] of pendentes.splice(0)) envia(id, patch, antes);
     window.claude.use("user").then(async (user) => {
       if (!user) return;
       // can() null = a plataforma não informou: mantém os botões e deixa a escrita decidir
