@@ -436,7 +436,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .usar-rapido::before { content: ""; width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
 .usar-rapido:hover { color: var(--ok); }
 .usar-rapido:disabled { cursor: default; opacity: .5; }
-.grid.compacto .ticket:not(.expandido) .usar-rapido { display: grid; }
+/* no canto de baixo, fora do cabeçalho: lá ele tirava largura do nome, que quebrava em duas linhas
+   (com a fonte do sistema, cabiam 4 linhas por tela em vez de 5) */
+.grid.compacto .ticket:not(.expandido) .usar-rapido { display: grid; position: absolute; right: 6px; bottom: 4px; margin: 0; }
+.grid.compacto .ticket:not(.expandido):has(.usar-rapido) .offer,
+.grid.compacto .ticket:not(.expandido):has(.usar-rapido) .tags { padding-right: 34px; }
 .grid.compacto .ticket:not(.expandido) { cursor: pointer; }
 .grid.compacto, .grid.compacto .group-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .grid.compacto .ticket:not(.expandido) { grid-template-columns: minmax(0, 1fr); min-height: 0; }
