@@ -1,6 +1,6 @@
 # Transferência de sessão: Cupons em Dobro
 
-Situação em 12/11/2026, no fim da sessão anterior. Leia este arquivo inteiro antes de mexer em dados, no banco ou na página. O `README.md` tem os detalhes de cada programa; este arquivo cobre o que é fácil deixar passar.
+Situação em 19/11/2026, no fim da sessão anterior. Leia este arquivo inteiro antes de mexer em dados, no banco ou na página. O `README.md` tem os detalhes de cada programa; este arquivo cobre o que é fácil deixar passar.
 
 ## 1. Onde está tudo
 
@@ -208,6 +208,13 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 5. **Tour, pendências menores:** resolvidas em 17/11/2026 por prints (Mark - Harmonia, Roubadinhas e Zona Sul, por dedução; PopCorn Gourmet e Pallina Di Latte completos). Os dois cupons do Mark ganharam as outras unidades com horários (prints de 17/11, 21:50). Ah! Casa e Camarão Express também ganharam a segunda unidade. Poke Delícia - São Leo, Coccaderia.Co, Milky Moo e Mr. Pretzels também (prints de 17/11, 22:06): nenhum cupom do Tour ficou só com a primeira unidade. Comodidades por unidade em `outrasUnidades[].comodidades` (Coccaderia, Poke Delícia); `comodSet` junta as de todas as unidades.
 6. **Avisos com data:** várias regras do Tour citam datas que já passaram ("Dia dos Namorados", "nesse domingo 08/11"). Estão transcritas como o app mostrava em 12/11. Se o usuário mandar telas novas, atualize.
 7. **Contradição no app:** o Mr. Pretzels mostra ✓ em feriados e datas comemorativas, mas a regra dele diz que não vale nesses dias. Ficou como o app mostra.
+8. **Melhorias propostas e ainda não feitas** (lista de 18/11 trazida do PR #2, que não foi juntado; "fontes mais leves" e "cópia dos cupons menor", que também estavam nela, foram feitas nas versões 45 e 46):
+   1. **"Marcar na carteira ↗" no site do Pages.** Lá, marcar como usado fica desativado; trocar por um link que abre a página do claude.ai (https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc) e pôr o mesmo link no aviso do topo.
+   2. **Primeira tela já ordenada também no claude.ai.** A lista guardada aparece antes do banco, mas a ordem por distância espera as coordenadas; guardar a ordem e o ponto de partida (Casa, Perto de mim) para desenhar já ordenado.
+   3. **Mapa com os cupons, no site do Pages.** Cupons filtrados como pontos (tiles do OpenStreetMap), com a pessoa no centro; tocar num ponto abre o cartão. No claude.ai os tiles externos tendem a ser bloqueados.
+   4. **"+ Adicionar lugar" na própria página (artifact).** Colar a coordenada do Google Maps e dar um nome ("Trabalho", "Academia"); grava em `data/users/<id>/lugares` com `update`. Hoje só a Casa existe, gravada pelo Claude. A coordenada continua só na área privada.
+   5. **Etiqueta "abre em breve".** Por exemplo "abre às 18h30 (em 40 min)" nos cupons que ainda não valem, e uma linha "Daqui a pouco" no bloco "Valendo agora".
+   Também propostas em 19/11 e não feitas: compartilhar um cupom (WhatsApp etc.), plano da semana, filtros salvos, lembretes na agenda (.ics), lotes maiores na compacta (testar com TalkBack), tema claro/escuro escolhido na página, acabamento em 320 px ("103 usados" quebra linha, texto de exemplo da busca cortado).
 
 ## 7. Como o usuário manda as informações
 
@@ -326,3 +333,4 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 60. (commits de 18/11, noite) testes no GitHub a cada push e PR; lista compacta como padrão; ícones do cartão como máscara CSS e `contain`; duas etapas nas ordens agrupadas; cópia enxuta com `regras.json` à parte; Archivo menor; site troca de versão sozinho; 83 testes da página e 11 dos scripts; versão 45 publicada e site `docs/` regenerado.
 61. (commits de 19/11) marcas guardadas à parte; fontes na instalação do site; geo.json compacto; agrupamento por baldes; limites de tamanho nos testes; compacta prática (toque na linha, ✓ rápido, foco só em visível); busca tolerante; Radio Agulha usado (18/11) levado para o arquivo; 95 testes da página e 11 dos scripts; versão 46 publicada e `docs/` regenerado.
 62. (687bb77) ✓ da linha compacta no canto de baixo (no cabeçalho, quebrava nomes e o teste da compacta falhou no GitHub); versão 47 publicada.
+63. (este commit) do PR #2 (fechado sem juntar: conflitava e estava desatualizado): lembretes do `CLAUDE.md` (português, branch padrão, `update` no banco, privacidade de "Meus lugares", atualizar este arquivo) e as melhorias ainda não feitas (seção 6, item 8).
