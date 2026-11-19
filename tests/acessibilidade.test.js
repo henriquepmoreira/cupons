@@ -333,3 +333,45 @@ test("gesto de voltar do Android fecha o Filtros em tela cheia, sem sair da pág
   await aba(pc, "quando");
   assert.equal(await pc.evaluate(() => history.state?.cuponsFiltros || null), null, "no computador (painel, não diálogo) não há entrada");
 });
+
+// Teste de estresse de 19/11/2026 (quinta rodada): uma fala por ação
+async function ouve(pg) {
+  await pg.evaluate(() => {
+    window.__fala = [];
+    for (const v of document.querySelectorAll('[aria-live], [role="status"], [role="alert"]')) {
+      let t; new MutationObserver(() => { clearTimeout(t); t = setTimeout(() => { if (v.textContent.trim()) window.__fala.push(v.id); }, 60); }).observe(v, { childList: true, subtree: true, characterData: true });
+    }
+  });
+}
+test("sem fala repetida: aviso + total, ou foco no total + anúncio do total", async () => {
+  const pg = await abrir({ largura: 412, localizacao: { latitude: -30.027, longitude: -51.2 } });
+  await espera(pg, 1200);
+  await ouve(pg);
+  await pg.click("#perto-toggle");
+  await espera(pg, 1600);
+  assert.deepEqual(await pg.evaluate(() => window.__fala), ["sr-aviso"], "Perto de mim: só o aviso (o total diria o mesmo)");
+  await pg.click("#perto-toggle");
+  await busca(pg, "xyzq");
+  await espera(pg, 1200);
+  await pg.evaluate(() => { window.__fala = []; });
+  await pg.click('#grid [data-act="tirar"]');
+  await espera(pg, 1600);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
+  assert.deepEqual(await pg.evaluate(() => window.__fala), [], "o foco já leu o total; anunciar de novo repetiria");
+  await pg.evaluate(() => { window.__fala = []; });
+  await pg.click("#agora-toggle");
+  await espera(pg, 1600);
+  assert.deepEqual(await pg.evaluate(() => window.__fala), ["sr-status"], "ação comum continua anunciando o total");
+});
+
+test("mapa aberto: filtrar anuncia só o total; o aviso do mapa fala só nas ações do mapa", async () => {
+  const pg = await abrir({ largura: 412, site: true });
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area .leaflet-interactive", { timeout: 5000 });
+  await espera(pg, 1200);
+  await ouve(pg);
+  await pg.click("#fav-toggle");
+  await espera(pg, 1600);
+  assert.deepEqual(await pg.evaluate(() => window.__fala), ["sr-status"]);
+  assert.match(await texto(pg, "#mapa-info"), /cupons no mapa/, "o texto do mapa acompanha a lista, em silêncio");
+});
