@@ -1891,19 +1891,32 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     // virou diálogo com o foco na parte que ficou inerte (ex.: aberto deitado e o celular girou): o foco ia para o
     // começo da página; vai para o título do painel
     if (modal && !f.contains(document.activeElement)) $("filters-titulo").focus();
-    // gesto/botão de voltar do Android fecha o diálogo em vez de sair da página: uma entrada no histórico
-    // enquanto ele está aberto; fechando pelo ×, Esc ou "Ver cupons", a entrada sai
-    try {
-      if (modal && !filtrosNoHistorico) { history.pushState({ cuponsFiltros: true }, ""); filtrosNoHistorico = true; }
-      else if (!modal && filtrosNoHistorico) { filtrosNoHistorico = false; if (history.state?.cuponsFiltros) history.back(); }
-    } catch (_) { filtrosNoHistorico = false; }
   }
-  let filtrosNoHistorico = false;
+  // Gesto/botão de voltar do Android fecha a camada de cima em vez de sair da página: o Filtros em tela cheia
+  // e o "Ver juntos" (que troca a lista inteira; abre também pelo "Valendo agora" e pelo mapa). Uma entrada no
+  // histórico por camada aberta, conferida no fim de cada render: fechada de outro jeito, a entrada sai; uma
+  // camada que abre no lugar de outra ("Ver juntos" → Filtros) troca a entrada. Tudo em try (iframe do claude.ai).
+  let noHistorico = [], _voltando = 0;
+  function sincronizaHistorico() {
+    if (_voltando) return; // um history.go nosso ainda não chegou: confere de novo no popstate dele
+    const quer = [state.grupo && "grupo", filtrosModal && "filtros"].filter(Boolean);
+    if (quer.join() === noHistorico.join()) return;
+    try {
+      if (quer.length === noHistorico.length) history.replaceState({ cupons: quer.at(-1) }, "");
+      else if (quer.length > noHistorico.length) for (const c of quer.slice(noHistorico.length)) history.pushState({ cupons: c }, "");
+      else { _voltando++; history.go(quer.length - noHistorico.length); }
+      noHistorico = quer;
+    } catch (_) { noHistorico = []; _voltando = 0; }
+  }
   addEventListener("popstate", () => {
-    if (!filtrosNoHistorico || history.state?.cuponsFiltros) return;
-    filtrosNoHistorico = false; // a entrada já saiu: voltar fechou o diálogo
-    if (state.filtersOpen) fechaFiltros();
+    if (_voltando) { _voltando--; sincronizaHistorico(); return; }
+    const c = noHistorico.pop(); // voltar do Android: a entrada de cima já saiu
+    if (c === "filtros" && state.filtersOpen) fechaFiltros();
+    else if (c === "grupo" && state.grupo) { saiGrupo(true); render(); }
   });
+  // aba recarregada (o Chrome do Android descarta abas) com uma camada aberta: a página volta sem ela, e a entrada
+  // que sobrou faria o primeiro "voltar" não fazer nada
+  try { if (history.state?.cupons) { _voltando++; history.back(); } } catch (_) { _voltando = 0; }
   function abreFiltros() {
     state.filtersOpen = true;
     if (state.abaFiltros === "onde") garanteGeo();
@@ -2596,6 +2609,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     guardaPosicao();
     preparaEmSegundoPlano();
     guardaOrdemPerto();
+    sincronizaHistorico();
   }
 
   /* ---------- toast ---------- */
@@ -3119,7 +3133,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="expandir"]`];
       render();
     } else if (b.dataset.act === "grupo") {
-      state.grupo = id;
+      state.grupo = id; grupoDe = null;
       focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
       render();
       document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
@@ -3154,8 +3168,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   function saiGrupo(foco) {
     if (!state.grupo) return;
     const id = state.grupo; state.grupo = null;
-    if (foco) focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="grupo"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+    // o foco volta para onde o "Ver juntos" foi aberto (cartão, item do "Valendo agora" ou botão do mapa)
+    if (foco) focoPendente = [...(grupoDe ? [grupoDe] : []), `.ticket[data-id="${CSS.escape(id)}"] [data-act="grupo"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+    grupoDe = null;
   }
+  let grupoDe = null;
   $("mais-btn").addEventListener("click", () => {
     const antes = state.limite, lista = visible();
     state.limite += LOTE;
@@ -3174,7 +3191,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     // como no "Valendo agora": mostra só esse cupom (e o mesmo lugar nos outros programas)
     paraDeSeguir();
     mapaAberto = false;
-    state.grupo = b.dataset.mapaVer;
+    state.grupo = b.dataset.mapaVer; grupoDe = "#mapa-abrir";
     focoPendente = [`.ticket[data-id="${CSS.escape(state.grupo)}"] .tname`, "#result-count"];
     render();
     document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
@@ -3183,7 +3200,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const it = e.target.closest("[data-agora]");
     if (it) {
       // mostra só esse cupom (e o mesmo lugar nos outros programas), como "Ver juntos"
-      state.grupo = it.dataset.agora;
+      state.grupo = it.dataset.agora; grupoDe = `#agora [data-agora="${CSS.escape(it.dataset.agora)}"]`;
       focoPendente = [`.ticket[data-id="${CSS.escape(state.grupo)}"] .tname`, "#result-count"];
       render();
       document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
