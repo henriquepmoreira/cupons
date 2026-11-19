@@ -1025,7 +1025,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
      juntas; a cidade e o bairro de cada cupom aparecem para separar as unidades. */
   const nomeBase = (nome) => norm(nome).split(/\s+[-–]\s+/)[0].replace(/['’`´]/g, "").replace(/&/g, " e ")
     .replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
-  // O agrupamento (O(n²)) só é refeito quando ids, nomes ou programas mudam; a cada atualização do banco
+  // O agrupamento só é refeito quando ids, nomes ou programas mudam; a cada atualização do banco
   // (favorito, usado) só se trocam os objetos pelos novos, em O(n).
   let _grupos = { de: null, n: -1, mapa: new Map() }, _gruposIds = { sig: "", ids: new Map() };
   function grupos() { // id -> lista de cupons do mesmo lugar (inclui o próprio), só quando há outro programa
@@ -1044,7 +1044,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const pai = cs.map((_, i) => i);
     const raiz = (i) => (pai[i] === i ? i : (pai[i] = raiz(pai[i])));
     const prefixo = (a, b) => a.length > 0 && a.length <= b.length && a.every((w, i) => w === b[i]);
-    for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) {
+    // um nome-base só é começo de outro se os dois têm a mesma primeira palavra: compara só dentro de cada
+    // balde (antes, todos com todos: ~230 mil pares e ~35 ms na abertura com a CPU 4× mais lenta)
+    const baldes = new Map();
+    ws.forEach((w, i) => { if (!w.length) return; const b = baldes.get(w[0]); b ? b.push(i) : baldes.set(w[0], [i]); });
+    for (const b of baldes.values()) for (let x = 0; x < b.length; x++) for (let y = x + 1; y < b.length; y++) {
+      const i = b[x], j = b[y];
       if (cs[i].programa === cs[j].programa) continue;
       if (prefixo(ws[i], ws[j]) || prefixo(ws[j], ws[i])) pai[raiz(i)] = raiz(j);
     }
