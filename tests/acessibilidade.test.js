@@ -490,3 +490,23 @@ test("\"Ordenar\" falado uma vez e aviso falado sai da região depois de lido", 
   await espera(pg, 4300);
   assert.equal(await texto(pg, "#sr-aviso"), "", "quem desliza até o fim ouve só o aviso visível, não duas vezes");
 });
+
+// Teste de estresse de 19/11/2026 (nona rodada): o main fica inerte com o Filtros aberto no celular
+test("com o Filtros em tela cheia, o total e os avisos continuam chegando ao leitor", async () => {
+  const pg = await abrir({ largura: 412, localizacao: { latitude: -30.027, longitude: -51.2 } });
+  await aba(pg, "quando");
+  assert.equal(await pg.$eval("main", (m) => m.inert), true, "o resto da página fica inerte");
+  await pg.click("#f-turno button:nth-child(4)");
+  await espera(pg, 1200);
+  await pg.click("#aba-onde");
+  await pg.click("#perto-gps");
+  await espera(pg, 1500);
+  const cdp = await pg.context().newCDPSession(pg);
+  const { nodes } = await cdp.send("Accessibility.getFullAXTree");
+  const porId = new Map(nodes.map((n) => [n.nodeId, n]));
+  const txt = (n) => (n.role?.value === "StaticText" ? n.name?.value || "" : (n.childIds || []).map((c) => porId.get(c)).filter(Boolean).map(txt).join(""));
+  const vivas = nodes.filter((n) => !n.ignored && n.properties?.some((p) => p.name === "live" && p.value.value === "polite")).map(txt);
+  assert.ok(vivas.some((t) => /de 575 cupons disponíveis/.test(t)), `total alcançável: ${JSON.stringify(vivas)}`);
+  assert.ok(vivas.some((t) => /mais perto/.test(t)), "aviso alcançável");
+  assert.equal(await pg.evaluate(() => !!document.getElementById("toast").closest("[inert]")), false, "o aviso (e o Desfazer) não ficam inertes");
+});
