@@ -517,3 +517,30 @@ test('site: sem banco, "Marcar na carteira ↗" abre o claude.ai em outra aba, n
   assert.equal(await pg2.$("#grid .ticket a.carteira"), null);
   assert.equal(await pg2.$("#notice a"), null);
 });
+
+test("site: mapa com os cupons da lista, você no centro e \"Ver cupom\" abre o cartão; no artifact não aparece", async () => {
+  const { cupons: todos } = require("./lib/pagina");
+  const snapshot = { geradoEm: "2026-11-18", cupons: todos() };
+  const pg = await abrir({ site: true, semBanco: true, snapshot, localizacao: { latitude: -30.0333, longitude: -51.2303 } });
+  await busca(pg, "spoleto");
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area .leaflet-interactive", { timeout: 5000 });
+  const info = await texto(pg, "#mapa-info");
+  const n = numero(await texto(pg, "#result-count"));
+  assert.match(info, /^\d+ cupons? no mapa/);
+  assert.ok(numero(info) <= n && numero(info) > 0, `${info} / ${n} na lista`);
+  const pontos = await pg.$$eval("#mapa-area path.leaflet-interactive", (p) => p.length);
+  assert.ok(pontos >= numero(info), `${pontos} pontos (uma por unidade)`);
+  // tocar num ponto mostra o cupom e "Ver cupom" abre só ele na lista
+  await pg.$eval("#mapa-area path.leaflet-interactive", (p) => p.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  await pg.waitForSelector("#mapa-area .leaflet-popup [data-mapa-ver]");
+  const id = await pg.$eval("#mapa-area [data-mapa-ver]", (b) => b.dataset.mapaVer);
+  await pg.click("#mapa-area [data-mapa-ver]");
+  await espera(pg, 150);
+  assert.equal(await pg.$eval("#mapa", (e) => e.hidden), true, "o mapa fecha");
+  assert.ok(await pg.$(`#grid .ticket[data-id="${id}"]`));
+  await pg.context().close();
+  // no artifact (sem a marca do site), nem o botão aparece
+  const pg2 = await abrir();
+  assert.equal(await pg2.$eval("#mapa-abrir", (b) => b.hidden), true);
+});

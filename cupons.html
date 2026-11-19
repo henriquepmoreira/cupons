@@ -401,6 +401,14 @@ a.usebtn { color: var(--accent); text-decoration: none; }
 .outros li .dif { color: var(--p-canoas); font-weight: 600; }
 .outros > summary .sug { display: block; margin: 3px 0 0 1em; font-weight: 500; color: var(--ok); }
 .resultbar .grupo-sair { white-space: nowrap; }
+/* mapa (só no site do Pages): Leaflet + OpenStreetMap, carregados ao abrir */
+.mapa { margin: 0 0 14px; border-radius: var(--r-ticket); overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+.mapa-topo { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 8px 12px; }
+.mapa-topo p { margin: 0; font-size: 13px; color: var(--muted); }
+#mapa-area { height: min(62vh, 520px); background: var(--surface-2); }
+#mapa-area .leaflet-popup-content { font: 13px/1.4 var(--f-body); margin: 10px 12px; }
+#mapa-area .leaflet-popup-content b { font-size: 14px; }
+#mapa-area .leaflet-popup-content button { margin-top: 6px; }
 .mais { display: flex; justify-content: center; margin: -28px 0 48px; }
 .mais .usebtn { height: 44px; padding: 0 18px; font-size: 14px; }
 .perto-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -748,7 +756,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <p id="result-count" tabindex="-1">Carregando cupons…</p>
     <button type="button" class="linkbtn" id="result-clear" hidden>Limpar busca e filtros</button>
     <button type="button" class="linkbtn grupo-sair" id="grupo-sair" hidden>Voltar à lista</button>
+    <button type="button" class="linkbtn" id="mapa-abrir" hidden>Ver no mapa</button>
   </div>
+  <section class="mapa" id="mapa" aria-label="Mapa dos cupons" hidden>
+    <div class="mapa-topo"><p id="mapa-info" role="status"></p><button type="button" class="linkbtn" id="mapa-fechar">Fechar mapa</button></div>
+    <div id="mapa-area" aria-label="Mapa com os cupons da lista. A lista abaixo tem os mesmos cupons."></div>
+  </section>
   <div class="ativos" id="ativos" role="group" aria-label="Filtros ativos" hidden></div>
   <p class="notice" id="notice" role="status" hidden></p>
   <h2 class="sr-only" id="lista-h">Cupons</h2>
@@ -2218,6 +2231,71 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     setHidden(el, false);
   }
 
+  /* ---------- mapa (só no site do Pages) ----------
+     Leaflet e os ladrilhos do OpenStreetMap vêm de fora e só são baixados ao abrir o mapa. No claude.ai o
+     botão não aparece (o visualizador costuma bloquear os ladrilhos). A lista continua sendo o caminho
+     acessível: o mapa mostra os mesmos cupons. */
+  const LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+  const LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+  let mapaAberto = false, _mapa = null, _mapaCamada = null, _mapaSig = null, _leaflet = null;
+  function carregaLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    if (!_leaflet) _leaflet = new Promise((ok, falha) => {
+      const css = document.createElement("link"); css.rel = "stylesheet"; css.href = LEAFLET_CSS; document.head.appendChild(css);
+      const js = document.createElement("script"); js.src = LEAFLET_JS;
+      js.onload = () => ok(window.L); js.onerror = () => { _leaflet = null; falha(new Error("leaflet")); };
+      document.head.appendChild(js);
+    });
+    return _leaflet;
+  }
+  async function abreMapa() {
+    mapaAberto = true; _mapaSig = null;
+    htmlDe($("mapa-info")).textContent = "Carregando o mapa…";
+    render();
+    try { await Promise.all([carregaLeaflet(), garanteGeo()]); }
+    catch (_) { htmlDe($("mapa-info")).textContent = "O mapa precisa de internet. A lista abaixo continua com todos os cupons."; return; }
+    if (!state.geo) { htmlDe($("mapa-info")).textContent = "As coordenadas não carregaram. A lista abaixo continua com todos os cupons."; return; }
+    desenhaMapa(true);
+  }
+  function fechaMapa() { mapaAberto = false; render(); $("mapa-abrir").focus(); }
+  function desenhaMapa(enquadrar) {
+    const L = window.L; if (!L || !state.geo) return;
+    const lista = visible(), perto = state.perto;
+    const sig = `${lista.map((c) => `${c.id}${c.favorito ? "*" : ""}`).join(",")}|${perto ? `${perto.lat},${perto.lng}` : ""}`;
+    if (sig === _mapaSig && !enquadrar) return;
+    _mapaSig = sig;
+    if (!_mapa) {
+      _mapa = L.map("mapa-area", { zoomControl: true, attributionControl: true });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(_mapa);
+      _mapaCamada = L.layerGroup().addTo(_mapa);
+    }
+    _mapaCamada.clearLayers();
+    const cor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    const cores = { "poa-em-dobro": cor("--p-poa"), "tour-grande-poa": cor("--p-tour"), "canoas-em-dobro": cor("--p-canoas") };
+    const pontos = [];
+    let semEndereco = 0;
+    for (const c of lista) {
+      const cs = coordsDe(c);
+      if (!cs.length) { semEndereco++; continue; }
+      const d = distDe(c);
+      const oferta = c.item ? `${c.item}, ${GANHE_TXT[c.ganhe] || "outro igual"}` : "oferta não cadastrada";
+      const html = `<b>${esc(c.nome)}</b><br>${esc(PROG[c.programa]?.curto || "")} · ${esc(oferta)}${d ? `<br>${d.aprox ? "≈ " : ""}${esc(fmtKm(d.km))} · ${esc(tempoTxt(d.km))}` : ""}<br><button type="button" class="linkbtn" data-mapa-ver="${esc(c.id)}">Ver cupom</button>`;
+      for (const g of cs) {
+        pontos.push([g.lat, g.lng]);
+        L.circleMarker([g.lat, g.lng], { radius: c.favorito ? 8 : 6, weight: c.favorito ? 2 : 1, color: "#fff", fillColor: cores[c.programa] || "#666", fillOpacity: .9 })
+          .bindPopup(html).addTo(_mapaCamada);
+      }
+    }
+    if (perto) L.circleMarker([perto.lat, perto.lng], { radius: 9, weight: 3, color: "#fff", fillColor: cor("--accent"), fillOpacity: 1 }).bindTooltip(perto.rotulo === "você" ? "Você" : perto.rotulo).addTo(_mapaCamada);
+    htmlDe($("mapa-info")).textContent = `${lista.length - semEndereco} ${lista.length - semEndereco === 1 ? "cupom" : "cupons"} no mapa${semEndereco ? ` (${semEndereco} sem endereço)` : ""}. Favoritos maiores; cores pelo programa.`;
+    if (enquadrar) {
+      if (perto) _mapa.setView([perto.lat, perto.lng], 14);
+      else if (pontos.length) _mapa.fitBounds(pontos, { padding: [24, 24], maxZoom: 15 });
+      else _mapa.setView([-30.03, -51.2], 11);
+    }
+    setTimeout(() => _mapa.invalidateSize(), 0);
+  }
+
   function render() {
     aplicaPertoPendente();
     const sels = focoPendente || descreveFoco();
@@ -2226,6 +2304,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     renderNotice();
     renderAgora();
     renderGrid();
+    setHidden($("mapa-abrir"), !(NO_SITE && state.phase === "ready" && state.cupons.length && !mapaAberto));
+    setHidden($("mapa"), !mapaAberto);
+    if (mapaAberto && window.L && state.geo) desenhaMapa(false);
     restauraFoco(sels);
     focoPendente = null;
     if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
@@ -2751,6 +2832,17 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     render();
   });
   $("grupo-sair").addEventListener("click", () => { saiGrupo(true); render(); });
+  $("mapa-abrir").addEventListener("click", abreMapa);
+  $("mapa-fechar").addEventListener("click", fechaMapa);
+  $("mapa-area").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mapa-ver]"); if (!b) return;
+    // como no "Valendo agora": mostra só esse cupom (e o mesmo lugar nos outros programas)
+    mapaAberto = false;
+    state.grupo = b.dataset.mapaVer;
+    focoPendente = [`.ticket[data-id="${CSS.escape(state.grupo)}"] .tname`, "#result-count"];
+    render();
+    document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
+  });
   $("agora").addEventListener("click", (e) => {
     const it = e.target.closest("[data-agora]");
     if (it) {
