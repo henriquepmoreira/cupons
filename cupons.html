@@ -106,7 +106,7 @@ button { cursor: pointer; }
 /* elementos com hidden somem da tela e do leitor de tela, mesmo onde o visualizador não garante isso */
 [hidden] { display: none !important; }
 /* texto só para leitores de tela (TalkBack, VoiceOver, NVDA) */
-.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; text-transform: none; }
 .ticket .tname:focus { outline: none; }
 .ticket .tname:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 
@@ -390,6 +390,11 @@ a.usebtn { color: var(--accent); text-decoration: none; }
 .det-body h4 { margin: 0 0 3px; font-family: var(--f-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .det-body p { margin: 0; line-height: 1.45; }
 .det-body p.rg { white-space: pre-line; }
+.det-body .rg-lista { margin: 0; padding: 0; list-style: none; line-height: 1.45; }
+.rg-lista li { padding-left: .9em; text-indent: -.9em; }
+.rg-lista li::before { content: "– " / ""; }
+.rg-lista li.sem { padding-left: 0; text-indent: 0; }
+.rg-lista li.sem::before { content: none; }
 .outros { border-top: 0; padding-top: 0; }
 .outros > summary { color: var(--ink); font-weight: 600; }
 .outros > summary::before { color: var(--accent); }
@@ -405,6 +410,7 @@ a.usebtn { color: var(--accent); text-decoration: none; }
 .mapa { margin: 0 0 14px; border-radius: var(--r-ticket); overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
 .mapa-topo { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 8px 12px; }
 .mapa-topo p { margin: 0; font-size: 13px; color: var(--muted); }
+.mapa-topo p:focus { outline: none; }
 .mapa-botoes { display: flex; flex-wrap: wrap; gap: 4px 14px; }
 /* ligado: o nome continua "Seguir" (o leitor de tela diz "pressionado"); na tela, sublinhado e um ponto */
 #mapa-seguir[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 3px; }
@@ -591,9 +597,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 </style>
 
 <header class="wrap masthead">
-  <p class="eyebrow">Carteira pessoal · 2 por 1 em Porto Alegre e região</p>
+  <p class="eyebrow"><span aria-hidden="true">Carteira pessoal · 2 por 1 em Porto Alegre e região</span><span class="sr-only">Carteira pessoal: 2 por 1 em Porto Alegre e região</span></p>
   <div class="title-row">
-    <h1>Cupons<span class="x">×</span>em Dobro</h1>
+    <h1 aria-label="Cupons em Dobro">Cupons<span class="x" aria-hidden="true">×</span>em Dobro</h1>
     <div class="stats" id="stats">
       <div class="stat"><b id="st-disp">–</b><span>disponíveis</span></div>
       <div class="stat fav"><b id="st-fav">–</b><span>favoritos</span></div>
@@ -609,7 +615,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <div class="search" role="search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Busque lugar, prato ou bairro" autocomplete="off" aria-label="Buscar cupons">
-      <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden>×</button>
+      <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden><span aria-hidden="true">×</span></button>
     </div>
     <div class="controls" role="group" aria-label="Atalhos da lista">
       <button type="button" class="chipbtn" id="filters-toggle" aria-expanded="false" aria-controls="filters">
@@ -635,7 +641,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 <section class="wrap filters" id="filters" hidden aria-labelledby="filters-titulo">
   <div class="filters-head">
     <h2 class="ftitle" id="filters-titulo" tabindex="-1">Filtros</h2>
-    <button type="button" class="fechar" id="filters-close" aria-label="Fechar filtros">×</button>
+    <button type="button" class="fechar" id="filters-close" aria-label="Fechar filtros"><span aria-hidden="true">×</span></button>
   </div>
   <div class="fgroup flista">
     <h2 id="f-lista-h">Lista</h2>
@@ -675,7 +681,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <button type="button" class="fchip" data-aceita="feriados">Aceita em feriados <span class="n"></span></button>
         <button type="button" class="fchip" data-aceita="datas">Aceita em datas comemorativas <span class="n"></span></button>
       </div>
-      <p class="fnote">"Vale agora" considera só os cupons com dias e horários cadastrados. "Aceita em…" segue o ✓ do app; marcando os dois, o cupom precisa aceitar os dois.</p>
+      <p class="fnote">"Vale agora" considera só os cupons com dias e horários cadastrados. "Aceita em…" segue o <span aria-hidden="true">✓</span><span class="sr-only">sinal de aceito</span> do app; marcando os dois, o cupom precisa aceitar os dois.</p>
     </div>
     <div class="fgroup">
       <h2 id="f-data-h">Data</h2>
@@ -720,7 +726,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <div class="fgroup">
       <h2 id="f-comod-h">Comodidades e diferenciais</h2>
       <div class="fchips" id="f-comod" role="group" aria-labelledby="f-comod-h"></div>
-      <p class="fnote">Mostra os cupons que têm todas as marcadas. O Poa em Dobro e o Canoas em Dobro só informam Aceita Pet e Espaço Kids; as outras comodidades vêm só do Tour. Pet e Kids também ficam na barra de cima.</p>
+      <p class="fnote">Mostra os cupons que têm todas as marcadas. O Poa em Dobro e o Canoas em Dobro só informam Aceita Pet e Espaço Kids; as outras comodidades vêm só do Tour.</p>
     </div>
   </div>
   <div class="fpanel" role="tabpanel" id="painel-onde" aria-labelledby="aba-onde" hidden>
@@ -763,14 +769,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <button type="button" class="linkbtn" id="mapa-abrir" hidden>Ver no mapa</button>
   </div>
   <section class="mapa" id="mapa" aria-label="Mapa dos cupons" hidden>
-    <div class="mapa-topo"><p id="mapa-info" role="status"></p>
+    <div class="mapa-topo"><p id="mapa-info" role="status" tabindex="-1"></p>
       <div class="mapa-botoes">
         <button type="button" class="linkbtn" id="mapa-local">Minha localização</button>
         <button type="button" class="linkbtn" id="mapa-seguir" aria-pressed="false">Seguir</button>
         <button type="button" class="linkbtn" id="mapa-fechar">Fechar mapa</button>
       </div>
     </div>
-    <div id="mapa-area" aria-label="Mapa com os cupons da lista. A lista abaixo tem os mesmos cupons."></div>
+    <div id="mapa-area" role="group" aria-label="Mapa. Os pontos não são lidos pelo leitor de tela; a lista abaixo tem os mesmos cupons."></div>
   </section>
   <div class="ativos" id="ativos" role="group" aria-label="Filtros ativos" hidden></div>
   <p class="notice" id="notice" role="status" hidden></p>
@@ -780,7 +786,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   </div>
   <div class="mais" id="mais" hidden><button type="button" class="usebtn" id="mais-btn"></button></div>
   <p class="sr-only" id="sr-status" role="status" aria-live="polite" aria-atomic="true"></p>
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-msg"></span><button type="button" id="toast-undo" hidden>Desfazer</button></div>
+  <p class="sr-only" id="sr-aviso" role="status" aria-live="polite" aria-atomic="true"></p>
+  <div class="toast" id="toast" hidden><span id="toast-msg"></span><button type="button" id="toast-undo" hidden>Desfazer</button></div>
   <button type="button" class="topo" id="topo" aria-label="Voltar ao topo" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span aria-hidden="true">Topo</span></button>
 </main>
 
@@ -793,6 +800,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   if (fontes) { if (fontes.sheet) fontes.media = "all"; else fontes.addEventListener("load", () => { fontes.media = "all"; }); }
   // o invólucro do artifact não declara idioma; sem isso o TalkBack pode ler em inglês
   document.documentElement.lang = "pt-BR";
+  // títulos do painel Filtros ficam em maiúsculas pelo CSS; o leitor recebe o texto como foi escrito
+  for (const h of document.querySelectorAll("#filters-titulo, #filters .fgroup > h2")) h.setAttribute("aria-label", h.textContent.trim());
 
   /* ---------- configuração fixa ---------- */
   const PROGRAMAS = [
@@ -1056,6 +1065,20 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   const falaFaixas = (h) => faixas(h).map(([a, b]) => `das ${a} às ${b}`).join(" e ");
   // mostra o texto visual e entrega outro ao leitor de tela
   const duplo = (visual, falado) => `<span aria-hidden="true">${esc(visual)}</span><span class="sr-only">${esc(falado)}</span>`;
+  // " · " só para a tela; o leitor ouve uma vírgula (o ponto do meio pode ser falado como "ponto")
+  const SEP = '<span aria-hidden="true"> · </span><span class="sr-only">, </span>';
+  const comSep = (xs) => xs.map((x) => esc(x)).join(SEP);
+  // Títulos em maiúsculas pelo CSS: o Chrome entrega ao leitor o texto já em maiúsculas ("CATEGORIA NO APP"),
+  // e o TalkBack pode soletrar palavras curtas ("N O", "A P P"). O nome com aria-label fica como foi escrito.
+  const tituloAttr = (falado) => ` aria-label="${esc(falado)}"`;
+  // regras com um item por linha ("- Válido para consumo no local.") viram lista: o leitor diz quantos são,
+  // anda de um em um e não lê o hífen. Uma linha só fica como texto, sem o hífen do começo.
+  function regrasHtml(txt) {
+    const linhas = String(txt).split("\n").map((l) => l.trim()).filter(Boolean);
+    const semTraco = (l) => l.replace(/^[-–•]\s*/, "");
+    if (linhas.length < 2) return `<p class="rg">${esc(semTraco(linhas[0] || ""))}</p>`;
+    return `<ul class="rg-lista">${linhas.map((l) => `<li${/^[-–•]/.test(l) ? "" : ' class="sem"'}>${esc(semTraco(l))}</li>`).join("")}</ul>`;
+  }
   // "A, B e C" (lida com naturalidade pelo leitor de tela)
   const listaE = (xs) => xs.length < 2 ? xs.join("") : `${xs.slice(0, -1).join(", ")} e ${xs[xs.length - 1]}`;
   const nCupons = (n) => `${n}<span class="sr-only"> ${n === 1 ? "cupom" : "cupons"}</span>`;
@@ -1485,11 +1508,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       } else tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}`, `Vale ${fala}, ${falaFaixas(v.h)}.`)}</span>`);
     }
     const locTxt = outras.length
-      ? [listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean).join(" · ")
-      : u ? [u.bairro, u.cidade, shoppingDaUnidade(u)].filter(Boolean).join(" · ") + (c.maisUnidades ? " · tem outras unidades no app" : "") : "";
+      ? comSep([listaE([...new Set(uns.map((x) => x.bairro).filter(Boolean))]), listaE(cidadesDe(c)), `${uns.length} unidades`].filter(Boolean))
+      : u ? comSep([u.bairro, u.cidade, shoppingDaUnidade(u), c.maisUnidades ? "tem outras unidades no app" : ""].filter(Boolean)) : "";
     const dist = distDe(c);
     const distHtml = dist ? `<span class="dist">${duplo(`${dist.aprox ? "≈ " : ""}${fmtKm(dist.km)} · ${tempoTxt(dist.km)}`, `A ${dist.aprox ? "cerca de " : ""}${falaKm(dist.km)} de ${state.perto.rotulo}${outras.length ? ", na unidade mais perto" : ""}, ${falaTempo(dist.km)}.`)}</span>` : "";
-    const loc = locTxt || distHtml ? `<p class="loc">${distHtml}${distHtml && locTxt ? '<span aria-hidden="true"> · </span>' : ""}${esc(locTxt)}</p>` : "";
+    const loc = locTxt || distHtml ? `<p class="loc">${distHtml}${distHtml && locTxt ? SEP : ""}${locTxt}</p>` : "";
     const q = encodeURIComponent(u?.endereco
       ? [u.endereco.replace(/\s*\(.*?\)/g, ""), u.bairro, u.cidade, "RS"].filter(Boolean).join(", ")
       : `${String(c.nome).replace(/…/g, "")} ${prog?.cidade || "RS"}`);
@@ -1504,7 +1527,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       const porUnidade = comodPorUnidade(c);
       const listaComod = (xs) => xs.length ? `<ul class="tags" role="list" aria-label="Comodidades" style="list-style:none;margin:6px 0 0;padding:0">${xs.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul>` : "";
       const blocoUnidades = outras.length
-        ? uns.map((x, i) => `<div><h4>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : '<p class="fnote">Dias e horários desta unidade ainda não cadastrados.</p>'}${porUnidade ? listaComod(i === 0 ? c.comodidades || [] : x.comodidades || []) : ""}</div>`).join("")
+        ? uns.map((x, i) => `<div><h4${tituloAttr(`Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${x.bairro}` : ""}`)}>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</h4>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : '<p class="fnote">Dias e horários desta unidade ainda não cadastrados.</p>'}${porUnidade ? listaComod(i === 0 ? c.comodidades || [] : x.comodidades || []) : ""}</div>`).join("")
         : "";
       // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
       const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`
@@ -1514,11 +1537,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       det = `<details class="det"${aberto ? " open" : ""}>
       <summary>Regras, horários e endereço<span class="sr-only"> de ${esc(c.nome)}</span></summary>
       <div class="det-body">${!aberto ? "" : `
-        ${c.regras ? `<div><h4>Regras do estabelecimento</h4><p class="rg">${esc(c.regras)}</p></div>` : ""}
-        ${outras.length ? blocoUnidades : temH(c.horarios) ? `<div><h4>Dias e horários</h4>${tabela(c.horarios, "Dias e horários em que o cupom vale")}</div>` : ""}
+        ${c.regras ? `<div><h4${tituloAttr("Regras do estabelecimento")}>Regras do estabelecimento</h4>${regrasHtml(c.regras)}</div>` : ""}
+        ${outras.length ? blocoUnidades : temH(c.horarios) ? `<div><h4${tituloAttr("Dias e horários")}>Dias e horários</h4>${tabela(c.horarios, "Dias e horários em que o cupom vale")}</div>` : ""}
         ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
-        ${!outras.length && u && u.endereco ? `<div><h4>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
-        ${(c.categoriasApp || []).length ? `<div><h4>Categoria no app</h4><p>${esc(c.categoriasApp.join(" · "))}</p></div>` : ""}
+        ${!outras.length && u && u.endereco ? `<div><h4${tituloAttr(`Unidade${c.maisUnidades ? " mostrada no app" : ""}`)}>Unidade${c.maisUnidades ? " mostrada no app" : ""}</h4><p>${esc(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
+        ${(c.categoriasApp || []).length ? `<div><h4${tituloAttr("Categoria no app")}>Categoria no app</h4><p>${comSep(c.categoriasApp)}</p></div>` : ""}
         ${(c.comodidades || []).length && !porUnidade ? `<div><h4 class="sr-only">Comodidades</h4><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
       `}</div>
     </details>`;
@@ -1537,7 +1560,6 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
-      ${c.usado || siteCopia() ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(c.nome)}" title="Marcar como usado"${ro}></button>`}
       <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}></button>
       <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"></button>
     </div>
@@ -1545,6 +1567,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     ${loc}
     ${outrosHtml(c)}
     ${tags.length ? `<div class="tags">${tags.join("")}</div>` : ""}
+    ${c.usado || siteCopia() ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}></button>`}
     ${det}
     <div class="tfoot">
       ${c.usado
@@ -1600,8 +1623,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const itens = !abertoOutros ? "" : [...outros].sort((a, b) => PROG[a.programa].i - PROG[b.programa].i || (a.ordem ?? 999) - (b.ordem ?? 999)).map((x) => {
       const oferta = x.item ? `Na compra de ${x.item} ganhe ${GANHE_TXT[x.ganhe] || "outro igual"}.` : (x.pendente || "Oferta não cadastrada.");
       const st = x.usado ? `<span class="st-usado">usado${x.usadoEm ? ` em ${esc(fmtDate(x.usadoEm))}` : ""}</span>` : "disponível";
-      return `<li><span><span class="pdot ${PROG[x.programa].cls}" aria-hidden="true"></span><b>${esc(x.nome)}</b><span class="sr-only">,</span> · ${esc(PROG[x.programa].nome)}</span>
-        <span class="mini">${esc(ondeFica(x))}${mesmaUnidade(c, x) ? " (mesma unidade)" : ""} · ${st}</span>
+      return `<li><span><span class="pdot ${PROG[x.programa].cls}" aria-hidden="true"></span><b>${esc(x.nome)}</b>${SEP}${esc(PROG[x.programa].nome)}</span>
+        <span class="mini">${esc(ondeFica(x))}${mesmaUnidade(c, x) ? " (mesma unidade)" : ""}${SEP}${st}</span>
         <span class="mini">${mesmaOferta(x, c) ? "Mesma oferta: " : '<span class="dif">Oferta diferente:</span> '}${esc(oferta)}</span></li>`;
     }).join("");
     const total = outros.length + 1;
@@ -1654,7 +1677,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       const faltam = dias === 0 ? "hoje é o último dia" : dias === 1 ? "falta 1 dia" : `faltam ${dias} dias`;
       const ritmo = n === 0 ? "nenhum cupom disponível"
         : `${pl(n, "cupom disponível", "cupons disponíveis")}, cerca de ${nf(porDia)} por dia (${nf(porDia * 7)} por semana)`;
-      linhas.push(`<p>${dot}<b>${esc(p.nome)}</b> vale até ${esc(fmtDate(p.validade))} · ${faltam} · ${ritmo}</p>`);
+      linhas.push(`<p>${dot}<b>${esc(p.nome)}</b> vale até ${esc(fmtDate(p.validade))}${SEP}${faltam}${SEP}${ritmo}</p>`);
     }
     if (semValidade.length) linhas.push(`<p>Validade ainda não cadastrada: ${esc(listaE(semValidade))}.</p>`);
     // feriados e datas comemorativas dos próximos 7 dias, com quantos cupons disponíveis deixam de valer
@@ -2041,7 +2064,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (grid.className !== "grid") grid.className = "grid";
       gridDeCartoes = false;
       grid.innerHTML = state.slow
-        ? `<div class="empty"><h3>Ainda carregando</h3><p>Os cupons ficam guardados na sua conta do claude.ai. Se a conexão estiver lenta, eles aparecem aqui assim que o servidor responder.</p></div>`
+        ? `<div class="empty"><h3 aria-label="Ainda carregando">Ainda carregando</h3><p>Os cupons ficam guardados na sua conta do claude.ai. Se a conexão estiver lenta, eles aparecem aqui assim que o servidor responder.</p></div>`
         : '<div class="ghost" aria-hidden="true"></div><div class="ghost" aria-hidden="true"></div><div class="ghost" aria-hidden="true"></div>';
       return;
     }
@@ -2050,7 +2073,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       htmlDe(rc).textContent = "Cupons indisponíveis nesta visualização";
       if (grid.className !== "grid") grid.className = "grid";
       gridDeCartoes = false;
-      grid.innerHTML = `<div class="empty"><h3>Entre na sua conta</h3><p>Os cupons e as marcações de favorito ficam guardados no claude.ai. Abra esta página logado na sua conta para ver a carteira.</p></div>`;
+      grid.innerHTML = `<div class="empty"><h3 aria-label="Entre na sua conta">Entre na sua conta</h3><p>Os cupons e as marcações de favorito ficam guardados no claude.ai. Abra esta página logado na sua conta para ver a carteira.</p></div>`;
       return;
     }
     if (!state.cupons.length) {
@@ -2058,7 +2081,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       htmlDe(rc).textContent = "Nenhum cupom cadastrado";
       if (grid.className !== "grid") grid.className = "grid";
       gridDeCartoes = false;
-      grid.innerHTML = `<div class="empty"><h3>Carteira vazia</h3><p>Mande ao Claude os prints da aba Cupons do Poa em Dobro, Tour Grande Poa ou Canoas em Dobro e eles aparecem aqui.</p></div>`;
+      grid.innerHTML = `<div class="empty"><h3 aria-label="Carteira vazia">Carteira vazia</h3><p>Mande ao Claude os prints da aba Cupons do Poa em Dobro, Tour Grande Poa ou Canoas em Dobro e eles aparecem aqui.</p></div>`;
       return;
     }
 
@@ -2093,11 +2116,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       const usedEmpty = state.status === "usados" && !anyNarrowing();
       gridDeCartoes = false;
       grid.innerHTML = usedEmpty
-        ? `<div class="empty"><h3>Nenhum cupom usado</h3><p>Quando usar um cupom, toque em “Marcar como usado”. Ele sai da lista de disponíveis e fica guardado aqui com a data.</p></div>`
+        ? `<div class="empty"><h3 aria-label="Nenhum cupom usado">Nenhum cupom usado</h3><p>Quando usar um cupom, toque em “Marcar como usado”. Ele sai da lista de disponíveis e fica guardado aqui com a data.</p></div>`
         : (() => {
           const sug = sugestoesSemResultado();
           const botoes = sug.map((r) => `<button type="button" class="fchip" data-act="tirar" data-remove="${esc(r.k)}">Sem ${esc(r.t)} <span class="n">${nCupons(r.n)}</span></button>`).join("");
-          return `<div class="empty"><h3>Nada encontrado</h3><p>Nenhum cupom combina com a busca e os filtros atuais.${sug.length ? " Tirando um deles:" : ""}</p>${sug.length ? `<div class="fchips sugestoes">${botoes}</div>` : ""}<button type="button" class="linkbtn" data-act="clear-all">Limpar busca e filtros</button></div>`;
+          return `<div class="empty"><h3 aria-label="Nada encontrado">Nada encontrado</h3><p>Nenhum cupom combina com a busca e os filtros atuais.${sug.length ? " Tirando um deles:" : ""}</p>${sug.length ? `<div class="fchips sugestoes">${botoes}</div>` : ""}<button type="button" class="linkbtn" data-act="clear-all">Limpar busca e filtros</button></div>`;
         })();
       return;
     }
@@ -2131,6 +2154,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           secoes.set(k, sec);
         }
         sec.querySelector(".group-title span").innerHTML = nCupons(items.length);
+        setAttr(sec.querySelector(".group-title"), "aria-label", `${k}, ${items.length} ${items.length === 1 ? "cupom" : "cupons"}`);
         reconcilia(sec.querySelector(".group-grid"), vis.map((c) => cartaoEl(c, 4)));
         return [sec];
       }));
@@ -2175,12 +2199,22 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   function restauraFoco(sels) {
     if (!sels) return;
     const ativo = document.activeElement;
-    if (ativo && ativo !== document.body && document.contains(ativo) && !focoPendente) return;
+    if (ativo && ativo !== document.body && document.contains(ativo) && !ativo.closest("[hidden]") && !focoPendente) return;
     for (const sel of sels) {
       const alvo = document.querySelector(sel);
       // só um elemento que aparece na tela (na lista compacta, botões do cartão fechado ficam ocultos)
       if (alvo && !alvo.closest("[hidden]") && alvo.getClientRects().length) { alvo.focus({ preventScroll: false }); return; }
     }
+  }
+  // O botão tocado sumiu (ex.: "Limpar busca e filtros", "Ordenar pelos mais perto") e nenhum equivalente
+  // recebeu o foco: sem isto o foco ia para o começo da página e o TalkBack recomeçava do topo.
+  function focoSumiu(antes) {
+    if (!antes) return;
+    const a = document.activeElement;
+    const perdido = !a || a === document.body || !document.contains(a) || !!a.closest("[hidden]");
+    if (!perdido || (document.contains(antes) && !antes.closest("[hidden]"))) return;
+    const rc = $("result-count");
+    if (!rc.closest("[hidden], [inert]")) rc.focus();
   }
   // anuncia o total depois que a pessoa para de digitar ou tocar, e só quando ele muda
   let anuncioTimer = null, ultimoAnuncio = "", silenciarAnuncio = false;
@@ -2245,8 +2279,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       const km = d ? duplo(`${d.aprox ? "≈ " : ""}${fmtKm(d.km)} · ${tempoTxt(d.km)}`, `a ${d.aprox ? "cerca de " : ""}${falaKm(d.km)}, ${falaTempo(d.km)}`) : "";
       const oferta = c.item ? `${c.item}, ${GANHE_TXT[c.ganhe] || "outro igual"}` : "oferta não cadastrada";
       return `<li><button type="button" class="agora-item" data-agora="${esc(c.id)}">
-        <span class="nm">${c.favorito ? '<span class="fv" aria-hidden="true">♥ </span>' : ""}${esc(c.nome)}${c.favorito ? '<span class="sr-only">, favorito</span>' : ""}</span>
-        <span class="km">${km}</span>
+        <span class="nm">${c.favorito ? '<span class="fv" aria-hidden="true">♥ </span>' : ""}${esc(c.nome)}<span class="sr-only">${c.favorito ? ", favorito" : ""}, </span></span>
+        <span class="km">${km}${km ? '<span class="sr-only">, </span>' : ""}</span>
         <span class="det2">${quando}${quando ? sep : ""}${esc(prog?.curto || "")}${sep}${esc(oferta)}</span>
       </button></li>`;
     };
@@ -2258,10 +2292,10 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const semPonto = !state.perto
       ? `<button type="button" class="linkbtn" data-agora-act="perto">Ordenar pelos mais perto</button>` : "";
     const blocoBreve = liBreve
-      ? `<${itens.length ? "h3" : "h2"} class="${itens.length ? "agora-sub" : "agora-h"}" id="${itens.length ? "agora-breve-h" : "agora-h"}">Daqui a pouco <span class="n">${nCupons(breves.length)} na próxima hora</span></${itens.length ? "h3" : "h2"}>
+      ? `<${itens.length ? "h3" : "h2"} class="${itens.length ? "agora-sub" : "agora-h"}" id="${itens.length ? "agora-breve-h" : "agora-h"}"${tituloAttr(`Daqui a pouco, ${breves.length} ${breves.length === 1 ? "cupom" : "cupons"} na próxima hora`)}>Daqui a pouco <span class="n">${nCupons(breves.length)} na próxima hora</span></${itens.length ? "h3" : "h2"}>
       <ol aria-label="Daqui a pouco">${liBreve}</ol>` : "";
     htmlDe(el).innerHTML = (itens.length
-      ? `<h2 class="agora-h" id="agora-h">${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
+      ? `<h2 class="agora-h" id="agora-h"${tituloAttr(`${titulo}, ${cands.length} ${cands.length === 1 ? "cupom" : "cupons"} no total`)}>${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
       <ol>${li}</ol>${blocoBreve}
       <div class="agora-pe"><button type="button" class="linkbtn" data-agora-act="todos">Ver todos que valem agora</button>${semPonto}</div>`
       : `${blocoBreve}<div class="agora-pe">${semPonto}</div>`);
@@ -2288,6 +2322,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   async function abreMapa() {
     mapaAberto = true; _mapaSig = null;
     htmlDe($("mapa-info")).textContent = "Carregando o mapa…";
+    focoPendente = ["#mapa-info"];
     render();
     try { await Promise.all([carregaLeaflet(), garanteGeo()]); }
     catch (_) { htmlDe($("mapa-info")).textContent = "O mapa precisa de internet. A lista abaixo continua com todos os cupons."; return; }
@@ -2338,7 +2373,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (sig === _mapaSig && !enquadrar) return;
     _mapaSig = sig;
     if (!_mapa) {
-      _mapa = L.map("mapa-area", { zoomControl: true, attributionControl: true });
+      _mapa = L.map("mapa-area", { zoomControl: false, attributionControl: true });
+      L.control.zoom({ zoomInTitle: "Aproximar", zoomOutTitle: "Afastar" }).addTo(_mapa);
+      // o title repetia o nome como descrição ("Aproximar, botão, Aproximar")
+      for (const a of $("mapa-area").querySelectorAll(".leaflet-control-zoom a")) a.removeAttribute("title");
+      _mapa.attributionControl.setPrefix('<a href="https://leafletjs.com" hreflang="en">Leaflet</a>');
+      // os pontos são desenhos sem nome nem foco; o leitor de tela usa a lista, que tem os mesmos cupons
+      _mapa.getPanes().overlayPane.setAttribute("aria-hidden", "true");
+      _mapa.on("popupopen", (e) => { e.popup.getElement()?.querySelector(".leaflet-popup-close-button")?.setAttribute("aria-label", "Fechar"); });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(_mapa);
       _mapaCamada = L.layerGroup().addTo(_mapa);
     }
@@ -2376,6 +2418,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   function render() {
     aplicaPertoPendente();
     const sels = focoPendente || descreveFoco();
+    const tinhaFoco = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
     renderHeader();
     renderControls();
     renderNotice();
@@ -2385,6 +2428,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     setHidden($("mapa"), !mapaAberto);
     if (mapaAberto && window.L && state.geo) desenhaMapa(false);
     restauraFoco(sels);
+    focoSumiu(tinhaFoco);
     focoPendente = null;
     if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
     guardaPosicao();
@@ -2394,8 +2438,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 
   /* ---------- toast ---------- */
   let toastTimer = null, toastUndo = null;
+  let avisoTimer = null;
   function toast(msg, undo) {
     $("toast-msg").textContent = msg;
+    // limpa e escreve logo depois: a mesma mensagem duas vezes seguidas também é anunciada
+    const sr = $("sr-aviso"); sr.textContent = ""; clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(() => { sr.textContent = undo ? `${msg} Botão Desfazer no pé da tela.` : msg; }, 120);
     toastUndo = undo || null;
     $("toast-undo").hidden = !undo;
     $("toast").hidden = false;

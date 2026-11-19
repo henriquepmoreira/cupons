@@ -5,7 +5,7 @@
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
-const { abrir, fechar, fecharFiltros, aba, espera, busca, arvoreAcessibilidade, cartoes } = require("./lib/pagina");
+const { abrir, fechar, fecharFiltros, aba, espera, busca, arvoreAcessibilidade, cartoes, texto } = require("./lib/pagina");
 
 after(fechar);
 
@@ -102,4 +102,101 @@ test("axe sem violações na lista compacta (o padrão), com um cartão expandid
   await pg.click("#grid .ticket [data-act=expandir]");
   await espera(pg, 150);
   assert.deepEqual(await violacoes(pg), [], "cartão expandido");
+});
+
+// Revisão para o TalkBack de 19/11/2026: o que o leitor ouve, e para onde vai o foco.
+const PRA_TELA = /[·×✓✗⚑♥↗]/; // símbolos só da tela (o leitor diria "ponto", "vezes", "marca de seleção"…)
+const SO_MAIUSCULAS = (n) => /[A-ZÀ-Ú]{2}/.test(n) && n === n.toUpperCase();
+async function nomesFalados(pg) {
+  const ax = (await arvoreAcessibilidade(pg)).filter((x) => !x.ignored);
+  return {
+    titulos: ax.filter((x) => ["heading", "group", "region", "dialog", "tabpanel"].includes(x.role?.value)).map((x) => x.name?.value || "").filter(Boolean),
+    textos: ax.filter((x) => x.role?.value === "StaticText").map((x) => x.name?.value || ""),
+    controles: ax.filter((x) => ["button", "link", "tab", "DisclosureTriangle"].includes(x.role?.value)).map((x) => x.name?.value || ""),
+  };
+}
+async function confereFalados(pg, onde) {
+  const { titulos, textos, controles } = await nomesFalados(pg);
+  assert.deepEqual(titulos.filter(SO_MAIUSCULAS), [], `${onde}: títulos chegam ao leitor em maiúsculas (o TalkBack pode soletrar)`);
+  assert.deepEqual([...textos, ...controles].filter((t) => PRA_TELA.test(t)), [], `${onde}: símbolos que o leitor falaria`);
+}
+
+test("leitor recebe títulos como foram escritos e sem símbolos da tela", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T17:20:00" });
+  await pg.click("#planos summary");
+  await confereFalados(pg, "lista inicial com planos abertos e Daqui a pouco");
+  await busca(pg, "spoleto");
+  await pg.click("#grid .ticket .outros summary");
+  await pg.click("#grid .ticket .det:not(.outros) summary");
+  await espera(pg, 150);
+  await confereFalados(pg, "cartão com os dois painéis abertos");
+  await busca(pg, "");
+  for (const a of ["quando", "oque", "onde"]) { await aba(pg, a); await confereFalados(pg, `Filtros, aba ${a}`); }
+  await pg.selectOption("#sort", "categoria");
+  await fecharFiltros(pg);
+  await espera(pg, 150);
+  await confereFalados(pg, "por categoria");
+  await busca(pg, "xyzwq");
+  await confereFalados(pg, "nada encontrado");
+});
+
+test("regras com um item por linha viram lista, sem o hífen", async () => {
+  const pg = await abrir({ largura: 412 });
+  await busca(pg, "spoleto");
+  const card = '#grid .ticket[data-id="poa-em-dobro--spoleto"]';
+  await pg.click(`${card} .det:not(.outros) summary`);
+  await espera(pg, 100);
+  const itens = await pg.$$eval(`${card} .rg-lista li`, (li) => li.map((x) => x.textContent));
+  assert.ok(itens.length >= 3, `${itens.length} itens`);
+  assert.ok(itens.every((t) => !/^[-–•]/.test(t)), itens.join(" | "));
+});
+
+test("o foco não volta ao começo da página quando o botão tocado some", async () => {
+  const foco = (pg) => pg.evaluate(() => (document.activeElement === document.body ? "body" : document.activeElement.id || document.activeElement.className));
+  let pg = await abrir({ largura: 412 });
+  await busca(pg, "pizza");
+  await pg.click("#result-clear");
+  await espera(pg, 150);
+  assert.equal(await foco(pg), "result-count", "Limpar busca e filtros");
+  pg = await abrir({ largura: 412, data: "2026-11-19T20:00:00", localizacao: { latitude: -30.027, longitude: -51.2 } });
+  await pg.click('[data-agora-act="perto"]');
+  await pg.waitForFunction(() => !document.querySelector('[data-agora-act="perto"]'));
+  await espera(pg, 100);
+  assert.equal(await foco(pg), "result-count", "Ordenar pelos mais perto");
+  pg = await abrir({ largura: 412, site: true });
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area .leaflet-interactive", { timeout: 5000 });
+  assert.equal(await foco(pg), "mapa-info", "Ver no mapa");
+});
+
+test("aviso de usado é anunciado por uma região ao vivo que já estava na página", async () => {
+  const pg = await abrir({ largura: 412 });
+  assert.equal(await pg.$eval("#toast", (t) => t.getAttribute("role") || t.getAttribute("aria-live")), null, "o toast nasce escondido: não pode ser a região ao vivo");
+  assert.equal(await pg.$eval("#sr-aviso", (e) => !e.closest("[hidden]") && e.getAttribute("role")), "status");
+  const nome = await pg.$eval("#grid .ticket .tname", (h) => h.textContent);
+  await pg.click("#grid .ticket [data-act=use]");
+  await espera(pg, 300);
+  assert.match(await texto(pg, "#sr-aviso"), new RegExp(`^${nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}: marcado como usado\\..*Desfazer`));
+});
+
+test("lista compacta: ✓ sem descrição repetida e lido depois da oferta", async () => {
+  const pg = await abrir({ compacta: true, largura: 412 });
+  const ax = await arvoreAcessibilidade(pg);
+  const usar = ax.filter((x) => !x.ignored && x.role?.value === "button" && /^Marcar como usado: /.test(x.name?.value || ""));
+  assert.ok(usar.length > 10);
+  assert.deepEqual(usar.filter((x) => x.description?.value).map((x) => x.description.value), []);
+  const depois = await pg.$eval("#grid .ticket", (t) => !!(t.querySelector(".offer").compareDocumentPosition(t.querySelector("[data-act=usar]")) & Node.DOCUMENT_POSITION_FOLLOWING));
+  assert.ok(depois, "o ✓ fica no canto de baixo; na ordem do leitor também vem depois da oferta");
+});
+
+test("mapa do site em português e sem os pontos sem nome na árvore", async () => {
+  const pg = await abrir({ largura: 412, site: true });
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area .leaflet-interactive", { timeout: 5000 });
+  const ax = (await arvoreAcessibilidade(pg)).filter((x) => !x.ignored);
+  const nomes = ax.map((x) => `${x.name?.value || ""} ${x.description?.value || ""}`);
+  assert.deepEqual(nomes.filter((n) => /Zoom|JavaScript|Close/.test(n)), []);
+  assert.ok(ax.some((x) => x.role?.value === "button" && x.name?.value === "Aproximar"));
+  assert.ok(ax.some((x) => x.role?.value === "group" && /lista abaixo tem os mesmos cupons/.test(x.name?.value || "")), "a área do mapa tem nome");
+  assert.equal(ax.filter((x) => x.role?.value === "image" && !x.name?.value).length, 0, "imagem sem nome");
 });
