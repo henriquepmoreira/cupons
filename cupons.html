@@ -951,10 +951,23 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   /* ---------- utilidades ---------- */
   /* Escritas no DOM só quando o valor muda: cada troca de nó ou atributo vira um evento que o Chrome
      manda ao leitor de tela (TalkBack), e um botão trocado por outro igual é anunciado de novo. */
+  // Com a mesma estrutura, o conteúdo é atualizado no lugar (morfa): o nó em que o TalkBack está lendo continua
+  // o mesmo. Formulários (option selecionada, valor digitado) são sempre trocados inteiros.
+  const _tplH = document.createElement("template");
   function htmlDe(el) {
     return {
-      set innerHTML(v) { if (el.__h !== v) { el.innerHTML = v; el.__h = v; } },
-      set textContent(v) { v = String(v); el.__h = undefined; if (el.textContent !== v) el.textContent = v; },
+      set innerHTML(v) {
+        if (el.__h === v) return;
+        _tplH.innerHTML = v;
+        if (/<(input|select|textarea|option)\b/.test(v) || !morfaFilhos(el, _tplH.content)) el.innerHTML = v;
+        el.__h = v;
+      },
+      set textContent(v) {
+        v = String(v); el.__h = undefined;
+        if (el.textContent === v) return;
+        const t = el.firstChild;
+        if (t && t.nodeType === 3 && !t.nextSibling && v) t.nodeValue = v; else el.textContent = v;
+      },
     };
   }
   // Bloco "Valendo agora": muda a cada minuto ("daqui a 9 minutos"). Com os mesmos itens, troca só o conteúdo
@@ -973,7 +986,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           const v = velhos[i], n = novos[j];
           for (const a of new Set([...v.getAttributeNames(), ...n.getAttributeNames()])) { if (n.hasAttribute(a)) setAttr(v, a, n.getAttribute(a)); else v.removeAttribute(a); }
           if (/^(BUTTON|H2|H3)$/.test(v.tagName)) {
-            if (v.innerHTML !== n.innerHTML) v.innerHTML = n.innerHTML;
+            if (v.innerHTML !== n.innerHTML && !morfaFilhos(v, n)) v.innerHTML = n.innerHTML;
             i += v.querySelectorAll("*").length; j += n.querySelectorAll("*").length; // pula o conteúdo, já trocado
           }
         }
@@ -997,7 +1010,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
             if (n.hasAttribute("aria-pressed")) setAttr(v, "aria-pressed", n.getAttribute("aria-pressed"));
             if (n.hasAttribute("disabled") !== v.hasAttribute("disabled")) v.toggleAttribute("disabled", n.hasAttribute("disabled"));
             if (v.className !== n.className) v.className = n.className;
-            if (v.innerHTML !== n.innerHTML) v.innerHTML = n.innerHTML;
+            if (v.innerHTML !== n.innerHTML && !morfaFilhos(v, n)) v.innerHTML = n.innerHTML;
           });
         } else el.replaceChildren(...novos);
         el.__h = html;
@@ -2098,12 +2111,20 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (velho.nodeType !== novo.nodeType || velho.nodeName !== novo.nodeName) return false;
     if (velho.nodeType === 3) { if (velho.nodeValue !== novo.nodeValue) velho.nodeValue = novo.nodeValue; return true; }
     if (velho.nodeType !== 1) return true;
+    if (!morfaFilhos(velho, novo)) return false;
+    for (const n of velho.getAttributeNames()) if (!novo.hasAttribute(n)) velho.removeAttribute(n);
+    for (const n of novo.getAttributeNames()) setAttr(velho, n, novo.getAttribute(n));
+    return true;
+  }
+  // os filhos de velho ficam iguais aos de novo (velho mesmo não muda); false se a lista de filhos for outra
+  function morfaFilhos(velho, novo) {
     const a = velho.childNodes, b = novo.childNodes;
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) if (a[i].nodeType !== b[i].nodeType || a[i].nodeName !== b[i].nodeName) return false;
-    for (let i = 0; i < a.length; i++) if (!morfa(a[i], b[i])) a[i].replaceWith(b[i].cloneNode(true));
-    for (const n of velho.getAttributeNames()) if (!novo.hasAttribute(n)) velho.removeAttribute(n);
-    for (const n of novo.getAttributeNames()) setAttr(velho, n, novo.getAttribute(n));
+    for (let i = 0; i < a.length; i++) {
+      if (a[i].nodeType === 1) a[i].__h = undefined; // htmlDe/blocoEm de um filho comparariam com o texto antigo
+      if (!morfa(a[i], b[i])) a[i].replaceWith(b[i].cloneNode(true));
+    }
     return true;
   }
   function cartaoEl(c, hl = 3) {
@@ -2117,15 +2138,34 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     }
     return e.el;
   }
-  // deixa exatamente estes filhos em pai, nesta ordem, mexendo só no que mudou
+  // Deixa exatamente estes filhos em pai, nesta ordem, mexendo só no que mudou. Mover um cartão é tirá-lo e
+  // pô-lo de volta: o TalkBack perde o lugar nele e o foco sai dele. Ficam parados os da maior sequência que já
+  // está na ordem nova; só os outros andam (antes, um cartão que descia arrastava todos os que passava).
   function reconcilia(pai, filhos) {
     const novos = new Set(filhos);
     for (const ch of [...pai.children]) if (!novos.has(ch)) ch.remove();
-    let ref = pai.firstElementChild;
-    for (const n of filhos) {
-      if (n === ref) { ref = ref.nextElementSibling; continue; }
-      pai.insertBefore(n, ref);
+    const pos = new Map([...pai.children].map((e, i) => [e, i]));
+    const fica = emOrdem(filhos.map((n) => pos.get(n) ?? -1));
+    let ref = null;
+    for (let i = filhos.length - 1; i >= 0; i--) {
+      const n = filhos[i];
+      if (!fica.has(i) && !(n.parentNode === pai && n.nextElementSibling === ref)) pai.insertBefore(n, ref);
+      ref = n;
     }
+  }
+  // índices da maior subsequência crescente de xs (ignorando -1), em O(n log n)
+  function emOrdem(xs) {
+    const fim = [], ant = new Array(xs.length);
+    for (let i = 0; i < xs.length; i++) {
+      if (xs[i] < 0) continue;
+      let lo = 0, hi = fim.length;
+      while (lo < hi) { const m = (lo + hi) >> 1; if (xs[fim[m]] < xs[i]) lo = m + 1; else hi = m; }
+      ant[i] = lo ? fim[lo - 1] : -1;
+      fim[lo] = i;
+    }
+    const r = new Set();
+    for (let i = fim.length ? fim[fim.length - 1] : -1; i >= 0; i = ant[i]) r.add(i);
+    return r;
   }
 
   function renderMais(total, mostrados) {
@@ -2254,7 +2294,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           sec.dataset.grupo = k;
           secoes.set(k, sec);
         }
-        sec.querySelector(".group-title span").innerHTML = nCupons(items.length);
+        htmlDe(sec.querySelector(".group-title span")).innerHTML = nCupons(items.length);
         setAttr(sec.querySelector(".group-title"), "aria-label", `${k}, ${items.length} ${items.length === 1 ? "cupom" : "cupons"}`);
         reconcilia(sec.querySelector(".group-grid"), vis.map((c) => cartaoEl(c, 4)));
         return [sec];
@@ -2325,13 +2365,18 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   }
   // anuncia o total depois que a pessoa para de digitar ou tocar, e só quando ele muda
   let anuncioTimer = null, ultimoAnuncio = "", silenciarAnuncio = false;
+  // o que não vem de um toque da pessoa não anuncia o total (o minuto que passa, o GPS, outro aparelho)
+  function renderQuieto() { const s = silenciarAnuncio; silenciarAnuncio = true; try { render(); } finally { silenciarAnuncio = s; } }
   // Sem fala repetida: o total não é anunciado quando a mesma ação já falou um aviso (toast: "Cupons em ordem
   // do mais perto…") nem quando o foco foi para o próprio total (o leitor já o leu ao receber o foco).
   let avisoEm = -1e9;
+  // Redesenho silencioso (relógio, GPS, outro aparelho) com o anúncio de um toque ainda na fila: o anúncio
+  // não é perdido, só passa a dizer o total novo.
   function announce(msg) {
     clearTimeout(anuncioTimer);
-    if (silenciarAnuncio || performance.now() - avisoEm < 1000) { ultimoAnuncio = msg; return; }
+    if ((silenciarAnuncio && !anuncioTimer) || performance.now() - avisoEm < 1000) { anuncioTimer = null; ultimoAnuncio = msg; return; }
     anuncioTimer = setTimeout(() => {
+      anuncioTimer = null;
       if (msg === ultimoAnuncio) return;
       ultimoAnuncio = msg;
       if (performance.now() - avisoEm < 1500) return;
@@ -2459,7 +2504,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     marcaVoce(novo.lat, novo.lng);
     if (centraliza) _mapa?.setView([novo.lat, novo.lng], Math.max(_mapa.getZoom() || 0, 15));
     else _mapa?.panTo([novo.lat, novo.lng]);
-    if (state.perto?.tipo !== "gps" || kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); render(); }
+    if (state.perto?.tipo !== "gps" || kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); renderQuieto(); }
   }
   const SEM_GPS = "Não foi possível obter sua localização (o navegador pode ter negado a permissão).";
   function minhaLocalizacao() {
@@ -2515,8 +2560,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           .bindPopup(html).addTo(_mapaCamada);
       }
     }
-    if (perto?.tipo === "gps") marcaVoce(perto.lat, perto.lng);
-    else {
+    if (perto?.tipo !== "gps") {
       if (_voce) { _voce.remove(); _voce = null; }
       if (perto) L.circleMarker([perto.lat, perto.lng], { radius: 9, weight: 3, color: "#fff", fillColor: cor("--accent"), fillOpacity: 1, className: "ponto-partida" }).bindTooltip(perto.rotulo).addTo(_mapaCamada);
     }
@@ -2526,6 +2570,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       else if (pontos.length) _mapa.fitBounds(pontos, { padding: [24, 24], maxZoom: 15 });
       else _mapa.setView([-30.03, -51.2], 11);
     }
+    // "você" só depois de o mapa ter centro: antes disso o Leaflet falha e o mapa fica sem nenhum ponto
+    if (perto?.tipo === "gps") marcaVoce(perto.lat, perto.lng);
     setTimeout(() => _mapa.invalidateSize(), 0);
   }
 
@@ -2775,7 +2821,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (!snap.metadata?.fromCache) state.lugaresProntos = true;
       // o lugar escolhido mudou de coordenada ou sumiu: atualiza o ponto de partida
       if (state.perto?.chave?.startsWith("lugar:")) state.perto = pertoDe(state.perto.chave);
-      render();
+      renderQuieto();
     }, () => { state.lugaresProntos = true; render(); });
   }
 
@@ -3194,7 +3240,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 
   // a etiqueta "Agora · até 15:00" depende da hora: redesenha a cada minuto com a página visível
   // e ao voltar para a aba (o celular congela os timers de abas em segundo plano)
-  const renovaHora = () => { if (!document.hidden && state.phase === "ready") render(); };
+  // Virada do dia com a página aberta: "Hoje" passa a ser o dia novo (como ao recarregar), e não o que acabou
+  let _dia = today();
+  const renovaHora = () => {
+    if (document.hidden || state.phase !== "ready") return;
+    const t = today();
+    if (t !== _dia) { if (state.data === _dia) state.data = t; else if (state.data && state.data < t) state.data = null; _dia = t; savePrefs(); }
+    renderQuieto();
+  };
   setInterval(renovaHora, 60000);
   document.addEventListener("visibilitychange", renovaHora);
 
@@ -3229,7 +3282,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       navigator.geolocation.getCurrentPosition((pos) => {
         if (state.perto?.tipo !== "gps") return;
         const novo = { lat: pos.coords.latitude, lng: pos.coords.longitude, rotulo: "você", tipo: "gps" };
-        if (kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); render(); } else state.perto.salvo = false;
+        if (kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); renderQuieto(); } else state.perto.salvo = false;
       }, () => {}, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
     }).catch(() => {});
   }

@@ -584,3 +584,80 @@ test("o minuto passa e outro aparelho favorita: nenhum cartão recriado (o leito
   await espera(pg, 400);
   assert.equal(await destruidos(), 0, "favoritos vindos de outro aparelho");
 });
+
+// Teste de estresse de 19/11/2026 (décima quarta rodada): a página inteira, não só os cartões
+const marcaNos = (pg) => pg.evaluate(() => { window.__nos = []; const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) if (n.nodeValue.trim()) window.__nos.push(n); });
+const perdidos = (pg) => pg.evaluate(() => window.__nos.filter((n) => !n.isConnected).map((n) => `${n.parentElement?.closest("[id]")?.id}: ${n.nodeValue.trim().slice(0, 30)}`));
+test("o minuto passa: nada da página recriado (\"Valendo agora\", planos abertos, títulos dos grupos, números do topo)", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T17:20:00" });
+  await ordenar(pg, "categoria");
+  await pg.click(".planos-det > summary");
+  await espera(pg, 300);
+  assert.ok(await pg.$eval("#agora", (e) => !e.hidden && /em \d+ min/.test(e.textContent)), "\"Daqui a pouco\" com contagem que muda a cada minuto");
+  await marcaNos(pg);
+  await pg.clock.setFixedTime(new Date("2026-11-19T17:21:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 400);
+  assert.deepEqual(await perdidos(pg), [], "um minuto (o bloco era refeito por dentro, e os planos logo depois de abertos)");
+  assert.match(await texto(pg, "#agora"), /em 9 min/, "o texto mudou no lugar");
+  await pg.evaluate(() => { const vis = new Set([...document.querySelectorAll(".ticket")].map((t) => t.dataset.id)); const d = window.__docs.find((x) => !vis.has(x.id) && !x.usado); d.favorito = !d.favorito; window.__snap(); });
+  await espera(pg, 400);
+  assert.deepEqual(await perdidos(pg), [], "favorito de outro aparelho (mudam os números do topo; os títulos dos grupos eram refeitos a cada atualização)");
+});
+
+test("lista reordenada: só o cartão que mudou de lugar é movido (os outros e o foco ficam)", async () => {
+  const pg = await abrir({ largura: 412 });
+  const ids = await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id));
+  await pg.focus("#grid .ticket:nth-child(8) .heart");
+  const foco = await pg.evaluate(() => { window.__foco = document.activeElement; window.__movidos = new Set(); new MutationObserver((ms) => { for (const m of ms) for (const n of m.removedNodes) window.__movidos.add(n.dataset?.id); }).observe(document.getElementById("grid"), { childList: true }); return document.activeElement.closest(".ticket").dataset.id; });
+  // o 1º cupom passa a ficar entre o 20º e o 21º no app (outro aparelho)
+  await pg.evaluate(([a, b, c]) => { const o = (id) => window.__docs.find((d) => d.id === id); o(a).ordem = (o(b).ordem + o(c).ordem) / 2; window.__snap(); }, [ids[0], ids[19], ids[20]]);
+  await espera(pg, 400);
+  const depois = await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id));
+  assert.equal(depois.indexOf(ids[0]), 19, "o cupom desceu");
+  assert.deepEqual(await pg.evaluate(() => [...window.__movidos]), [ids[0]], "antes, os 19 cartões que ele passou eram tirados e postos de volta");
+  assert.equal(await pg.evaluate(() => document.activeElement === window.__foco), true, `foco no mesmo botão (${foco})`);
+});
+
+test("meia-noite com \"Hoje\" escolhido em Data: passa para o dia novo, como ao recarregar", async () => {
+  const pg = await abrir({ largura: 1200, data: "2026-11-19T23:58:00" });
+  await aba(pg, "quando");
+  await pg.click('[data-data="2026-11-19"]');
+  await espera(pg, 200);
+  await pg.clock.setFixedTime(new Date("2026-11-20T00:01:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 300);
+  assert.equal(await pg.getAttribute('[data-data="2026-11-20"]', "aria-pressed"), "true", "antes ficava filtrado pelo dia que passou, sem chip marcado");
+  assert.match(await texto(pg, "#ativos"), /^Hoje/);
+});
+
+test("o minuto passa com \"Vale agora\": o total novo não é falado no meio da leitura (o de um toque, sim)", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T17:29:00" });
+  await pg.click("#agora-toggle");
+  await espera(pg, 1200);
+  await ouve(pg);
+  const antes = await texto(pg, "#result-count");
+  await pg.clock.setFixedTime(new Date("2026-11-19T17:31:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 1200);
+  assert.notEqual(await texto(pg, "#result-count"), antes, "o total mudou (cupons fecharam às 17:30)");
+  assert.deepEqual(await pg.evaluate(() => window.__fala), [], "sem ninguém tocar em nada");
+  // um toque e, antes de o anúncio sair, o minuto passa: o anúncio do toque continua
+  await pg.click("#fav-toggle");
+  await pg.clock.setFixedTime(new Date("2026-11-19T17:32:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 1200);
+  assert.deepEqual(await pg.evaluate(() => window.__fala), ["sr-status"]);
+  assert.equal(await texto(pg, "#sr-status"), await texto(pg, "#result-count"));
+});
+
+test("site: com \"Perto de mim\" pela localização, o mapa abre com os pontos e você (o Leaflet falhava)", async () => {
+  const { cupons: todos } = require("./lib/pagina");
+  const pg = await abrir({ site: true, semBanco: true, snapshot: { geradoEm: "2026-11-18", cupons: todos() }, localizacao: { latitude: -30.0333, longitude: -51.2303 } });
+  await pg.click("#perto-toggle");
+  await espera(pg, 800);
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area path.voce", { timeout: 5000 });
+  assert.ok(await pg.$$eval("#mapa-area path.leaflet-interactive", (p) => p.length) > 100);
+  assert.deepEqual(pg.erros, []);
+});
