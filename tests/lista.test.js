@@ -196,6 +196,12 @@ test("etiqueta de hoje diz o momento: a partir de, agora até, encerrado (Grazie
     await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
     await espera(pg);
   };
+  // a 2 horas ou menos, "abre em breve" com quanto falta
+  await volta("16:45");
+  assert.equal(await texto(pg, `${card} .tag.breve [aria-hidden]`), "Abre às 18:00 · em 1 h 15");
+  assert.equal(await texto(pg, `${card} .tag.breve .sr-only`), "Começa a valer hoje às 18:00, daqui a 1 hora e 15 minutos, até as 23:00.");
+  await volta("17:20");
+  assert.equal(await texto(pg, `${card} .tag.breve [aria-hidden]`), "Abre às 18:00 · em 40 min");
   await volta("20:00");
   assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Agora · até 23:00");
   assert.equal(await texto(pg, `${card} .tag.hoje .sr-only`), "Vale agora, até as 23:00.");
@@ -366,7 +372,7 @@ test('"Valendo agora" mostra até 5 cupons que valem neste minuto e abre o escol
   const { abrir: abrir2, texto: texto2 } = require("./lib/pagina");
   const pg = await abrir2({ data: "2026-11-18T12:30:00" });
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), false);
-  const itens = await pg.$$eval("#agora .agora-item", (b) => b.length);
+  const itens = await pg.$$eval("#agora ol:not([aria-label]) .agora-item", (b) => b.length);
   assert.ok(itens > 0 && itens <= 5, `itens: ${itens}`);
   assert.match(await texto2(pg, "#agora-h"), /valendo agora/i);
   const id = await pg.$eval("#agora .agora-item", (b) => b.dataset.agora);
@@ -394,10 +400,33 @@ test('"Valendo agora" com ponto de partida lista do mais perto ao mais longe; so
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
 });
 
-test('"Valendo agora" fica escondido de madrugada, quando nada vale', async () => {
+test('"Valendo agora" fica escondido de madrugada, quando nada vale nem abre na próxima hora', async () => {
   const { abrir: abrir2 } = require("./lib/pagina");
-  const pg = await abrir2({ data: "2026-11-18T05:10:00" });
+  const pg = await abrir2({ data: "2026-11-18T04:30:00" });
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
+});
+
+test('"Daqui a pouco": o que abre na próxima hora, com o horário e quanto falta; sozinho quando nada vale ainda', async () => {
+  const { abrir: abrir2 } = require("./lib/pagina");
+  // 05:10: nada vale, mas há cupons que abrem às 06:00
+  let pg = await abrir2({ data: "2026-11-18T05:10:00" });
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), false);
+  assert.match(await texto(pg, "#agora-h"), /^Daqui a pouco \d+ cupons? na próxima hora$/);
+  assert.match(await texto(pg, "#agora .agora-item .abre [aria-hidden]"), /^abre às 06:00 · em 50 min$/);
+  assert.equal(await pg.$("#agora [data-agora-act=todos]"), null, "sem 'Ver todos que valem agora' quando nada vale");
+  await pg.context().close();
+  // 17:35: os que valem agora e, abaixo, os que abrem até 18:35
+  pg = await abrir2({ data: "2026-11-18T17:35:00" });
+  assert.match(await texto(pg, "#agora-h"), /valendo agora/i);
+  assert.match(await texto(pg, "#agora-breve-h"), /^Daqui a pouco/);
+  const quando = await textos(pg, "#agora ol[aria-label='Daqui a pouco'] .abre [aria-hidden]");
+  assert.ok(quando.length >= 1 && quando.length <= 3);
+  for (const q of quando) { const m = q.match(/em (\d+) min/); assert.ok(m && Number(m[1]) <= 60, q); }
+  // tocar abre só aquele cupom, como nos que valem agora
+  const id = await pg.$eval("#agora ol[aria-label='Daqui a pouco'] .agora-item", (b) => b.dataset.agora);
+  await pg.click("#agora ol[aria-label='Daqui a pouco'] .agora-item");
+  await espera(pg, 150);
+  assert.ok(await pg.$(`#grid .ticket[data-id="${id}"]`));
 });
 
 test("site: com página nova, recarrega sozinho quando a aba vai para segundo plano (e volta ao mesmo ponto)", async () => {

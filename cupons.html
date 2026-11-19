@@ -270,6 +270,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .agora-item .km { font-family: var(--f-mono); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 .agora-item .det2 { position: relative; grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agora-item .det2 .ate { color: var(--ok); font-weight: 600; }
+.agora-item .det2 .abre { color: var(--accent); font-weight: 600; }
+.agora-sub { margin: 6px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-family: var(--f-display); font-stretch: 78%; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: .01em; }
+.agora-sub .n { font-family: var(--f-mono); font-size: 12px; font-weight: 500; color: var(--muted); text-transform: none; }
+.tag.breve { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
 .agora-pe { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .resultbar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-block: 16px 10px; }
 .resultbar p { margin: 0; color: var(--muted); font-size: 13.5px; font-variant-numeric: tabular-nums; }
@@ -447,11 +451,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .grid.compacto .ticket:not(.expandido) .stub, .grid.compacto .ticket:not(.expandido) .loc,
 .grid.compacto .ticket:not(.expandido) .det, .grid.compacto .ticket:not(.expandido) .tfoot,
 .grid.compacto .ticket:not(.expandido) .stamp,
-.grid.compacto .ticket:not(.expandido) .tags .tag:not(.hoje):not(.off) { display: none; }
+.grid.compacto .ticket:not(.expandido) .tags .tag:not(.hoje):not(.off):not(.breve) { display: none; }
 .grid.compacto .ticket:not(.expandido) .tbody { padding: 9px 12px 10px; gap: 3px; }
 .grid.compacto .ticket:not(.expandido) .tname { font-size: 18px; }
 .grid.compacto .ticket:not(.expandido) .offer { font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.grid.compacto .ticket:not(.expandido) .tags:not(:has(.hoje, .off)) { display: none; }
+.grid.compacto .ticket:not(.expandido) .tags:not(:has(.hoje, .off, .breve)) { display: none; }
 .ticket.is-used .stub { filter: grayscale(1); opacity: .7; }
 .ticket.is-used .tname, .ticket.is-used .offer, .ticket.is-used .offer strong { color: var(--muted); }
 .stamp {
@@ -1197,6 +1201,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (!r) { r = faixas(h).map(([a, b]) => { const x = minutos(a); let y = minutos(b); if (y <= x) y += 1440; return [x, y]; }); _faixasMin.set(h, r); }
     return r;
   }
+  // "em 40 min" / "em 1 h 20" e, para o leitor de tela, "daqui a 40 minutos" / "daqui a 1 hora e 20 minutos"
+  const emQuanto = (m) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, "0")}` : ""}`);
+  const falaQuanto = (m) => { const h = Math.floor(m / 60), r = m % 60; const ph = h ? `${h} ${h === 1 ? "hora" : "horas"}` : "", pm = r ? `${r} ${r === 1 ? "minuto" : "minutos"}` : ""; return `daqui a ${[ph, pm].filter(Boolean).join(" e ")}`; };
+  const agoraMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  const BREVE_CARTAO = 120, BREVE_AGORA = 60; // "abre em breve" no cartão até 2 h antes; "Daqui a pouco" no bloco, até 1 h
   const hhmm = (m) => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
   // estado do cupom hoje, pela hora atual: { tipo: "agora", fim } | { tipo: "depois", ini, fim } | { tipo: "encerrado" }
   function etiquetaHoje(c, h) {
@@ -1409,7 +1418,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         tags.unshift(e.tipo === "agora"
           ? `<span class="tag hoje">${duplo(`Agora · até ${hhmm(e.fim)}`, `Vale agora, até as ${hhmm(e.fim)}.`)}</span>`
           : e.tipo === "depois"
-          ? `<span class="tag hoje">${duplo(`Hoje a partir das ${hhmm(e.ini)}`, `Vale hoje a partir das ${hhmm(e.ini)}, até as ${hhmm(e.fim)}.`)}</span>`
+          ? (e.ini - agoraMin() <= BREVE_CARTAO
+            ? `<span class="tag breve">${duplo(`Abre às ${hhmm(e.ini)} · em ${emQuanto(e.ini - agoraMin())}`, `Começa a valer hoje às ${hhmm(e.ini)}, ${falaQuanto(e.ini - agoraMin())}, até as ${hhmm(e.fim)}.`)}</span>`
+            : `<span class="tag hoje">${duplo(`Hoje a partir das ${hhmm(e.ini)}`, `Vale hoje a partir das ${hhmm(e.ini)}, até as ${hhmm(e.fim)}.`)}</span>`)
           : `<span class="tag off">${duplo("Encerrado hoje", `Hoje já encerrou. Valia ${falaFaixas(v.h)}.`)}</span>`);
       } else tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}`, `Vale ${fala}, ${falaFaixas(v.h)}.`)}</span>`);
     }
@@ -2128,35 +2139,60 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const el = $("agora");
     const mostra = state.phase === "ready" && !state.grupo && state.status !== "usados" && !anyNarrowing();
     const cands = mostra ? state.cupons.filter((c) => !c.usado && valeAgora(c)) : [];
-    if (!cands.length) { setHidden(el, true); return; }
-    const fimDe = (c) => { const v = valeEm(c, today()); const e = etiquetaHoje(c, v?.ok ? v.h : ""); return e.tipo === "agora" ? e.fim : 9999; };
-    let itens, titulo;
-    if (state.perto && state.geo) {
-      itens = cands.map((c) => ({ c, d: distDe(c) })).filter((x) => x.d).sort((a, b) => a.d.km - b.d.km || (b.c.favorito ? 1 : 0) - (a.c.favorito ? 1 : 0)).slice(0, AGORA_MAX);
-      titulo = `Valendo agora perto de ${state.perto.rotulo}`;
-    } else {
-      const favs = cands.filter((c) => c.favorito);
-      // fim calculado uma vez por cupom (dentro do comparador eram milhares de chamadas a cada redesenho)
-      itens = (favs.length ? favs : cands).map((c) => ({ c, d: null, fim: fimDe(c) })).sort((a, b) => a.fim - b.fim || collator.compare(a.c.nome, b.c.nome)).slice(0, AGORA_MAX);
-      titulo = favs.length ? "Favoritos valendo agora" : "Valendo agora";
+    const etiqueta = (c) => { const v = valeEm(c, today()); return etiquetaHoje(c, v?.ok ? v.h : ""); };
+    const fimDe = (c) => { const e = etiqueta(c); return e.tipo === "agora" ? e.fim : 9999; };
+    // "Daqui a pouco": disponíveis que começam a valer hoje dentro de uma hora
+    const agora = agoraMin();
+    const breves = mostra ? state.cupons.filter((c) => !c.usado && temHorario(c) && !valeAgora(c))
+      .map((c) => ({ c, e: etiqueta(c) })).filter(({ e }) => e.tipo === "depois" && e.ini - agora <= BREVE_AGORA) : [];
+    if (!cands.length && !breves.length) { setHidden(el, true); return; }
+    const comPonto = !!(state.perto && state.geo);
+    const ordena = (xs) => (comPonto
+      ? xs.map((x) => ({ ...x, d: distDe(x.c) })).filter((x) => x.d).sort((a, b) => a.d.km - b.d.km || (b.c.favorito ? 1 : 0) - (a.c.favorito ? 1 : 0))
+      : xs.map((x) => ({ ...x, d: null })));
+    let itens = [], titulo = "";
+    if (cands.length) {
+      if (comPonto) {
+        itens = ordena(cands.map((c) => ({ c }))).slice(0, AGORA_MAX);
+        titulo = `Valendo agora perto de ${state.perto.rotulo}`;
+      } else {
+        const favs = cands.filter((c) => c.favorito);
+        // fim calculado uma vez por cupom (dentro do comparador eram milhares de chamadas a cada redesenho)
+        itens = (favs.length ? favs : cands).map((c) => ({ c, d: null, fim: fimDe(c) })).sort((a, b) => a.fim - b.fim || collator.compare(a.c.nome, b.c.nome)).slice(0, AGORA_MAX);
+        titulo = favs.length ? "Favoritos valendo agora" : "Valendo agora";
+      }
     }
-    if (!itens.length) { setHidden(el, true); return; }
-    const li = itens.map(({ c, d }) => {
-      const fim = fimDe(c), prog = PROG[c.programa];
-      const ate = fim < 9999 ? duplo(`até ${hhmm(fim)}`, `vale até as ${hhmm(fim)}`) : "";
+    // os que abrem primeiro; favoritos na frente; com ponto de partida, os mais perto
+    let embreve = comPonto ? ordena(breves) : breves.slice().sort((a, b) => a.e.ini - b.e.ini || (b.c.favorito ? 1 : 0) - (a.c.favorito ? 1 : 0) || collator.compare(a.c.nome, b.c.nome));
+    if (!comPonto && breves.some((x) => x.c.favorito)) embreve = embreve.filter((x) => x.c.favorito);
+    embreve = embreve.slice(0, 3);
+    if (!itens.length && !embreve.length) { setHidden(el, true); return; }
+    const sep = '<span aria-hidden="true"> · </span><span class="sr-only">, </span>';
+    const item = (c, d, quando) => {
+      const prog = PROG[c.programa];
       const km = d ? duplo(`${d.aprox ? "≈ " : ""}${fmtKm(d.km)} · ${tempoTxt(d.km)}`, `a ${d.aprox ? "cerca de " : ""}${falaKm(d.km)}, ${falaTempo(d.km)}`) : "";
       const oferta = c.item ? `${c.item}, ${GANHE_TXT[c.ganhe] || "outro igual"}` : "oferta não cadastrada";
       return `<li><button type="button" class="agora-item" data-agora="${esc(c.id)}">
         <span class="nm">${c.favorito ? '<span class="fv" aria-hidden="true">♥ </span>' : ""}${esc(c.nome)}${c.favorito ? '<span class="sr-only">, favorito</span>' : ""}</span>
         <span class="km">${km}</span>
-        <span class="det2">${ate}${ate ? '<span aria-hidden="true"> · </span><span class="sr-only">, </span>' : ""}${esc(prog?.curto || "")}<span aria-hidden="true"> · </span><span class="sr-only">, </span>${esc(oferta)}</span>
+        <span class="det2">${quando}${quando ? sep : ""}${esc(prog?.curto || "")}${sep}${esc(oferta)}</span>
       </button></li>`;
+    };
+    const li = itens.map(({ c, d }) => {
+      const fim = fimDe(c);
+      return item(c, d, fim < 9999 ? duplo(`até ${hhmm(fim)}`, `vale até as ${hhmm(fim)}`) : "");
     }).join("");
+    const liBreve = embreve.map(({ c, d, e }) => item(c, d, `<span class="abre">${duplo(`abre às ${hhmm(e.ini)} · em ${emQuanto(e.ini - agora)}`, `começa a valer às ${hhmm(e.ini)}, ${falaQuanto(e.ini - agora)}`)}</span>`)).join("");
     const semPonto = !state.perto
       ? `<button type="button" class="linkbtn" data-agora-act="perto">Ordenar pelos mais perto</button>` : "";
-    htmlDe(el).innerHTML = `<h2 class="agora-h" id="agora-h">${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
-      <ol>${li}</ol>
-      <div class="agora-pe"><button type="button" class="linkbtn" data-agora-act="todos">Ver todos que valem agora</button>${semPonto}</div>`;
+    const blocoBreve = liBreve
+      ? `<${itens.length ? "h3" : "h2"} class="${itens.length ? "agora-sub" : "agora-h"}" id="${itens.length ? "agora-breve-h" : "agora-h"}">Daqui a pouco <span class="n">${nCupons(breves.length)} na próxima hora</span></${itens.length ? "h3" : "h2"}>
+      <ol aria-label="Daqui a pouco">${liBreve}</ol>` : "";
+    htmlDe(el).innerHTML = (itens.length
+      ? `<h2 class="agora-h" id="agora-h">${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
+      <ol>${li}</ol>${blocoBreve}
+      <div class="agora-pe"><button type="button" class="linkbtn" data-agora-act="todos">Ver todos que valem agora</button>${semPonto}</div>`
+      : `${blocoBreve}<div class="agora-pe">${semPonto}</div>`);
     setHidden(el, false);
   }
 
