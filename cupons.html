@@ -2091,13 +2091,29 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.raio, state.perto ? [state.perto.lat, state.perto.lng] : null]);
   }
   let gridDeCartoes = false; // a grade contém só cartões (ou grupos de cartões) montados abaixo
+  // Atualiza velho para ficar igual a novo mexendo só no que mudou (texto, atributos); devolve false se a
+  // estrutura for outra. Recriar o cartão destruía o nó em que o TalkBack estava lendo (o foco do leitor não é
+  // o do navegador): a cada minuto ("Abre às 18:00 · em 40 min") ~20 de 40 cartões eram recriados.
+  function morfa(velho, novo) {
+    if (velho.nodeType !== novo.nodeType || velho.nodeName !== novo.nodeName) return false;
+    if (velho.nodeType === 3) { if (velho.nodeValue !== novo.nodeValue) velho.nodeValue = novo.nodeValue; return true; }
+    if (velho.nodeType !== 1) return true;
+    const a = velho.childNodes, b = novo.childNodes;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i].nodeType !== b[i].nodeType || a[i].nodeName !== b[i].nodeName) return false;
+    for (let i = 0; i < a.length; i++) if (!morfa(a[i], b[i])) a[i].replaceWith(b[i].cloneNode(true));
+    for (const n of velho.getAttributeNames()) if (!novo.hasAttribute(n)) velho.removeAttribute(n);
+    for (const n of novo.getAttributeNames()) setAttr(velho, n, novo.getAttribute(n));
+    return true;
+  }
   function cartaoEl(c, hl = 3) {
     const k = `${hl}:${c.id}`, html = ticketHtml(c, hl);
     let e = _cartoes.get(k);
     if (!e || e.html !== html) {
       _tpl.innerHTML = html;
-      e = { html, el: _tpl.content.firstElementChild };
-      _cartoes.set(k, e);
+      const novo = _tpl.content.firstElementChild;
+      if (e && morfa(e.el, novo)) e.html = html;
+      else { e = { html, el: novo }; _cartoes.set(k, e); }
     }
     return e.el;
   }
