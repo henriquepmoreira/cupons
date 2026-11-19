@@ -2155,10 +2155,35 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
      ela aparece na hora e é trocada pela do banco quando ele responder (os cartões que não mudaram
      continuam os mesmos). Favoritos e usados continuam valendo o que está no banco. */
   const CACHE_KEY = "cupons-em-dobro:cache:v1";
+  // A lista guardada tem os dados sem as marcas e um hash deles (h); favorito, usado e usadoEm ficam em
+  // MARCAS_KEY ({ em, h, marcas: { id: { f: 1, u: "AAAA-MM-DD" | 1 } } }, ~20 KB). Favoritar ou marcar como
+  // usado regrava só as marcas; a lista inteira (~367 KB) só quando os dados mudam. Lista antiga, sem h,
+  // traz as marcas dentro dos cupons e continua valendo.
+  const MARCAS_KEY = "cupons-em-dobro:marcas:v1";
+  let _cacheHash = null; // hash dos dados da lista guardada agora
+  function hashTxt(t) { // FNV-1a de 32 bits + tamanho: basta para saber se mudou
+    let h = 2166136261;
+    for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return `${(h >>> 0).toString(36)}.${t.length}`;
+  }
+  function semMarcas(c) { const o = enxuto(c); delete o.favorito; delete o.usado; delete o.usadoEm; return o; }
   function leCache() {
     try {
       const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
-      return c && Array.isArray(c.cupons) && c.cupons.length && typeof c.em === "string" ? c : null;
+      if (!(c && Array.isArray(c.cupons) && c.cupons.length && typeof c.em === "string")) return null;
+      if (typeof c.h === "string") {
+        _cacheHash = c.h;
+        const m = JSON.parse(localStorage.getItem(MARCAS_KEY) || "null");
+        if (m && m.h === c.h && m.marcas) {
+          for (const x of c.cupons) {
+            const v = m.marcas[x.id];
+            if (v?.f) x.favorito = true;
+            if (v?.u) { x.usado = true; if (v.u !== 1) x.usadoEm = v.u; }
+          }
+          if (typeof m.em === "string" && m.em > c.em) c.em = m.em;
+        }
+      }
+      return c;
     } catch (_) { return null; }
   }
   // Lista guardada no aparelho (e a cópia publicada, gerada do mesmo jeito por scripts/gerar-snapshot.py):
@@ -2192,8 +2217,20 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     clearTimeout(_cacheTimer);
     // ~500 KB de JSON: grava quando o navegador estiver ocioso, para não atrasar o próximo toque
     _cacheTimer = setTimeout(() => ocioso(() => {
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons.map(enxuto) })); }
-      catch (_) { try { localStorage.removeItem(CACHE_KEY); } catch (_) {} } // sem espaço: melhor nenhuma cópia que uma velha
+      try {
+        const em = new Date().toISOString(), lista = state.cupons;
+        const dados = JSON.stringify(lista.map(semMarcas)), h = hashTxt(dados);
+        const marcas = {};
+        for (const c of lista) if (c.favorito || c.usado) marcas[c.id] = { ...(c.favorito ? { f: 1 } : {}), ...(c.usado ? { u: c.usadoEm || 1 } : {}) };
+        if (h !== _cacheHash) { // dados novos: a lista inteira; senão, só as marcas
+          localStorage.setItem(CACHE_KEY, `{"em":${JSON.stringify(em)},"h":${JSON.stringify(h)},"cupons":${dados}}`);
+          _cacheHash = h;
+        }
+        localStorage.setItem(MARCAS_KEY, JSON.stringify({ em, h, marcas }));
+      } catch (_) { // sem espaço: melhor nenhuma cópia que uma velha
+        _cacheHash = null;
+        try { localStorage.removeItem(CACHE_KEY); localStorage.removeItem(MARCAS_KEY); } catch (_) {}
+      }
     }), 1500);
   }
 
