@@ -544,3 +544,32 @@ test("site: mapa com os cupons da lista, você no centro e \"Ver cupom\" abre o 
   const pg2 = await abrir();
   assert.equal(await pg2.$eval("#mapa-abrir", (b) => b.hidden), true);
 });
+
+test("site: no mapa, \"Minha localização\" marca você e \"Seguir\" acompanha a posição até fechar", async () => {
+  const { cupons: todos } = require("./lib/pagina");
+  const snapshot = { geradoEm: "2026-11-18", cupons: todos() };
+  const pg = await abrir({ site: true, semBanco: true, snapshot, localizacao: { latitude: -30.0333, longitude: -51.2303 } });
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area .leaflet-interactive", { timeout: 5000 });
+  assert.equal(await pg.$("#mapa-area path.voce"), null, "sem ponto de partida, o mapa não marca você");
+  await pg.click("#mapa-local");
+  await pg.waitForSelector("#mapa-area path.voce", { timeout: 5000 });
+  assert.match(await texto(pg, "#result-count"), /cupons/);
+  // seguir: a posição muda e o ponto se move. O Chromium de teste não reenvia a posição a watchPosition
+  // quando a localização simulada muda; o teste guarda o retorno e manda a leitura nova ele mesmo.
+  await pg.evaluate(() => {
+    navigator.geolocation.watchPosition = (ok) => { window.__seguir = ok; ok({ coords: { latitude: -30.0333, longitude: -51.2303 } }); return 7; };
+    navigator.geolocation.clearWatch = (id) => { window.__parou = id; };
+  });
+  await pg.click("#mapa-seguir");
+  assert.equal(await pg.getAttribute("#mapa-seguir", "aria-pressed"), "true");
+  assert.equal((await texto(pg, "#mapa-seguir")), "Seguir", "o nome não muda; o estado vem de aria-pressed");
+  const antes = await pg.$eval("#mapa-area path.voce", (p) => p.getAttribute("d"));
+  await pg.evaluate(() => window.__seguir({ coords: { latitude: -30.0270, longitude: -51.2200 } }));
+  await pg.waitForFunction((d) => document.querySelector("#mapa-area path.voce")?.getAttribute("d") !== d, antes, { timeout: 5000 });
+  // fechar o mapa para de seguir
+  assert.match(await texto(pg, "#result-count"), /cupons/);
+  await pg.click("#mapa-fechar");
+  assert.equal(await pg.getAttribute("#mapa-seguir", "aria-pressed"), "false");
+  assert.equal(await pg.evaluate(() => window.__parou), 7, "parou de acompanhar o GPS");
+});
