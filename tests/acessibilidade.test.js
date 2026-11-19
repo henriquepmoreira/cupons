@@ -459,3 +459,34 @@ test("toque duplo no texto da linha compacta abre o cartão e avisa", async () =
   assert.equal(await pg.$eval("#grid .ticket", (t) => t.classList.contains("expandido")), true);
   assert.equal(await texto(pg, "#sr-aviso"), `${nome}: cartão completo aberto.`);
 });
+
+// Teste de estresse de 19/11/2026 (oitava rodada)
+test("horários: tabela só na tela, uma lista com um dia por item para o leitor", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T20:00:00" });
+  await busca(pg, "spoleto");
+  const card = '#grid .ticket[data-id="poa-em-dobro--spoleto"]';
+  await pg.click(`${card} .det:not(.outros) summary`);
+  await espera(pg, 150);
+  const r = await pg.$$eval(`${card} .det-body table.hor`, (ts) => ts.map((t) => ({ escondida: t.getAttribute("aria-hidden"), lista: t.nextElementSibling?.matches("ul[aria-label]") ? [...t.nextElementSibling.children].map((li) => li.textContent) : null })));
+  assert.equal(r.length, 2);
+  for (const t of r) {
+    assert.equal(t.escondida, "true");
+    assert.equal(t.lista.length, 7);
+    assert.match(t.lista[0], /^Domingo: (das \d\d:\d\d às \d\d:\d\d|não vale)/);
+  }
+  const ax = (await arvoreAcessibilidade(pg)).filter((x) => !x.ignored);
+  assert.equal(ax.filter((x) => ["table", "cell", "rowheader"].includes(x.role?.value)).length, 0, "nenhuma tabela na árvore do leitor");
+});
+
+test("\"Ordenar\" falado uma vez e aviso falado sai da região depois de lido", async () => {
+  const pg = await abrir({ largura: 412 });
+  await abrirFiltros(pg);
+  const ax = (await arvoreAcessibilidade(pg)).filter((x) => !x.ignored && x.name?.value === "Ordenar");
+  assert.deepEqual(ax.map((x) => x.role?.value), ["combobox"]);
+  await fecharFiltros(pg);
+  await pg.click("#grid .ticket [data-act=use]");
+  await espera(pg, 400);
+  assert.match(await texto(pg, "#sr-aviso"), /marcado como usado/);
+  await espera(pg, 4300);
+  assert.equal(await texto(pg, "#sr-aviso"), "", "quem desliza até o fim ouve só o aviso visível, não duas vezes");
+});

@@ -666,8 +666,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <button type="button" data-status="usados">Usados</button>
         <button type="button" data-status="todos">Todos</button>
       </div>
-      <label class="sort" for="sort"><span class="sort-lbl">Ordenar</span>
-        <select id="sort">
+      <label class="sort" for="sort"><span class="sort-lbl" aria-hidden="true">Ordenar</span>
+        <select id="sort" aria-label="Ordenar">
           <option value="app">Padrão (como no app)</option>
           <option value="az">Nome (A–Z)</option>
           <option value="fav">Favoritos primeiro</option>
@@ -1573,7 +1573,10 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     let det = "";
     if (temHorario(c) || c.regras || u || (c.categoriasApp || []).length) {
       const hk = diaKey(alvo), hl = alvo === today() ? "hoje" : ddmm(alvo);
-      const tabela = (h, cap) => `<table class="hor"><caption class="sr-only">${esc(cap)}</caption><tbody>${DIAS.map((d) => `<tr class="${h?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th scope="row">${DIAS_NOME[d]}${d === hk ? ` (${hl})` : ""}</th><td>${h?.[d] ? duplo(fmtFaixas(h[d]), falaFaixas(h[d])) : "não vale"}</td></tr>`).join("")}</tbody></table>`;
+      // tabela só para a tela; o leitor recebe uma lista com um dia por item (numa tabela o TalkBack anda
+      // célula por célula: 14 paradas por unidade, ~100 num cupom de 7 unidades)
+      const diaDe = (d) => `${DIAS_NOME[d]}${d === hk ? ` (${hl})` : ""}`;
+      const tabela = (h, cap) => `<table class="hor" aria-hidden="true"><tbody>${DIAS.map((d) => `<tr class="${h?.[d] ? "" : "off"}${d === hk ? " today" : ""}"><th>${diaDe(d)}</th><td>${h?.[d] ? esc(fmtFaixas(h[d])) : "não vale"}</td></tr>`).join("")}</tbody></table><ul class="sr-only" aria-label="${esc(cap)}">${DIAS.map((d) => `<li>${diaDe(d)}: ${esc(h?.[d] ? falaFaixas(h[d]) : "não vale")}</li>`).join("")}</ul>`;
       const temH = (h) => !!h && Object.keys(h).length > 0;
       const endHtml = (x) => `<p>${endFala(x.endereco)}${x.bairro || x.cidade ? `${x.endereco ? "<br>" : ""}${esc([x.bairro, x.cidade].filter(Boolean).join(" – "))}` : ""}</p>`;
       // com várias unidades conhecidas: um bloco por unidade, cada um com endereço e horários próprios
@@ -2524,7 +2527,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   // limpa e escreve depois: a mesma mensagem repetida também é anunciada
   function falaAviso(msg) {
     const sr = $("sr-aviso"); sr.textContent = ""; clearTimeout(avisoTimer);
-    avisoTimer = setTimeout(() => { sr.textContent = msg; }, 120);
+    avisoTimer = setTimeout(() => { sr.textContent = msg; avisoTimer = setTimeout(() => { sr.textContent = ""; }, 4000); }, 120);
   }
   function toast(msg, undo) {
     avisoEm = performance.now();
