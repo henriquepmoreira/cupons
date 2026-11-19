@@ -405,6 +405,10 @@ a.usebtn { color: var(--accent); text-decoration: none; }
 .mapa { margin: 0 0 14px; border-radius: var(--r-ticket); overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
 .mapa-topo { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 8px 12px; }
 .mapa-topo p { margin: 0; font-size: 13px; color: var(--muted); }
+.mapa-botoes { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+/* ligado: o nome continua "Seguir" (o leitor de tela diz "pressionado"); na tela, sublinhado e um ponto */
+#mapa-seguir[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 3px; }
+#mapa-seguir[aria-pressed="true"]::before { content: "● "; content: "● " / ""; }
 #mapa-area { height: min(62vh, 520px); background: var(--surface-2); }
 #mapa-area .leaflet-popup-content { font: 13px/1.4 var(--f-body); margin: 10px 12px; }
 #mapa-area .leaflet-popup-content b { font-size: 14px; }
@@ -759,7 +763,13 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <button type="button" class="linkbtn" id="mapa-abrir" hidden>Ver no mapa</button>
   </div>
   <section class="mapa" id="mapa" aria-label="Mapa dos cupons" hidden>
-    <div class="mapa-topo"><p id="mapa-info" role="status"></p><button type="button" class="linkbtn" id="mapa-fechar">Fechar mapa</button></div>
+    <div class="mapa-topo"><p id="mapa-info" role="status"></p>
+      <div class="mapa-botoes">
+        <button type="button" class="linkbtn" id="mapa-local">Minha localização</button>
+        <button type="button" class="linkbtn" id="mapa-seguir" aria-pressed="false">Seguir</button>
+        <button type="button" class="linkbtn" id="mapa-fechar">Fechar mapa</button>
+      </div>
+    </div>
     <div id="mapa-area" aria-label="Mapa com os cupons da lista. A lista abaixo tem os mesmos cupons."></div>
   </section>
   <div class="ativos" id="ativos" role="group" aria-label="Filtros ativos" hidden></div>
@@ -2284,7 +2294,43 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (!state.geo) { htmlDe($("mapa-info")).textContent = "As coordenadas não carregaram. A lista abaixo continua com todos os cupons."; return; }
     desenhaMapa(true);
   }
-  function fechaMapa() { mapaAberto = false; render(); $("mapa-abrir").focus(); }
+  function fechaMapa() { paraDeSeguir(); mapaAberto = false; render(); $("mapa-abrir").focus(); }
+  // "Você" no mapa: um marcador só, movido a cada leitura do GPS (sem redesenhar os cupons)
+  let _voce = null, _seguindo = null;
+  function marcaVoce(lat, lng) {
+    if (!_mapa || !window.L) return;
+    if (_voce) { _voce.setLatLng([lat, lng]); return; }
+    const accent = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+    _voce = window.L.circleMarker([lat, lng], { radius: 9, weight: 3, color: "#fff", fillColor: accent, fillOpacity: 1, className: "voce" }).bindTooltip("Você").addTo(_mapa);
+  }
+  // posição nova do GPS: o ponto se move sempre; a lista só é reordenada quando muda mais de 150 m
+  function novaPosicao(pos, centraliza) {
+    const novo = { lat: pos.coords.latitude, lng: pos.coords.longitude, rotulo: "você", tipo: "gps" };
+    marcaVoce(novo.lat, novo.lng);
+    if (centraliza) _mapa?.setView([novo.lat, novo.lng], Math.max(_mapa.getZoom() || 0, 15));
+    else _mapa?.panTo([novo.lat, novo.lng]);
+    if (state.perto?.tipo !== "gps" || kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); render(); }
+  }
+  const SEM_GPS = "Não foi possível obter sua localização (o navegador pode ter negado a permissão).";
+  function minhaLocalizacao() {
+    if (!navigator.geolocation) { htmlDe($("mapa-info")).textContent = "Este navegador não informa a localização."; return; }
+    htmlDe($("mapa-info")).textContent = "Buscando sua localização…";
+    navigator.geolocation.getCurrentPosition((pos) => { _mapaSig = null; novaPosicao(pos, true); desenhaMapa(false); },
+      () => { htmlDe($("mapa-info")).textContent = SEM_GPS; }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+  }
+  function paraDeSeguir() {
+    if (_seguindo !== null) navigator.geolocation.clearWatch(_seguindo);
+    _seguindo = null;
+    setAttr($("mapa-seguir"), "aria-pressed", "false");
+  }
+  function alternaSeguir() {
+    if (_seguindo !== null) { paraDeSeguir(); return; }
+    if (!navigator.geolocation) { htmlDe($("mapa-info")).textContent = "Este navegador não informa a localização."; return; }
+    let primeira = true;
+    _seguindo = navigator.geolocation.watchPosition((pos) => { novaPosicao(pos, primeira); primeira = false; },
+      () => { paraDeSeguir(); htmlDe($("mapa-info")).textContent = SEM_GPS; }, { enableHighAccuracy: true, maximumAge: 10000 });
+    setAttr($("mapa-seguir"), "aria-pressed", "true");
+  }
   function desenhaMapa(enquadrar) {
     const L = window.L; if (!L || !state.geo) return;
     const lista = visible(), perto = state.perto;
@@ -2313,7 +2359,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           .bindPopup(html).addTo(_mapaCamada);
       }
     }
-    if (perto) L.circleMarker([perto.lat, perto.lng], { radius: 9, weight: 3, color: "#fff", fillColor: cor("--accent"), fillOpacity: 1 }).bindTooltip(perto.rotulo === "você" ? "Você" : perto.rotulo).addTo(_mapaCamada);
+    if (perto?.tipo === "gps") marcaVoce(perto.lat, perto.lng);
+    else {
+      if (_voce) { _voce.remove(); _voce = null; }
+      if (perto) L.circleMarker([perto.lat, perto.lng], { radius: 9, weight: 3, color: "#fff", fillColor: cor("--accent"), fillOpacity: 1, className: "ponto-partida" }).bindTooltip(perto.rotulo).addTo(_mapaCamada);
+    }
     htmlDe($("mapa-info")).textContent = `${lista.length - semEndereco} ${lista.length - semEndereco === 1 ? "cupom" : "cupons"} no mapa${semEndereco ? ` (${semEndereco} sem endereço)` : ""}. Favoritos maiores; cores pelo programa.`;
     if (enquadrar) {
       if (perto) _mapa.setView([perto.lat, perto.lng], 14);
@@ -2862,9 +2912,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   $("grupo-sair").addEventListener("click", () => { saiGrupo(true); render(); });
   $("mapa-abrir").addEventListener("click", abreMapa);
   $("mapa-fechar").addEventListener("click", fechaMapa);
+  $("mapa-local").addEventListener("click", minhaLocalizacao);
+  $("mapa-seguir").addEventListener("click", alternaSeguir);
   $("mapa-area").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mapa-ver]"); if (!b) return;
     // como no "Valendo agora": mostra só esse cupom (e o mesmo lugar nos outros programas)
+    paraDeSeguir();
     mapaAberto = false;
     state.grupo = b.dataset.mapaVer;
     focoPendente = [`.ticket[data-id="${CSS.escape(state.grupo)}"] .tname`, "#result-count"];
