@@ -564,3 +564,23 @@ test("recarregar a aba (Chrome do Android descarta abas) devolve o foco ao cupom
   assert.equal(await pg.evaluate(() => document.activeElement.closest(".ticket")?.dataset.id), naTela, "o foco do navegador tinha ficado no 41º (Mostrar mais); vale o cupom na tela");
   assert.equal(await pg.evaluate(() => document.activeElement.classList.contains("tname")), true);
 });
+
+// Teste de estresse de 19/11/2026 (décima terceira rodada): cartões atualizados no lugar
+test("o minuto passa e outro aparelho favorita: nenhum cartão recriado (o leitor não perde o lugar)", async () => {
+  const pg = await abrir({ largura: 412, compacta: true, data: "2026-11-19T17:20:00" });
+  await espera(pg, 600);
+  const marca = () => pg.evaluate(() => { window.__nos = []; document.querySelectorAll("#grid .ticket").forEach((t) => { const w = document.createTreeWalker(t, NodeFilter.SHOW_TEXT); let n; while ((n = w.nextNode())) if (n.nodeValue.trim()) window.__nos.push(n); window.__nos.push(t); }); });
+  const destruidos = () => pg.evaluate(() => window.__nos.filter((n) => !n.isConnected).length);
+  await marca();
+  const breve = await pg.$eval("#grid", (g) => g.querySelectorAll(".tag.breve").length);
+  assert.ok(breve > 0, "há cartões com contagem que muda a cada minuto");
+  await pg.clock.setFixedTime(new Date("2026-11-19T17:21:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 400);
+  assert.equal(await destruidos(), 0, "um minuto");
+  assert.match(await pg.$eval("#grid .tag.breve", (t) => t.textContent), /· em (\d+ h )?\d+/, "o texto mudou no lugar");
+  await marca();
+  await pg.evaluate(() => { const ids = [...document.querySelectorAll("#grid .ticket")].slice(0, 5).map((t) => t.dataset.id); for (const d of window.__docs) if (ids.includes(d.id)) d.favorito = !d.favorito; window.__snap(); });
+  await espera(pg, 400);
+  assert.equal(await destruidos(), 0, "favoritos vindos de outro aparelho");
+});

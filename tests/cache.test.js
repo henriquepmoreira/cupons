@@ -127,8 +127,11 @@ test("favoritar regrava só as marcas; ao reabrir com o banco lento, a marca vem
   assert.ok(antes && JSON.parse(antes).h, "lista guardada com hash dos dados");
   const { id, fav } = await pg.evaluate(() => {
     const t = document.querySelector("#grid .ticket"); const b = t.querySelector(".heart");
-    b.click(); return { id: t.dataset.id, fav: b.getAttribute("aria-pressed") === "true" };
+    b.click(); return { id: t.dataset.id, fav: document.querySelector(`.ticket[data-id="${t.dataset.id}"] .heart`).getAttribute("aria-pressed") === "true" };
   });
+  // o banco confirma a gravação com um snapshot (o falso não faz isso sozinho); antes o teste lia o botão já
+  // descartado e comparava valores antigos dos dois lados
+  await pg.evaluate(() => window.__snap());
   await pg.waitForTimeout(1800);
   assert.equal(await bruta(), antes, "a lista inteira não foi regravada");
   const m = await pg.evaluate(() => JSON.parse(localStorage.getItem("cupons-em-dobro:marcas:v1")));
