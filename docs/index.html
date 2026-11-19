@@ -123,6 +123,8 @@ button { cursor: pointer; }
   font-family: var(--f-mono); font-size: 11.5px; font-weight: 600; letter-spacing: .08em;
   text-transform: uppercase; color: var(--muted); margin: 0;
 }
+/* com espaçamento de texto ampliado, o cabeçalho encolhe em vez de alargar a página */
+.masthead > * { min-width: 0; }
 .title-row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
 h1 {
   font-family: var(--f-display); font-stretch: 68%; font-weight: 850; font-size: clamp(40px, 9vw, 68px);
@@ -566,7 +568,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   @media (max-width: 350px) {
     /* números do topo numa linha só também em 320 px ("103 usados" descia sozinho); o número dos
        favoritos fica em 19 px, o mínimo de "texto grande" para o contraste do vermelho */
-    .masthead .stats { gap: 4px 7px; flex-wrap: nowrap; }
+    .masthead .stats { gap: 4px 7px; flex-wrap: nowrap; min-width: 0; max-width: 100%; }
     .masthead .stat { gap: 2px; min-width: 0; }
     /* com uma fonte do aparelho mais larga, o rótulo encurta ("disponív…") em vez de descer uma linha */
     .masthead .stat span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -606,7 +608,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 <header class="wrap masthead">
   <p class="eyebrow"><span aria-hidden="true">Carteira pessoal · 2 por 1 em Porto Alegre e região</span><span class="sr-only">Carteira pessoal: 2 por 1 em Porto Alegre e região</span></p>
   <div class="title-row">
-    <h1 aria-label="Cupons em Dobro">Cupons<span class="x" aria-hidden="true">×</span>em Dobro</h1>
+    <h1 aria-label="Cupons em Dobro">Cupons<wbr><span class="x" aria-hidden="true">×</span><wbr>em Dobro</h1>
     <div class="stats" id="stats">
       <div class="stat"><b id="st-disp">–</b><span>disponíveis</span></div>
       <div class="stat fav"><b id="st-fav">–</b><span>favoritos</span></div>
@@ -621,7 +623,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   <div class="wrap">
     <div class="search" role="search">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Busque lugar, prato ou bairro" autocomplete="off" aria-label="Buscar cupons">
+      <input id="q" type="search" placeholder="Busque lugar, prato ou bairro" autocomplete="off" enterkeyhint="search" aria-label="Buscar cupons">
       <button class="clear" id="q-clear" type="button" aria-label="Limpar busca" hidden><span aria-hidden="true">×</span></button>
     </div>
     <div class="controls" role="group" aria-label="Atalhos da lista">
@@ -2755,6 +2757,17 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const v = e.target.value;
     qTimer = setTimeout(() => { state.q = v; render(); }, 80);
   });
+  // tecla "buscar" do teclado do celular: aplica a busca já, fecha o teclado e leva o foco ao total (o leitor
+  // ouve quantos cupons achou e segue para a lista); antes o teclado ficava aberto por cima dos resultados
+  $("q").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.isComposing) return;
+    e.preventDefault();
+    clearTimeout(qTimer);
+    if (state.q !== $("q").value) { state.q = $("q").value; }
+    focoPendente = ["#result-count"];
+    render();
+    document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
+  });
   $("q-clear").addEventListener("click", () => { $("q").value = ""; state.q = ""; render(); $("q").focus(); });
   $("status").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-status]"); if (!b) return;
@@ -2802,7 +2815,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.pertoPendente = null;
       state.sort = "perto";
       savePrefs(); render();
-      toast("Cupons em ordem do mais perto para o mais longe de você.");
+      garanteGeo().then(() => toast(state.geo ? "Cupons em ordem do mais perto para o mais longe de você."
+        : "Sua localização chegou, mas as coordenadas dos cupons não carregaram: a lista não pode ser ordenada por distância agora."));
     }, (err) => {
       semLocalizacao(err && err.code === 1 ? "A localização foi negada ou não é permitida nesta visualização." : "Não foi possível obter sua localização.", aproveita);
     }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
