@@ -425,10 +425,18 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .expandir::before { width: 18px; height: 18px; }
 .usebtn[data-act="use"] { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .usebtn[data-act="use"]::before { width: 14px; height: 14px; }
+.usar-rapido { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .expandir[aria-expanded="true"]::before { transform: rotate(180deg); }
 /* alto contraste do Windows: o fundo seria trocado pela cor da página e o ícone sumiria */
-@media (forced-colors: active) { .heart::before, .expandir::before, .usebtn[data-act="use"]::before { forced-color-adjust: none; background: ButtonText; } }
+@media (forced-colors: active) { .heart::before, .expandir::before, .usebtn[data-act="use"]::before, .usar-rapido::before { forced-color-adjust: none; background: ButtonText; } }
 .grid.compacto .expandir { display: grid; }
+/* na linha compacta: ✓ marca como usado sem abrir o cartão, e tocar fora dos botões abre o cartão */
+.usar-rapido { display: none; flex: none; width: 40px; height: 40px; margin: -6px -4px 0 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); place-items: center; }
+.usar-rapido::before { content: ""; width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat; }
+.usar-rapido:hover { color: var(--ok); }
+.usar-rapido:disabled { cursor: default; opacity: .5; }
+.grid.compacto .ticket:not(.expandido) .usar-rapido { display: grid; }
+.grid.compacto .ticket:not(.expandido) { cursor: pointer; }
 .grid.compacto, .grid.compacto .group-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .grid.compacto .ticket:not(.expandido) { grid-template-columns: minmax(0, 1fr); min-height: 0; }
 .grid.compacto .ticket:not(.expandido)::before, .grid.compacto .ticket:not(.expandido)::after,
@@ -1393,6 +1401,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
+      ${c.usado ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(c.nome)}" title="Marcar como usado"${ro}></button>`}
       <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}></button>
       <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"></button>
     </div>
@@ -2020,7 +2029,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (ativo && ativo !== document.body && document.contains(ativo) && !focoPendente) return;
     for (const sel of sels) {
       const alvo = document.querySelector(sel);
-      if (alvo && !alvo.closest("[hidden]")) { alvo.focus({ preventScroll: false }); return; }
+      // só um elemento que aparece na tela (na lista compacta, botões do cartão fechado ficam ocultos)
+      if (alvo && !alvo.closest("[hidden]") && alvo.getClientRects().length) { alvo.focus({ preventScroll: false }); return; }
     }
   }
   // anuncia o total depois que a pessoa para de digitar ou tocar, e só quando ele muda
@@ -2547,7 +2557,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     return [todos[i + 1], todos[i - 1]].filter(Boolean).map((t) => `.ticket[data-id="${CSS.escape(t.dataset.id)}"] .tname`);
   }
   $("grid").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-act]"); if (!b) return;
+    const b = e.target.closest("[data-act]");
+    if (!b) {
+      // lista compacta: tocar na linha (fora de botões e links) abre o cartão; teclado e leitor de tela usam a seta
+      const t = e.target.closest(".ticket");
+      if (t && state.compacto && !t.classList.contains("expandido") && !e.target.closest("a, button, summary, details, input, select")
+        && !String(getSelection?.() || "")) { state.expandidos.add(t.dataset.id); render(); }
+      return;
+    }
     if (b.dataset.act === "clear-all") { clearAll(); return; }
     if (b.dataset.act === "tirar") {
       removeFiltro(b.dataset.remove);
@@ -2570,7 +2587,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
     } else if (b.dataset.act === "fav") {
       write(id, { favorito: !c.favorito });
-    } else if (b.dataset.act === "use") {
+    } else if (b.dataset.act === "use" || b.dataset.act === "usar") {
       // na lista de disponíveis o cartão some: o foco vai para o nome do próximo cupom
       focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="unuse"]`, ...vizinhos(card), "#result-count"];
       silenciarAnuncio = true;
@@ -2579,12 +2596,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       const ainda = resumoOutros(outrosProgramas(c)).filter((r) => r.n > 0).map((r) => r.nome);
       toast(`${c.nome}: marcado como usado.${ainda.length ? ` Ainda tem no ${listaE(ainda).replace(/ e (?=[^,]*$)/, " e no ").replace(/, /g, ", no ")}.` : ""}`, () => {
         // desfazer: o cartão volta e o foco vai para ele, em vez de cair no topo da página
-        focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
+        focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="usar"]`, `.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, `.ticket[data-id="${CSS.escape(id)}"] .tname`, "#result-count"];
         write(id, { usado: false, usadoEm: null });
       });
     } else if (b.dataset.act === "unuse") {
       const prev = c.usadoEm || null;
-      focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, ...vizinhos(card), "#result-count"];
+      focoPendente = [`.ticket[data-id="${CSS.escape(id)}"] [data-act="usar"]`, `.ticket[data-id="${CSS.escape(id)}"] [data-act="use"]`, ...vizinhos(card), "#result-count"];
       silenciarAnuncio = true;
       write(id, { usado: false, usadoEm: null });
       silenciarAnuncio = false;
