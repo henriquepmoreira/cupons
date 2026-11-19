@@ -510,3 +510,17 @@ test("com o Filtros em tela cheia, o total e os avisos continuam chegando ao lei
   assert.ok(vivas.some((t) => /mais perto/.test(t)), "aviso alcançável");
   assert.equal(await pg.evaluate(() => !!document.getElementById("toast").closest("[inert]")), false, "o aviso (e o Desfazer) não ficam inertes");
 });
+
+// Teste de estresse de 19/11/2026 (décima rodada)
+test("Filtros aberto deitado e o celular gira: o foco entra no diálogo (não cai no começo da página)", async () => {
+  const pg = await abrir({ largura: 844, altura: 412 });
+  await pg.click("#filters-toggle");
+  await espera(pg, 200);
+  assert.equal(await pg.$eval("#filters", (f) => f.getAttribute("role")), null, "deitado: painel, não diálogo");
+  await pg.setViewportSize({ width: 412, height: 844 });
+  await espera(pg, 400);
+  assert.deepEqual(await pg.evaluate(() => [document.getElementById("filters").getAttribute("role"), document.querySelector(".toolbar").inert, document.activeElement.id]), ["dialog", true, "filters-titulo"]);
+  await pg.setViewportSize({ width: 844, height: 412 });
+  await espera(pg, 400);
+  assert.deepEqual(await pg.evaluate(() => [document.querySelector("main").inert, history.state?.cuponsFiltros || null]), [false, null], "girando de volta, nada fica inerte nem sobra no histórico");
+});
