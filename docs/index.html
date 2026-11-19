@@ -1891,6 +1891,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     // virou diálogo com o foco na parte que ficou inerte (ex.: aberto deitado e o celular girou): o foco ia para o
     // começo da página; vai para o título do painel
     if (modal && !f.contains(document.activeElement)) $("filters-titulo").focus();
+    // o contrário (aberto em pé e girou): o título "Filtros" e o × só existem em tela cheia; com o foco neles,
+    // ele caía no começo da página. Vai para a aba aberta
+    else if (!modal && state.filtersOpen && f.contains(document.activeElement) && !document.activeElement.getClientRects().length) f.querySelector('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
   }
   // Gesto/botão de voltar do Android fecha a camada de cima em vez de sair da página: o Filtros em tela cheia
   // e o "Ver juntos" (que troca a lista inteira; abre também pelo "Valendo agora" e pelo mapa). Uma entrada no
