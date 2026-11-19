@@ -298,3 +298,38 @@ test("datas por extenso e \"número\" no endereço para o leitor", async () => {
   assert.ok(ax.some((t) => /número 1800/.test(t)), "Nº lido como número");
   assert.ok(!ax.some((t) => /\b\d{2}\/\d{2}\/\d{2}\b/.test(t)), "nenhuma data curta chega ao leitor");
 });
+
+// Teste de estresse de 19/11/2026 (quarta rodada)
+test("\"Valendo agora\": o minuto passa e o foco fica no mesmo item (sem novo evento de foco)", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T17:20:00" });
+  await pg.focus("#agora ol[aria-label] [data-agora]");
+  await espera(pg, 300);
+  await pg.evaluate(() => { window.__el = document.activeElement; window.__focos = 0; document.addEventListener("focusin", () => window.__focos++, true); });
+  await pg.clock.setFixedTime(new Date("2026-11-19T17:21:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 300);
+  const r = await pg.evaluate(() => ({ mesmo: document.activeElement === window.__el, focos: window.__focos, txt: document.activeElement.textContent }));
+  assert.deepEqual([r.mesmo, r.focos], [true, 0], "o leitor não é jogado para o total a cada minuto");
+  assert.match(r.txt, /daqui a 9 minutos/, "o texto do item se atualiza no lugar");
+  // item que deixa de valer: o foco vai para outro item do bloco, não para o começo da lista
+  await pg.clock.setFixedTime(new Date("2026-11-19T17:31:00"));
+  await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await espera(pg, 300);
+  assert.ok(await pg.evaluate(() => !!document.activeElement.closest("#agora")), "foco continua no Valendo agora");
+});
+
+test("gesto de voltar do Android fecha o Filtros em tela cheia, sem sair da página", async () => {
+  const pg = await abrir({ largura: 412 });
+  await aba(pg, "quando");
+  await pg.evaluate(() => history.back()).catch(() => {});
+  await espera(pg, 400);
+  assert.ok(await pg.$("#grid .ticket"), "a página continua aberta");
+  assert.deepEqual(await pg.evaluate(() => [document.getElementById("filters").hidden, document.activeElement.id]), [true, "filters-toggle"]);
+  await aba(pg, "onde");
+  await fecharFiltros(pg);
+  await espera(pg, 300);
+  assert.equal(await pg.evaluate(() => history.state?.cuponsFiltros || null), null, "fechar pelo × tira a entrada do histórico");
+  const pc = await abrir({ largura: 1280 });
+  await aba(pc, "quando");
+  assert.equal(await pc.evaluate(() => history.state?.cuponsFiltros || null), null, "no computador (painel, não diálogo) não há entrada");
+});

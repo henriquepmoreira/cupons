@@ -948,6 +948,30 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       set textContent(v) { v = String(v); el.__h = undefined; if (el.textContent !== v) el.textContent = v; },
     };
   }
+  // Bloco "Valendo agora": muda a cada minuto ("daqui a 9 minutos"). Com os mesmos itens, troca só o conteúdo
+  // de botões e títulos, sem recriá-los: o foco do leitor fica no item (antes ia para o total a cada minuto).
+  const _tplBloco = document.createElement("template");
+  const formaDe = (root) => { const out = []; const anda = (e) => { for (const c of e.children) { out.push(c.tagName + (c.dataset.agora || "") + (c.dataset.agoraAct || "")); if (!/^(BUTTON|H2|H3)$/.test(c.tagName)) anda(c); } }; anda(root); return out.join(","); };
+  function blocoEm(el) {
+    return {
+      set innerHTML(html) {
+        if (el.__h === html) return;
+        _tplBloco.innerHTML = html;
+        const novo = _tplBloco.content;
+        if (!el.__h || formaDe(el) !== formaDe(novo)) { el.innerHTML = html; el.__h = html; return; }
+        const velhos = el.querySelectorAll("*"), novos = novo.querySelectorAll("*");
+        for (let i = 0, j = 0; i < velhos.length; i++, j++) {
+          const v = velhos[i], n = novos[j];
+          for (const a of new Set([...v.getAttributeNames(), ...n.getAttributeNames()])) { if (n.hasAttribute(a)) setAttr(v, a, n.getAttribute(a)); else v.removeAttribute(a); }
+          if (/^(BUTTON|H2|H3)$/.test(v.tagName)) {
+            if (v.innerHTML !== n.innerHTML) v.innerHTML = n.innerHTML;
+            i += v.querySelectorAll("*").length; j += n.querySelectorAll("*").length; // pula o conteúdo, já trocado
+          }
+        }
+        el.__h = html;
+      },
+    };
+  }
   // Grupo de chips: se os chips são os mesmos (mesmos data-*), atualiza só "marcado" e o conteúdo de cada um,
   // sem trocar os botões (o foco e o TalkBack ficam no chip tocado); se mudaram, troca o grupo.
   const _tplChips = document.createElement("template");
@@ -1837,7 +1861,19 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (modal) { f.setAttribute("role", "dialog"); f.setAttribute("aria-modal", "true"); } else { f.removeAttribute("role"); f.removeAttribute("aria-modal"); }
     for (const el of [document.querySelector(".masthead"), document.querySelector(".toolbar"), document.querySelector("main")]) el.inert = modal;
     document.documentElement.style.overflow = modal ? "hidden" : "";
+    // gesto/botão de voltar do Android fecha o diálogo em vez de sair da página: uma entrada no histórico
+    // enquanto ele está aberto; fechando pelo ×, Esc ou "Ver cupons", a entrada sai
+    try {
+      if (modal && !filtrosNoHistorico) { history.pushState({ cuponsFiltros: true }, ""); filtrosNoHistorico = true; }
+      else if (!modal && filtrosNoHistorico) { filtrosNoHistorico = false; if (history.state?.cuponsFiltros) history.back(); }
+    } catch (_) { filtrosNoHistorico = false; }
   }
+  let filtrosNoHistorico = false;
+  addEventListener("popstate", () => {
+    if (!filtrosNoHistorico || history.state?.cuponsFiltros) return;
+    filtrosNoHistorico = false; // a entrada já saiu: voltar fechou o diálogo
+    if (state.filtersOpen) fechaFiltros();
+  });
   function abreFiltros() {
     state.filtersOpen = true;
     if (state.abaFiltros === "onde") garanteGeo();
@@ -2215,6 +2251,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const card = el.closest(".ticket");
     const pre = card ? `.ticket[data-id="${CSS.escape(card.dataset.id)}"] ` : "";
     if (el.id && !card) return [`#${CSS.escape(el.id)}`];
+    const ag = el.closest("#agora [data-agora]");
+    if (ag) {
+      const its = [...document.querySelectorAll("#agora [data-agora]")], i = its.indexOf(ag);
+      return [`#agora [data-agora="${CSS.escape(ag.dataset.agora)}"]`, ...[its[i + 1], its[i - 1]].filter(Boolean).map((b) => `#agora [data-agora="${CSS.escape(b.dataset.agora)}"]`), "#agora [data-agora]", "#result-count"];
+    }
+    if (el.matches("#agora [data-agora-act]")) return [`#agora [data-agora-act="${CSS.escape(el.dataset.agoraAct)}"]`, "#result-count"];
     const viz = card ? vizinhos(card) : []; // se o cartão sumir (ex.: usado em outro aparelho), o nome do vizinho
     for (const a of FOCO_ATTRS) if (el.hasAttribute(a)) return [`${pre}[${a}="${CSS.escape(el.getAttribute(a))}"]`, ...viz];
     if (card && el.matches("summary")) return [`${pre}details${el.parentElement?.dataset.outros ? ".outros" : ":not(.outros)"} > summary`, ...viz];
@@ -2318,7 +2360,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const blocoBreve = liBreve
       ? `<${itens.length ? "h3" : "h2"} class="${itens.length ? "agora-sub" : "agora-h"}" id="${itens.length ? "agora-breve-h" : "agora-h"}"${tituloAttr(`Daqui a pouco, ${breves.length} ${breves.length === 1 ? "cupom" : "cupons"} na próxima hora`)}>Daqui a pouco <span class="n">${nCupons(breves.length)} na próxima hora</span></${itens.length ? "h3" : "h2"}>
       <ol aria-label="Daqui a pouco">${liBreve}</ol>` : "";
-    htmlDe(el).innerHTML = (itens.length
+    blocoEm(el).innerHTML = (itens.length
       ? `<h2 class="agora-h" id="agora-h"${tituloAttr(`${titulo}, ${cands.length} ${cands.length === 1 ? "cupom" : "cupons"} no total`)}>${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
       <ol>${li}</ol>${blocoBreve}
       <div class="agora-pe"><button type="button" class="linkbtn" data-agora-act="todos">Ver todos que valem agora</button>${semPonto}</div>`
