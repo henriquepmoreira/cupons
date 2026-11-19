@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Converte os endereços das unidades dos cupons em coordenadas (OpenStreetMap / Nominatim).
 
-Uso: python3 scripts/geocodificar.py [data/geo.json]
+Uso: python3 scripts/geocodificar.py [data/geo.json] [--refazer bairro|cidade]
+
+--refazer bairro consulta de novo os endereços que ficaram só com o centro do bairro (ou da cidade)
+e troca quando acha coisa melhor (rua ou endereço).
 
 Lê data/*.json, junta os endereços únicos (unidade e outrasUnidades) e grava data/geo.json:
     { "<endereco>|<bairro>|<cidade>": {"lat": -30.0, "lng": -51.2, "precisao": "endereco"|"rua"|"bairro"|"cidade"} }
@@ -17,11 +20,19 @@ da rua, às vezes a quilômetros (avenidas longas). Por isso, nesta ordem:
      conhecer o bairro, quando não há como conferir);
   4. o centro do bairro ("bairro");
   5. o centro da cidade ("cidade"), para ruas e bairros que o mapa não tem.
-Grafias do app que diferem do mapa ficam em CORRECOES.
+Grafias do app que diferem do mapa ficam em CORRECOES. O nome da rua é limpo antes (normaliza_rua):
+sem " - lado par/ímpar" e com abreviações por extenso (Av. -> Avenida, Estr. -> Estrada, Dr. -> Doutor).
+Na etapa 3, ruas longas voltam em vários trechos: fica o trecho mais perto do centro do bairro; se ainda
+ficar longe, tenta o nome sem o tipo de via (o mapa às vezes troca "Avenida" por "Rua" no meio do caminho).
 """
 import glob, json, math, re, sys, time, unicodedata, urllib.parse, urllib.request
 
-SAIDA = sys.argv[1] if len(sys.argv) > 1 else "data/geo.json"
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+SAIDA = ARGS[0] if ARGS and not ARGS[0] in ("bairro", "cidade") else "data/geo.json"
+REFAZER = set()
+if "--refazer" in sys.argv:
+    i = sys.argv.index("--refazer")
+    REFAZER = {"bairro", "cidade"} if sys.argv[i + 1:i + 2] == ["bairro"] else {sys.argv[i + 1]} if len(sys.argv) > i + 1 else set()
 UA = "cupons-carteira/1.0 (uso pessoal)"
 # Grande Porto Alegre e Vale dos Sinos; resultados fora disso são descartados
 VIEWBOX = "-51.75,-29.35,-50.55,-30.45"
@@ -43,8 +54,21 @@ def rua_numero(endereco):
     return e.split(",")[0].strip(), None
 
 
+ABREVIACOES = [(r"^Av\.?\s+", "Avenida "), (r"^Estr\.?\s+", "Estrada "), (r"^R\.\s+", "Rua "),
+               (r"\bDr\.?\s+", "Doutor "), (r"\bProf\.?\s+", "Professor "), (r"\bCel\.?\s+", "Coronel "), (r"\bTen\.?\s+", "Tenente ")]
+
+
+def normaliza_rua(rua):
+    """'Rua Miguel Tostes - lado ímpar' -> 'Rua Miguel Tostes'; 'Av. Dr. X' -> 'Avenida Doutor X'"""
+    r = re.sub(r"\s*-\s*lado\s+(par|ímpar|impar)\b.*$", "", rua, flags=re.I).strip(" ,")
+    for de, para in ABREVIACOES:
+        r = re.sub(de, para, r)
+    return re.sub(r"\s+", " ", r).strip()
+
+
 # grafia do app -> grafia do OpenStreetMap
 CORRECOES = {
+    "Avenida Venâcio Aires": "Avenida Venâncio Aires",
     "Rua Ildo Menegueti": "Rua Ildo Meneghetti",
     "Avenida das Nações Unidas": "Avenida Nações Unidas",
 }
@@ -54,23 +78,31 @@ ultima = 0.0
 
 def busca(**params):
     """primeiro resultado: {"lat", "lng", "end"} (end = partes do endereço), ou None"""
+    res = busca_varios(**params)
+    return res[0] if res else None
+
+
+def busca_varios(limite=1, **params):
+    """até `limite` resultados (trechos diferentes de uma mesma rua longa com dedupe=0)"""
     global ultima
     espera = 1.1 - (time.time() - ultima)
     if espera > 0:
         time.sleep(espera)
-    q = {"format": "jsonv2", "limit": 1, "countrycodes": "br", "viewbox": VIEWBOX, "bounded": 1, "addressdetails": 1, **params}
+    q = {"format": "jsonv2", "limit": limite, "countrycodes": "br", "viewbox": VIEWBOX, "bounded": 1, "addressdetails": 1, **params}
+    if limite > 1:
+        q["dedupe"] = 0
     req = urllib.request.Request("https://nominatim.openstreetmap.org/search?" + urllib.parse.urlencode(q), headers={"User-Agent": UA})
     for tentativa in range(3):
         try:
             with urllib.request.urlopen(req, timeout=30) as r:
                 ultima = time.time()
                 res = json.load(r)
-                return {"lat": float(res[0]["lat"]), "lng": float(res[0]["lon"]), "end": res[0].get("address", {})} if res else None
+                return [{"lat": float(x["lat"]), "lng": float(x["lon"]), "end": x.get("address", {})} for x in res]
         except Exception as e:  # rede instável: espera e tenta de novo
             ultima = time.time()
             print("  erro:", e, file=sys.stderr)
             time.sleep(5 * (tentativa + 1))
-    return None
+    return []
 
 
 def sem_acento(s):
@@ -107,6 +139,7 @@ def geocodifica(u):
     cidade, bairro = u["cidade"], u.get("bairro")
     if u.get("endereco"):
         rua, num = rua_numero(u["endereco"])
+        rua = normaliza_rua(rua)
         rua = CORRECOES.get(rua, rua)
         if num:
             r = busca(street=f"{num} {rua}", city=cidade, state="RS")
@@ -116,8 +149,23 @@ def geocodifica(u):
             r = busca(q=f"{rua}, {bairro}, {cidade}, RS")
             if r and no_bairro(r, bairro):
                 return r, "rua"
-        r = busca(street=rua, city=cidade, state="RS") or busca(q=f"{rua}, {cidade}, RS")
         c = centro_bairro(bairro, cidade)
+        # rua longa: vários trechos; fica o mais perto do centro do bairro
+        trechos = busca_varios(limite=15, street=rua, city=cidade, state="RS") or busca_varios(limite=15, q=f"{rua}, {cidade}, RS")
+        r = min(trechos, key=lambda t: km(t, c)) if trechos and c else (trechos[0] if trechos else None)
+        # o mapa às vezes muda o tipo de via no meio do caminho (a Av. Dr. Sezefredo Azambuja Vieira vira
+        # "Rua" no Marechal Rondon): tenta só o nome, sem Avenida/Rua/Estrada, e fica com o trecho mais perto
+        nome = re.sub(r"^(Avenida|Rua|Estrada|Travessa|Alameda|Rodovia)\s+", "", rua)
+        # e sem títulos ("Doutor Sezefredo..." devolve 2 trechos; "Sezefredo..." devolve os do bairro)
+        sem_titulo = re.sub(r"^((Doutor|Professor|Professora|Coronel|Tenente|General|Padre|Engenheiro|Presidente)\s+)+", "", nome)
+        for n in dict.fromkeys([nome, sem_titulo]):
+            if not c or n == rua or (r and km(r, c) <= 1.5):
+                break
+            outros = busca_varios(limite=15, q=f"{n}, {cidade}, RS")
+            if outros:
+                melhor = min(outros, key=lambda t: km(t, c))
+                if not r or km(melhor, c) < km(r, c):
+                    r = melhor
         if r and (not bairro or not c or km(r, c) <= 1.5 or no_bairro(r, bairro)):
             return r, "rua"
         if c:
@@ -150,11 +198,14 @@ def main():
         geo = json.load(open(SAIDA))
     except FileNotFoundError:
         geo = {}
-    faltam = [k for k in unidades if k not in geo]
+    faltam = [k for k in unidades if k not in geo or geo[k].get("precisao") in REFAZER]
+    ordem = {"endereco": 0, "rua": 1, "bairro": 2, "cidade": 3}
     print(f"{len(unidades)} endereços, {len(faltam)} para consultar", file=sys.stderr)
     for i, k in enumerate(faltam, 1):
         r, prec = geocodifica(unidades[k])
-        if r:
+        antes = geo.get(k)
+        # ao refazer, só troca quando a nova é mais precisa
+        if r and (not antes or ordem[prec] < ordem.get(antes.get("precisao"), 9)):
             geo[k] = {"lat": round(r["lat"], 6), "lng": round(r["lng"], 6), "precisao": prec}
         print(f"[{i}/{len(faltam)}] {prec if r else 'NÃO ACHOU'}: {k}", file=sys.stderr)
         if i % 20 == 0 or i == len(faltam):

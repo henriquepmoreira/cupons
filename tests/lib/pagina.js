@@ -112,7 +112,8 @@ async function abrir(o = {}) {
   await pg.route(ORIGEM, (r) => r.fulfill({ contentType: "text/html", body: documento(html, o.site) }));
   await pg.route(ORIGEM + "sw.js", (r) => r.fulfill({ status: 404, body: "" }));
   await pg.route(ORIGEM + "regras.json", (r) => (o.regras ? r.fulfill({ contentType: "application/json", body: JSON.stringify(o.regras) }) : r.fulfill({ status: 404, body: "" })));
-  await pg.route(ORIGEM + "geo.json", (r) => (o.geo === false
+  // pg.__atrasoGeo (ms): geo.json demora a chegar (o teste muda antes de recarregar)
+  await pg.route(ORIGEM + "geo.json", async (r) => (pg.__atrasoGeo && await new Promise((ok) => setTimeout(ok, pg.__atrasoGeo)), o.geo === false
     ? r.fulfill({ status: 404, body: "" })
     : r.fulfill({ contentType: "application/json", body: o.geoJson || fs.readFileSync(path.join(RAIZ, "data", "geo.json"), "utf8") })));
   await pg.route(ORIGEM + "snapshot.json", (r) => (o.snapshot ? r.fulfill({ contentType: "application/json", body: JSON.stringify(o.snapshot) }) : r.fulfill({ status: 404, body: "" })));

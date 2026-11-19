@@ -191,3 +191,21 @@ test("geo.json compacto (o publicado) dá a mesma ordem e as mesmas distâncias 
   assert.ok(a.length >= 20);
   assert.deepEqual(b, a);
 });
+
+test("reabrindo com \"Mais perto\" pelo GPS: a lista já sai na ordem guardada, antes de as coordenadas chegarem", async () => {
+  const pg = await abrir({ localizacao: PRACA_DA_MATRIZ });
+  await pg.click("#perto-toggle");
+  await pg.waitForTimeout(2000); // ordem e lista guardadas no aparelho
+  const antes = (await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id))).slice(0, 8);
+  // reabre com o banco e o geo.json demorando: a primeira tela vem da lista guardada
+  pg.__atrasoGeo = 4000;
+  await pg.addInitScript("window.__atrasoBanco = 3000");
+  await pg.reload();
+  await pg.waitForSelector(".ticket", { timeout: 1500 });
+  const primeira = (await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id))).slice(0, 8);
+  assert.deepEqual(primeira, antes, "mesma ordem antes de geo.json chegar");
+  assert.match(await texto(pg, "#result-count"), /do mais perto ao mais longe de você/, "o ponto de partida (última posição do GPS) foi lembrado");
+  await pg.waitForTimeout(4500);
+  const depois = (await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id))).slice(0, 8);
+  assert.deepEqual(depois, antes, "com as coordenadas, a ordem de verdade é a mesma");
+});

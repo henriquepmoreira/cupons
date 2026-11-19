@@ -62,5 +62,17 @@ class ArquivoGeo(unittest.TestCase):
         self.assertTrue(all(v["precisao"] in {"endereco", "rua", "bairro", "cidade"} for v in geojson.values()))
 
 
+
+class NormalizaRua(unittest.TestCase):
+    def test_tira_lado_e_expande_abreviacoes(self):
+        self.assertEqual(geo.normaliza_rua("Rua Miguel Tostes - lado ímpar"), "Rua Miguel Tostes")
+        self.assertEqual(geo.normaliza_rua("Avenida Mariland - lado par"), "Avenida Mariland")
+        self.assertEqual(geo.normaliza_rua("Av. Dr. Sezefredo Azambuja Vieira"), "Avenida Doutor Sezefredo Azambuja Vieira")
+        self.assertEqual(geo.normaliza_rua("Av Venâcio Aires"), "Avenida Venâcio Aires")
+        self.assertEqual(geo.normaliza_rua("Estr. Emilia José da Silva"), "Estrada Emilia José da Silva")
+
+    def test_nome_ja_limpo_nao_muda(self):
+        self.assertEqual(geo.normaliza_rua("Rua Fernandes Vieira"), "Rua Fernandes Vieira")
+
 if __name__ == "__main__":
     unittest.main()

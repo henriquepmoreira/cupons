@@ -20,9 +20,9 @@
 "precisao": "endereco"
 },
 "Av Venâcio Aires, Nº 148|Cidade Baixa|Porto Alegre": {
-"lat": -30.04024,
-"lng": -51.221868,
-"precisao": "bairro"
+"lat": -30.042528,
+"lng": -51.218805,
+"precisao": "rua"
 },
 "Av Venâncio Aires, Nº 02|Cidade Baixa|Porto Alegre": {
 "lat": -30.042528,
@@ -50,9 +50,9 @@
 "precisao": "endereco"
 },
 "Av. Dr. Sezefredo Azambuja Vieira Nº 851|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Av. Farroupilha Nº 3989|Marechal Rondon|Canoas": {
 "lat": -29.90735,
@@ -220,9 +220,9 @@
 "precisao": "rua"
 },
 "Avenida Baltazar de Oliveira Garcia, Nº 367|São Sebastião|Porto Alegre": {
-"lat": -30.004839,
-"lng": -51.143821,
-"precisao": "bairro"
+"lat": -30.009826,
+"lng": -51.140133,
+"precisao": "rua"
 },
 "Avenida Baltazar de Oliveira Garcia, Nº 805|Sarandi|Porto Alegre": {
 "lat": -30.010902,
@@ -425,9 +425,9 @@
 "precisao": "endereco"
 },
 "Avenida Dom Pedro II, Nº 1203|São João|Porto Alegre": {
-"lat": -30.004918,
-"lng": -51.187376,
-"precisao": "bairro"
+"lat": -30.007977,
+"lng": -51.1905,
+"precisao": "rua"
 },
 "Avenida Doutor Maurício Cardoso Nº 1114|Jardim Mauá|Novo Hamburgo": {
 "lat": -29.680069,
@@ -455,19 +455,19 @@
 "precisao": "endereco"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira Nº 1030|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira Nº 1680|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira Nº 1886, loja container|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.918354,
+"lng": -51.155242,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira Nº 2643, Comidas de Boteco|Estância Velha|Canoas": {
 "lat": -29.919307,
@@ -480,9 +480,9 @@
 "precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 1680|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 1736, Esquina|Estância Velha|Canoas": {
 "lat": -29.919307,
@@ -490,39 +490,39 @@
 "precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 1814|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.918354,
+"lng": -51.155242,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 1886|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.91738,
+"lng": -51.167851,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 1910|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 2042|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 2060|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 2246|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 2446|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 2643|Estância Velha|Canoas": {
 "lat": -29.919307,
@@ -530,14 +530,14 @@
 "precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 2663|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 266|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.917862,
+"lng": -51.161712,
+"precisao": "rua"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 689|Marechal Rondon|Canoas": {
 "lat": -29.922326,
@@ -545,9 +545,9 @@
 "precisao": "bairro"
 },
 "Avenida Doutor Sezefredo Azambuja Vieira, Nº 851|Marechal Rondon|Canoas": {
-"lat": -29.922326,
-"lng": -51.163007,
-"precisao": "bairro"
+"lat": -29.918354,
+"lng": -51.155242,
+"precisao": "rua"
 },
 "Avenida Edgar Pires de Castro Nº 25, Loja 2|Hípica|Porto Alegre": {
 "lat": -30.158042,
@@ -800,9 +800,9 @@
 "precisao": "rua"
 },
 "Avenida João Pereira de Vargas Nº 476|Centro|Sapucaia do Sul": {
-"lat": -29.825567,
-"lng": -51.149007,
-"precisao": "bairro"
+"lat": -29.823886,
+"lng": -51.146693,
+"precisao": "rua"
 },
 "Avenida João Pessoa Nº 1831, Praça de Alimentação|Farroupilha|Porto Alegre": {
 "lat": -30.045801,
@@ -875,9 +875,9 @@
 "precisao": "rua"
 },
 "Avenida Mariland - lado par, Nº 908|Auxiliadora|Porto Alegre": {
-"lat": -30.020011,
-"lng": -51.190588,
-"precisao": "bairro"
+"lat": -30.022768,
+"lng": -51.193668,
+"precisao": "endereco"
 },
 "Avenida Mariland Nº 908|Auxiliadora|Porto Alegre": {
 "lat": -30.022768,
@@ -1030,9 +1030,9 @@
 "precisao": "endereco"
 },
 "Avenida Praia de Belas - lado ímpar, Nº 1181, Piso 3|Praia de Belas|Porto Alegre": {
-"lat": -30.044739,
-"lng": -51.23018,
-"precisao": "bairro"
+"lat": -30.049616,
+"lng": -51.228732,
+"precisao": "endereco"
 },
 "Avenida Praia de Belas Nº 1181, 1º Piso - Área Central|Praia de Belas|Porto Alegre": {
 "lat": -30.049616,
@@ -1650,9 +1650,9 @@
 "precisao": "rua"
 },
 "Rua Castro Alves - lado ímpar, Nº 422|Independência|Porto Alegre": {
-"lat": -30.02781,
-"lng": -51.211949,
-"precisao": "bairro"
+"lat": -30.030534,
+"lng": -51.206425,
+"precisao": "endereco"
 },
 "Rua Cel. Serafim Pereira, Nº 353|Centro|Sapucaia do Sul": {
 "lat": -29.824886,
@@ -1905,9 +1905,9 @@
 "precisao": "rua"
 },
 "Rua Doutor Timóteo - lado ímpar, Nº 465|Moinhos de Vento|Porto Alegre": {
-"lat": -30.024069,
-"lng": -51.205423,
-"precisao": "bairro"
+"lat": -30.024276,
+"lng": -51.199688,
+"precisao": "rua"
 },
 "Rua Doutor Timóteo Nº 272|Moinhos de Vento|Porto Alegre": {
 "lat": -30.017535,
@@ -1980,9 +1980,9 @@
 "precisao": "bairro"
 },
 "Rua Felipe Camarão - lado par, Nº 675|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.035457,
+"lng": -51.209721,
+"precisao": "rua"
 },
 "Rua Felipe Camarão Nº 383|Bom Fim|Porto Alegre": {
 "lat": -30.033215,
@@ -2010,24 +2010,24 @@
 "precisao": "rua"
 },
 "Rua Fernandes Vieira - lado par, Nº 456|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.033459,
+"lng": -51.210747,
+"precisao": "endereco"
 },
 "Rua Fernandes Vieira - lado par, Nº 466|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.030525,
+"lng": -51.210814,
+"precisao": "rua"
 },
 "Rua Fernandes Vieira - lado par, Nº 518|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.034018,
+"lng": -51.210907,
+"precisao": "endereco"
 },
 "Rua Fernandes Vieira - lado par, Nº 648|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.03524,
+"lng": -51.210928,
+"precisao": "endereco"
 },
 "Rua Fernandes Vieira, Nº 502|Bom Fim|Porto Alegre": {
 "lat": -30.033788,
@@ -2085,9 +2085,9 @@
 "precisao": "rua"
 },
 "Rua Félix da Cunha - lado ímpar, Nº 91|Floresta|Porto Alegre": {
-"lat": -30.015092,
-"lng": -51.209666,
-"precisao": "bairro"
+"lat": -30.014456,
+"lng": -51.203201,
+"precisao": "rua"
 },
 "Rua Félix da Cunha Nº 91, Esquina|Floresta|Porto Alegre": {
 "lat": -30.014456,
@@ -2345,14 +2345,14 @@
 "precisao": "rua"
 },
 "Rua Mariante - lado par, Nº 587|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.032782,
+"lng": -51.203751,
+"precisao": "rua"
 },
 "Rua Mariante - lado par, Nº 851|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.032782,
+"lng": -51.203751,
+"precisao": "rua"
 },
 "Rua Mariante, Nº 931|Rio Branco|Porto Alegre": {
 "lat": -30.032782,
@@ -2390,34 +2390,34 @@
 "precisao": "rua"
 },
 "Rua Miguel Tostes - lado ímpar, Nº 263|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.03157,
+"lng": -51.205774,
+"precisao": "rua"
 },
 "Rua Miguel Tostes - lado ímpar, Nº 275|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.030608,
+"lng": -51.205954,
+"precisao": "endereco"
 },
 "Rua Miguel Tostes - lado ímpar, Nº 457|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.03157,
+"lng": -51.205774,
+"precisao": "rua"
 },
 "Rua Miguel Tostes - lado ímpar, Nº 553|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.03157,
+"lng": -51.205774,
+"precisao": "rua"
 },
 "Rua Miguel Tostes - lado ímpar, Nº 579|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.03157,
+"lng": -51.205774,
+"precisao": "rua"
 },
 "Rua Miguel Tostes - lado ímpar, Nº 611|Rio Branco|Porto Alegre": {
-"lat": -30.03483,
-"lng": -51.200696,
-"precisao": "bairro"
+"lat": -30.033571,
+"lng": -51.205847,
+"precisao": "endereco"
 },
 "Rua Miguel Tostes Nº 457, Casa|Rio Branco|Porto Alegre": {
 "lat": -30.03157,
@@ -2800,19 +2800,19 @@
 "precisao": "rua"
 },
 "Rua Vasco da Gama - lado par, Nº 153|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.031738,
+"lng": -51.211055,
+"precisao": "rua"
 },
 "Rua Vasco da Gama - lado ímpar, Nº 165|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.031868,
+"lng": -51.210537,
+"precisao": "endereco"
 },
 "Rua Vasco da Gama - lado ímpar, Nº 206|Bom Fim|Porto Alegre": {
-"lat": -30.033397,
-"lng": -51.21172,
-"precisao": "bairro"
+"lat": -30.031738,
+"lng": -51.211055,
+"precisao": "rua"
 },
 "Rua Vasco da Gama, Nº 153|Bom Fim|Porto Alegre": {
 "lat": -30.03187,
@@ -2935,9 +2935,9 @@
 "precisao": "rua"
 },
 "Rua Visconde do Rio Branco - lado ímpar, Nº 721|Floresta|Porto Alegre": {
-"lat": -30.015092,
-"lng": -51.209666,
-"precisao": "bairro"
+"lat": -30.016098,
+"lng": -51.20396,
+"precisao": "rua"
 },
 "Rua Xingu, Nº 556|Igara|Canoas": {
 "lat": -29.899612,

@@ -892,6 +892,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.tipos = new Set(p.tipos || []);
       state.comods = new Set(p.comods || []);
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
+      // última posição do GPS (só neste aparelho): a lista já abre do mais perto ao mais longe dela
+      else if (Array.isArray(p.pertoGps) && p.pertoGps.every(Number.isFinite)) state.perto = { lat: p.pertoGps[0], lng: p.pertoGps[1], rotulo: "você", tipo: "gps", salvo: true };
       if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
       state.planosAbertos = !!p.planosAbertos;
       // "lista" substituiu "compacto" na versão 45, quando a compacta virou o padrão: a escolha antiga
@@ -906,6 +908,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
         abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, lista: state.compacto ? "compacta" : "completa", pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        pertoGps: state.perto?.tipo === "gps" ? [Math.round(state.perto.lat * 1e4) / 1e4, Math.round(state.perto.lng * 1e4) / 1e4] : null,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -1382,6 +1385,29 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (skip !== "comod" && state.comods.size) { const cs = comodSet(c); for (const t of state.comods) if (!cs.has(t)) return false; }
     return true;
   }
+  /* Primeira tela já em "Mais perto": a última ordem por distância fica guardada no aparelho com o ponto de
+     partida (ORDEM_KEY = { ponto, ids }). Enquanto geo.json, os lugares ou o banco não chegam, a lista usa
+     essa ordem se o ponto for o mesmo; quando as coordenadas chegam, a ordem é refeita de verdade. */
+  const ORDEM_KEY = "cupons-em-dobro:ordem-perto:v1";
+  let _ordemPerto = null, _ordemRank = null, _ordemGravada = "";
+  try { const o = JSON.parse(localStorage.getItem(ORDEM_KEY) || "null"); if (o && typeof o.ponto === "string" && Array.isArray(o.ids)) _ordemPerto = o; } catch (_) {}
+  const chavePonto = () => (state.perto ? (state.perto.tipo === "gps" ? `gps:${state.perto.lat.toFixed(3)},${state.perto.lng.toFixed(3)}` : state.perto.chave) : state.pertoPendente || null);
+  function ordemGuardada() {
+    if (state.geo || !_ordemPerto || _ordemPerto.ponto !== chavePonto()) return null;
+    if (!_ordemRank) _ordemRank = new Map(_ordemPerto.ids.map((id, i) => [id, i]));
+    return _ordemRank;
+  }
+  function guardaOrdemPerto() {
+    if (state.sort !== "perto" || !state.perto || !state.geo || !state.cupons.length || state.deCache) return;
+    const ponto = chavePonto(), marca = `${ponto}|${state.cupons.length}|${state.cupons[0]?.id}`;
+    if (marca === _ordemGravada) return;
+    _ordemGravada = marca;
+    ocioso(() => {
+      const ids = state.cupons.map((c) => [c.id, distDe(c)?.km ?? 1e9]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
+      _ordemPerto = { ponto, ids }; _ordemRank = null;
+      try { localStorage.setItem(ORDEM_KEY, JSON.stringify(_ordemPerto)); } catch (_) {}
+    });
+  }
   function visible() {
     const byApp = (a, b) => (PROG[a.programa]?.i ?? 9) - (PROG[b.programa]?.i ?? 9) || (a.ordem ?? 999) - (b.ordem ?? 999);
     // "Ver juntos": só o grupo, com usados, sem busca nem filtros
@@ -1396,7 +1422,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       programa: byApp,
       recentes: (a, b) => String(b.usadoEm || "").localeCompare(String(a.usadoEm || "")) || byApp(a, b),
       // sem endereço vai para o fim
-      perto: state.perto ? (a, b) => (distDe(a)?.km ?? 1e9) - (distDe(b)?.km ?? 1e9) || byApp(a, b) : byApp,
+      perto: state.perto && state.geo ? (a, b) => (distDe(a)?.km ?? 1e9) - (distDe(b)?.km ?? 1e9) || byApp(a, b)
+        : ordemGuardada() ? ((r) => (a, b) => (r.get(a.id) ?? 1e9) - (r.get(b.id) ?? 1e9) || byApp(a, b))(ordemGuardada()) : byApp,
     }[state.sort] || byApp;
     return list.sort(cmp);
   }
@@ -2312,6 +2339,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
     guardaPosicao();
     preparaEmSegundoPlano();
+    guardaOrdemPerto();
   }
 
   /* ---------- toast ---------- */
@@ -2931,8 +2959,20 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     } catch (_) {}
   }
 
+  // posição do GPS lembrada: se a permissão já foi dada, atualiza em silêncio e só reordena se mudou >150 m
+  if (state.perto?.salvo && navigator.permissions?.query && navigator.geolocation) {
+    navigator.permissions.query({ name: "geolocation" }).then((st) => {
+      if (st.state !== "granted") return;
+      navigator.geolocation.getCurrentPosition((pos) => {
+        if (state.perto?.tipo !== "gps") return;
+        const novo = { lat: pos.coords.latitude, lng: pos.coords.longitude, rotulo: "você", tipo: "gps" };
+        if (kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); render(); } else state.perto.salvo = false;
+      }, () => {}, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
+    }).catch(() => {});
+  }
+
   render();
   boot();
-  if (state.pertoPendente || state.sort === "perto" || state.raio || (state.filtersOpen && state.abaFiltros === "onde")) garanteGeo();
+  if (state.perto || state.pertoPendente || state.sort === "perto" || state.raio || (state.filtersOpen && state.abaFiltros === "onde")) garanteGeo();
 })();
 </script>
