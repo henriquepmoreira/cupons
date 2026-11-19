@@ -31,7 +31,7 @@ test("com banco lento, mostra a lista guardada na hora e troca pela do banco qua
   const coracao = `.ticket[data-id="${id}"] .heart`;
   assert.equal(await pg.$eval(coracao, (b) => b.getAttribute("aria-pressed")), String(!favBanco), "valor da guardada");
   await pg.waitForTimeout(1700);
-  assert.match(await texto(pg, "#notice"), /^Lista guardada neste aparelho \(17\/11\/26 \d\d:\d\d\)\. Atualizando…$/);
+  assert.match(await texto(pg, "#notice"), /^Lista guardada neste aparelho \(17\/11\/26 \d\d:\d\d17 de novembro de 2026, às \d\d:\d\d\)\. Atualizando…$/);
   await pg.waitForTimeout(1200);
   assert.equal(await pg.$eval(coracao, (b) => b.getAttribute("aria-pressed")), String(favBanco), "o banco vale");
   assert.equal(await pg.$eval("#notice", (e) => e.hidden), true, "aviso some");
@@ -65,7 +65,7 @@ test("sem banco e sem cópia publicada: a lista guardada fica, só para consulta
   const pg = await abrir({ cache: guardada(), semBanco: true });
   await pg.waitForTimeout(300);
   assert.ok((await pg.$$eval("#grid .ticket", (t) => t.length)) > 0);
-  assert.match(await texto(pg, "#notice"), /^Cópia da carteira de 17\/11\/26, só para consulta/);
+  assert.match(await texto(pg, "#notice"), /^Cópia da carteira de 17\/11\/2617 de novembro de 2026, só para consulta/);
   assert.equal(await pg.$$eval("#grid .ticket .heart:not([disabled])", (b) => b.length), 0, "sem favoritar");
 });
 

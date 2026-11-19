@@ -5,7 +5,7 @@
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
-const { abrir, fechar, fecharFiltros, aba, espera, busca, arvoreAcessibilidade, cartoes, texto } = require("./lib/pagina");
+const { abrir, fechar, fecharFiltros, aba, espera, busca, arvoreAcessibilidade, cartoes, texto, textos, ordenar, abrirFiltros } = require("./lib/pagina");
 
 after(fechar);
 
@@ -256,4 +256,45 @@ test("Desfazer confirma em voz alta e não repete o total", async () => {
   await espera(pg, 1000);
   assert.equal(await texto(pg, "#sr-aviso"), "Desfeito.");
   assert.equal(await texto(pg, "#sr-status"), total, "o total não é anunciado de novo");
+});
+
+// Teste de estresse de 19/11/2026 (terceira rodada)
+test("níveis de título: painel do cartão um abaixo do nome, subtítulos do Filtros abaixo de \"Filtros\"", async () => {
+  const pg = await abrir({ largura: 412 });
+  await ordenar(pg, "categoria");
+  await pg.click("#grid .ticket .det:not(.outros) summary");
+  await espera(pg, 100);
+  const niveis = await pg.$eval("#grid .ticket", (t) => ({ nome: t.querySelector(".tname").tagName, painel: [...new Set([...t.querySelectorAll(".det-body h4, .det-body h5")].map((h) => h.tagName))] }));
+  assert.deepEqual(niveis, { nome: "H4", painel: ["H5"] }, "em \"Por categoria\" o cartão é h4 e o painel h5");
+  await abrirFiltros(pg);
+  assert.equal(await pg.$eval("#filters-titulo", (h) => h.tagName), "H2");
+  assert.deepEqual([...new Set(await pg.$$eval("#filters .fgroup > :is(h2, h3, h4)", (hs) => hs.map((h) => h.tagName)))], ["H3"]);
+});
+
+test("mudança de outro aparelho: sem anunciar o total e, se o cartão focado sai, foco no vizinho com aviso", async () => {
+  const pg = await abrir({ largura: 412 });
+  await pg.focus("#grid .ticket:nth-child(3) .heart");
+  await espera(pg, 900);
+  const total = await texto(pg, "#sr-status");
+  const usa = (i) => pg.evaluate((i) => { const id = document.querySelectorAll("#grid .ticket")[i].dataset.id; Object.assign(window.__docs.find((d) => d.id === id), { usado: true, usadoEm: "2026-11-19" }); window.__snap(); }, i);
+  await usa(5);
+  await espera(pg, 1000);
+  assert.equal(await texto(pg, "#sr-status"), total, "outro cartão usado lá não interrompe a leitura");
+  const [focado, vizinho] = await pg.$$eval("#grid .ticket", (t) => [t[2].querySelector(".tname").textContent, t[3].dataset.id]);
+  await usa(2);
+  await espera(pg, 1000);
+  assert.equal(await pg.evaluate(() => document.activeElement.closest(".ticket")?.dataset.id), vizinho, "foco no cartão seguinte, não no começo da lista");
+  assert.equal(await texto(pg, "#sr-aviso"), `${focado} foi marcado como usado em outro aparelho.`);
+});
+
+test("datas por extenso e \"número\" no endereço para o leitor", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-17T12:30:00" });
+  await pg.click("#planos summary");
+  assert.ok((await textos(pg, "#planos .sr-only")).includes("5 de março de 2027"));
+  await busca(pg, "spoleto");
+  await pg.click('#grid .ticket[data-id="poa-em-dobro--spoleto"] .det:not(.outros) summary');
+  await espera(pg, 100);
+  const ax = (await arvoreAcessibilidade(pg)).filter((x) => !x.ignored && x.role?.value === "StaticText").map((x) => x.name?.value || "");
+  assert.ok(ax.some((t) => /número 1800/.test(t)), "Nº lido como número");
+  assert.ok(!ax.some((t) => /\b\d{2}\/\d{2}\/\d{2}\b/.test(t)), "nenhuma data curta chega ao leitor");
 });
