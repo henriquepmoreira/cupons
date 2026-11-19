@@ -1875,6 +1875,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (modal) { f.setAttribute("role", "dialog"); f.setAttribute("aria-modal", "true"); } else { f.removeAttribute("role"); f.removeAttribute("aria-modal"); }
     for (const el of [document.querySelector(".masthead"), document.querySelector(".toolbar"), document.querySelector("main")]) el.inert = modal;
     document.documentElement.style.overflow = modal ? "hidden" : "";
+    // virou diálogo com o foco na parte que ficou inerte (ex.: aberto deitado e o celular girou): o foco ia para o
+    // começo da página; vai para o título do painel
+    if (modal && !f.contains(document.activeElement)) $("filters-titulo").focus();
     // gesto/botão de voltar do Android fecha o diálogo em vez de sair da página: uma entrada no histórico
     // enquanto ele está aberto; fechando pelo ×, Esc ou "Ver cupons", a entrada sai
     try {
