@@ -22,7 +22,7 @@ test("topo mostra a validade de cada plano e avisa o feriado da semana", async (
   const pg = await abrir({ data: "2026-11-17T12:30:00" });
   const planos = await texto(pg, "#planos");
   // " · " é só da tela; o leitor ouve ", " (texto .sr-only)
-  assert.match(planos, /Tour Grande Poa vale até 05\/03\/27 · , faltam 108 dias/);
+  assert.match(planos, /Tour Grande Poa vale até 05\/03\/275 de março de 2027 · , faltam 108 dias/);
   assert.match(planos, /Poa em Dobro vale até 05\/04\/27/);
   assert.match(planos, /Canoas em Dobro vale até 08\/04\/27/);
   assert.match(planos, /Sexta \(20\/11\) é feriado \(Consciência Negra\): \d+ cupons disponíveis não valem nesse dia/);
@@ -74,8 +74,9 @@ test("depois da validade, o plano aparece como vencido", async () => {
   assert.match(await texto(pg, "#planos"), /Tour Grande Poa venceu em 05\/03\/27/);
   await pg.click('#programs [data-prog="tour-grande-poa"]');
   await espera(pg);
-  const tags = await textos(pg, ".tag.off");
+  const tags = await textos(pg, ".tag.off [aria-hidden]");
   assert.ok(tags.length > 0 && tags.every((t) => t === "Plano vencido em 05/03/27"));
+  assert.deepEqual([...new Set(await textos(pg, ".tag.off .sr-only"))], ["Plano vencido em 5 de março de 2027"], "o leitor ouve a data por extenso");
   await pg.click("#filters-toggle");
   assert.equal(numero(await texto(pg, '#f-quando [data-aceita="feriados"] .n')), 0, "vencido não conta em Aceita em feriados");
 });
