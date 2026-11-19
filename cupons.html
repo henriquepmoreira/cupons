@@ -184,7 +184,7 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 /* o "×" do navegador duplicava o botão de limpar da página */
 .search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
 .search .clear {
-  position: absolute; right: 6px; top: 50%; translate: 0 -50%; width: 32px; height: 32px; border-radius: 8px;
+  position: absolute; right: 0; top: 50%; translate: 0 -50%; width: 44px; height: 44px; border-radius: 8px;
   border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1;
 }
 .controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
@@ -255,8 +255,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   border: 1px solid var(--ink); background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500;
 }
 .ativo .x { font-size: 16px; line-height: 1; padding: 0 4px; opacity: .8; }
-.ativos .linkbtn { padding: 4px 6px; }
-.linkbtn { border: 0; background: none; padding: 4px 0; color: var(--accent); font-weight: 600; font-size: 13.5px; }
+.ativos .linkbtn { padding: 12px 6px; }
+/* Exploração por toque do TalkBack: a caixa real do botão é a área de toque. Botões só de texto ganham
+   44 px de altura com padding, e a margem negativa devolve o espaço (nada se move na tela). */
+.linkbtn { border: 0; background: none; padding: 12px 0; margin: -8px 0; color: var(--accent); font-weight: 600; font-size: 13.5px; }
 
 /* ---------- resultado ---------- */
 /* bloco "Valendo agora": os poucos cupons que dá para usar já, antes da lista inteira */
@@ -340,12 +342,15 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .meta .prog { --pc: var(--muted); display: inline-flex; align-items: center; gap: 5px; font-weight: 600; color: var(--pc); }
 .meta .prog::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pc); }
 .meta .sep { opacity: .5; }
+/* No Android, cada pedaço de texto de um bloco flex vira uma parada do TalkBack ("Poa em Dobro", "vírgula",
+   "Restaurante"): o visual fica oculto do leitor e um texto só diz a linha inteira */
+.meta .v, .flags .v { display: contents; }
 .ticket .tname {
   margin: 0; font-family: var(--f-display); font-stretch: 82%; font-weight: 800; font-size: 21px; line-height: 1.08;
   letter-spacing: -.005em; text-wrap: balance; overflow-wrap: anywhere;
 }
 .offer { margin: 0; font-size: 14.5px; line-height: 1.42; color: color-mix(in srgb, var(--ink) 82%, var(--muted)); }
-.offer strong { color: var(--ink); font-weight: 700; }
+.offer b { color: var(--ink); font-weight: 700; }
 .offer.pending { font-style: italic; color: var(--muted); }
 .tags { display: flex; flex-wrap: wrap; gap: 5px; }
 .tag {
@@ -384,7 +389,7 @@ a.usebtn { color: var(--accent); text-decoration: none; }
 .tag.hoje { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); color: var(--ok); }
 .tag.off { border-style: dashed; }
 .det { border-top: 1px dashed var(--line); padding-top: 6px; }
-.det > summary { cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--accent); padding: 4px 0; }
+.det > summary { cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--accent); padding: 12px 0; margin: -8px 0; }
 .det > summary::-webkit-details-marker { display: none; }
 .det > summary::before { content: "▸"; content: "▸" / ""; display: inline-block; width: 1em; transition: transform .15s ease; }
 .det[open] > summary::before { transform: rotate(90deg); }
@@ -442,7 +447,7 @@ main.wrap { padding-bottom: 44px; }
 .flags .sim { color: var(--ok); }
 .flags .nao { color: var(--fav); }
 .fnote { margin: 0; font-size: 12px; color: var(--muted); }
-.maplink { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 6px 2px; }
+.maplink { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; padding: 13px 2px; margin: -7px 0; }
 .maplink:hover { text-decoration: underline; }
 .usedate { margin-left: auto; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
 
@@ -480,7 +485,7 @@ main.wrap { padding-bottom: 44px; }
 .grid.compacto .ticket:not(.expandido) .offer { font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .grid.compacto .ticket:not(.expandido) .tags:not(:has(.hoje, .off, .breve)) { display: none; }
 .ticket.is-used .stub { filter: grayscale(1); opacity: .7; }
-.ticket.is-used .tname, .ticket.is-used .offer, .ticket.is-used .offer strong { color: var(--muted); }
+.ticket.is-used .tname, .ticket.is-used .offer, .ticket.is-used .offer b { color: var(--muted); }
 .stamp {
   position: absolute; right: 18px; top: 46%; z-index: 2; pointer-events: none;
   font-family: var(--f-display); font-stretch: 70%; font-weight: 850; font-size: 22px; letter-spacing: .12em;
@@ -608,7 +613,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   <p class="eyebrow"><span aria-hidden="true">Carteira pessoal · 2 por 1 em Porto Alegre e região</span><span class="sr-only">Carteira pessoal: 2 por 1 em Porto Alegre e região</span></p>
   <div class="title-row">
     <h1 aria-label="Cupons em Dobro">Cupons<wbr><span class="x" aria-hidden="true">×</span><wbr>em Dobro</h1>
-    <div class="stats" id="stats">
+    <p class="sr-only" id="st-fala"></p>
+    <div class="stats" id="stats" aria-hidden="true">
       <div class="stat"><b id="st-disp">–</b><span>disponíveis</span></div>
       <div class="stat fav"><b id="st-fav">–</b><span>favoritos</span></div>
       <div class="stat"><b id="st-used">–</b><span>usados</span></div>
@@ -1518,7 +1524,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const catCls = CAT_CLS[c.categoria] || "";
     const ro = state.readOnly ? " disabled" : "";
     const offer = c.item
-      ? `<p class="offer">Na compra de <strong>${esc(c.item)}</strong> ganhe ${esc(GANHE_TXT[c.ganhe] || "outro igual")}.</p>`
+      ? `<p class="offer">Na compra de <b>${esc(c.item)}</b> ganhe ${esc(GANHE_TXT[c.ganhe] || "outro igual")}.</p>`
       : `<p class="offer pending">${esc(c.pendente || "Oferta ainda não cadastrada.")}</p>`;
     const tags = [];
     if (c.verRegras) tags.push('<span class="tag rules">Ver regras no app</span>');
@@ -1577,8 +1583,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         ? uns.map((x, i) => `<div><${hd}${tituloAttr(`Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${x.bairro}` : ""}`)}>Unidade ${i + 1} de ${uns.length}${x.bairro ? `: ${esc(x.bairro)}` : ""}</${hd}>${endHtml(x)}${temH(x.horarios) ? tabela(x.horarios, `Dias e horários em que o cupom vale na unidade ${i + 1}`) : '<p class="fnote">Dias e horários desta unidade ainda não cadastrados.</p>'}${porUnidade ? listaComod(i === 0 ? c.comodidades || [] : x.comodidades || []) : ""}</div>`).join("")
         : "";
       // ✓/✗ são lidos como "marca de seleção"; o leitor ouve "Vale em feriados" / "Não vale em feriados"
-      const flag = (v, nome) => v === true ? `<span class="sim"><span aria-hidden="true">✓ </span><span class="sr-only">Vale em </span>${nome}</span>`
-        : v === false ? `<span class="nao"><span aria-hidden="true">✗ </span><span class="sr-only">Não vale em </span>${nome}</span>` : "";
+      const flag = (v, nome) => v === true ? `<span class="sim">✓ ${nome}</span>` : v === false ? `<span class="nao">✗ ${nome}</span>` : "";
+      const flagFala = (v, nome) => (v === true ? `Vale em ${nome}.` : v === false ? `Não vale em ${nome}.` : "");
       // o conteúdo só entra na página com o painel aberto (corta perto de metade dos nós de cada cartão)
       const aberto = state.abertos.has(c.id);
       det = `<details class="det"${aberto ? " open" : ""}>
@@ -1586,7 +1592,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       <div class="det-body">${!aberto ? "" : `
         ${c.regras ? `<div><${hd}${tituloAttr("Regras do estabelecimento")}>Regras do estabelecimento</${hd}>${regrasHtml(c.regras)}</div>` : ""}
         ${outras.length ? blocoUnidades : temH(c.horarios) ? `<div><${hd}${tituloAttr("Dias e horários")}>Dias e horários</${hd}>${tabela(c.horarios, "Dias e horários em que o cupom vale")}</div>` : ""}
-        ${typeof c.feriados === "boolean" ? `<div class="flags">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</div>` : ""}
+        ${typeof c.feriados === "boolean" ? `<div class="flags"><span class="v" aria-hidden="true">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</span><span class="sr-only">${[flagFala(c.feriados, "feriados"), flagFala(c.datasComemorativas, "datas comemorativas")].filter(Boolean).join(" ")}</span></div>` : ""}
         ${!outras.length && u && u.endereco ? `<div><${hd}${tituloAttr(`Unidade${c.maisUnidades ? " mostrada no app" : ""}`)}>Unidade${c.maisUnidades ? " mostrada no app" : ""}</${hd}><p>${endFala(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
         ${(c.categoriasApp || []).length ? `<div><${hd}${tituloAttr("Categoria no app")}>Categoria no app</${hd}><p>${comSep(c.categoriasApp)}</p></div>` : ""}
         ${(c.comodidades || []).length && !porUnidade ? `<div><${hd} class="sr-only">Comodidades</${hd}><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
@@ -1605,7 +1611,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <div class="thead">
       <div class="thead-text">
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
-        <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
+        <div class="meta"><span class="v" aria-hidden="true"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep">·</span><span>${esc(c.categoria || "Sem categoria")}</span></span><span class="sr-only">${esc(prog?.nome || c.programa)}, ${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
       <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(quem)}"${ro}></button>
       <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(quem)}"></button>
@@ -1689,6 +1695,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     htmlDe($("st-disp")).textContent = ready ? disp.length : "–";
     htmlDe($("st-fav")).textContent = ready ? disp.filter((c) => c.favorito).length : "–";
     htmlDe($("st-used")).textContent = ready ? all.length - disp.length : "–";
+    htmlDe($("st-fala")).textContent = ready ? `${disp.length} disponíveis, ${disp.filter((c) => c.favorito).length} favoritos, ${all.length - disp.length} usados` : "";
 
     const words = norm(state.q).split(/\s+/).filter(Boolean);
     const counts = {};
@@ -2994,7 +3001,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       // lista compacta: tocar na linha (fora de botões e links) abre o cartão; teclado e leitor de tela usam a seta
       const t = e.target.closest(".ticket");
       if (t && state.compacto && !t.classList.contains("expandido") && !e.target.closest("a, button, summary, details, input, select")
-        && !String(getSelection?.() || "")) { state.expandidos.add(t.dataset.id); render(); }
+        && !String(getSelection?.() || "")) {
+        state.expandidos.add(t.dataset.id); render();
+        // com o TalkBack, um toque duplo no texto da linha chega aqui: diz o que mudou (o foco fica onde estava)
+        falaAviso(`${t.querySelector(".tname")?.textContent || "Cupom"}: cartão completo aberto.`);
+      }
       return;
     }
     if (b.dataset.act === "clear-all") { clearAll(); return; }
