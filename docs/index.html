@@ -2068,13 +2068,18 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   let assinaturaLista = "";
   // posição na lista guardada na sessão do navegador (sobrevive a recarregar a aba; some ao fechar)
   const POS_KEY = "cupons-em-dobro:posicao";
-  let posicaoSalva = null, rolarPara = null;
+  let posicaoSalva = null, rolarPara = null, focoAoVoltar = null;
   try { posicaoSalva = JSON.parse(sessionStorage.getItem(POS_KEY) || "null"); } catch (_) {}
   let _posTimer = null;
   function guardaPosicaoJa() {
     clearTimeout(_posTimer);
     if (state.phase !== "ready" || state.grupo || state.filtersOpen) return;
-    try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY) })); } catch (_) {}
+    // o cupom em que a pessoa estava: o do foco ou, sem ele (o foco do TalkBack não é o do navegador), o primeiro na tela
+    const topo = document.querySelector(".toolbar").getBoundingClientRect().bottom;
+    const naTela = (t) => { const r = t.getBoundingClientRect(); return r.bottom > topo + 40 && r.top < innerHeight; };
+    const comFoco = document.activeElement?.closest?.(".ticket");
+    const cartao = comFoco && naTela(comFoco) ? comFoco : [...document.querySelectorAll("#grid .ticket")].find(naTela);
+    try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY), cartao: cartao?.dataset.id || null })); } catch (_) {}
   }
   function guardaPosicao() {
     clearTimeout(_posTimer);
@@ -2168,7 +2173,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (sig !== assinaturaLista) {
       // primeira lista depois de abrir: se a sessão guardou a mesma lista, volta ao lote e à posição de antes
       state.limite = !assinaturaLista && posicaoSalva && posicaoSalva.sig === sig ? Math.max(LOTE, posicaoSalva.limite) : LOTE;
-      if (!assinaturaLista && posicaoSalva && posicaoSalva.sig === sig) rolarPara = posicaoSalva.y;
+      if (!assinaturaLista && posicaoSalva && posicaoSalva.sig === sig) {
+        rolarPara = posicaoSalva.y;
+        // o Chrome do Android recarrega abas descartadas: o leitor de tela volta ao cupom em que estava, não ao topo
+        if (posicaoSalva.cartao) focoAoVoltar = `.ticket[data-id="${CSS.escape(posicaoSalva.cartao)}"] .tname`;
+      }
       assinaturaLista = sig;
     }
     // "Ver juntos" mostra o grupo inteiro (é pequeno); fora dele, só o lote
@@ -2519,6 +2528,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (mapaAberto && window.L && state.geo) desenhaMapa(false);
     restauraFoco(sels);
     focoSumiu(tinhaFoco);
+    if (focoAoVoltar) { const el = document.querySelector(focoAoVoltar); focoAoVoltar = null; if (el && document.activeElement === document.body) el.focus({ preventScroll: true }); }
     focoPendente = null;
     if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
     guardaPosicao();
@@ -2542,12 +2552,17 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     $("toast-undo").hidden = !undo;
     $("toast").hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(fechaToast, undo ? 10000 : 5000);
+    // com "Desfazer", fica até o próximo toque fora dele (teto de 60 s): o foco do TalkBack no botão não é foco do
+    // navegador, e em 10 s o botão sumia antes do toque duplo
+    toastTimer = setTimeout(fechaToast, undo ? 60000 : 5000);
   }
   function fechaToast() {
     if ($("toast").contains(document.activeElement)) { toastTimer = setTimeout(fechaToast, 3000); return; }
     $("toast").hidden = true; toastUndo = null;
   }
+  document.addEventListener("click", (e) => {
+    if (toastUndo && !$("toast").hidden && !$("toast").contains(e.target)) { $("toast").hidden = true; toastUndo = null; clearTimeout(toastTimer); }
+  }, true);
   $("toast-undo").addEventListener("click", () => {
     const fn = toastUndo;
     $("toast").hidden = true; toastUndo = null; clearTimeout(toastTimer);
