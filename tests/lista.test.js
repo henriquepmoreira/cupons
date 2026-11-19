@@ -365,6 +365,21 @@ test('"Voltar ao topo" aparece depois de duas telas, some com aviso na tela e le
   assert.equal(await visivel(), false, "no topo, o botão some");
 });
 
+test("320 px: números do topo numa linha e texto de exemplo da busca curto; em 360 px, o longo", async () => {
+  for (const [largura, exemplo] of [[320, "Lugar, prato ou bairro"], [360, "Busque lugar, prato ou bairro"], [390, "Busque lugar, prato ou bairro"]]) {
+    const pg = await abrir({ largura });
+    const m = await pg.evaluate(() => ({
+      linhas: new Set([...document.querySelectorAll(".stats .stat")].map((e) => Math.round(e.getBoundingClientRect().top))).size,
+      exemplo: document.getElementById("q").placeholder,
+      lado: document.documentElement.scrollWidth - innerWidth,
+    }));
+    assert.equal(m.linhas, 1, `${largura}px: números em ${m.linhas} linhas`);
+    assert.equal(m.exemplo, exemplo);
+    assert.equal(m.lado, 0);
+    await pg.context().close();
+  }
+});
+
 // bloco "Valendo agora" (topo da lista)
 const LUGARES_AGORA = { lugares: [{ id: "casa", nome: "Casa", lat: -30.0256, lng: -51.2085 }] };
 

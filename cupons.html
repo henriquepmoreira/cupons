@@ -538,6 +538,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   .controls > .chipbtn > span:not(.badge):not(.sr-only) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .controls > #fav-toggle { flex: 0 0 auto; }
   @media (max-width: 350px) {
+    /* números do topo numa linha só também em 320 px ("103 usados" descia sozinho); o número dos
+       favoritos fica em 19 px, o mínimo de "texto grande" para o contraste do vermelho */
+    .masthead .stats { gap: 4px 7px; flex-wrap: nowrap; }
+    .masthead .stat { gap: 2px; min-width: 0; }
+    /* com uma fonte do aparelho mais larga, o rótulo encurta ("disponív…") em vez de descer uma linha */
+    .masthead .stat span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .masthead .stat span { font-size: 11px; }
+    .masthead .stat:not(.fav) b { font-size: 18px; }
     .controls { gap: 5px; }
     .controls > .chipbtn { padding: 0 6px; gap: 4px; }
     .controls > #fav-toggle { padding: 0 8px; }
@@ -2780,6 +2788,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   });
   mqCelular.addEventListener?.("change", acompanhaRolagem);
+
+  // texto de exemplo da busca que caiba inteiro: em telas de até 350 px, a versão curta
+  const mqEstreito = matchMedia("(max-width: 350px)");
+  const ajustaExemplo = () => { $("q").placeholder = mqEstreito.matches ? "Lugar, prato ou bairro" : "Busque lugar, prato ou bairro"; };
+  mqEstreito.addEventListener?.("change", ajustaExemplo);
+  ajustaExemplo();
 
   // a etiqueta "Agora · até 15:00" depende da hora: redesenha a cada minuto com a página visível
   // e ao voltar para a aba (o celular congela os timers de abas em segundo plano)
