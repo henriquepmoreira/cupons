@@ -15,6 +15,9 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Comodidades que só um programa informa aparecem marcadas no chip (ex.: "Opções veganas · só Tour"): o Poa e o Canoas só informam Aceita Pet e Espaço Kids
 - Ordenação: padrão (como no app), nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - A lista aparece em lotes de 40 cartões, com o botão "Mostrar mais" no fim (com os 577 de uma vez, o TalkBack no Chrome travava). Ao buscar, filtrar ou trocar a ordem, os 12 primeiros aparecem na hora e o resto do lote logo em seguida
+- "Abre em breve": até 2 horas antes, o cartão diz "Abre às 18:00 · em 40 min"; o bloco "Valendo agora" lista também o que abre na próxima hora ("Daqui a pouco")
+- No site do Pages: "Marcar na carteira ↗" abre a carteira no claude.ai (lá não há banco) e "Ver no mapa" mostra os cupons da lista num mapa do OpenStreetMap, com você no centro
+- Reabrindo em "Mais perto", a lista já sai na última ordem por distância (e a última posição do GPS é lembrada neste aparelho)
 - Botão "Topo" no canto de baixo, depois de duas telas de rolagem: volta ao começo com o foco no título
 - Favoritar com o coração e marcar como usado, com opção de desfazer. As duas marcações ficam salvas no banco do artifact.
 - Link de mapa para cada estabelecimento

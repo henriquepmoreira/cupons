@@ -196,6 +196,12 @@ test("etiqueta de hoje diz o momento: a partir de, agora até, encerrado (Grazie
     await pg.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
     await espera(pg);
   };
+  // a 2 horas ou menos, "abre em breve" com quanto falta
+  await volta("16:45");
+  assert.equal(await texto(pg, `${card} .tag.breve [aria-hidden]`), "Abre às 18:00 · em 1 h 15");
+  assert.equal(await texto(pg, `${card} .tag.breve .sr-only`), "Começa a valer hoje às 18:00, daqui a 1 hora e 15 minutos, até as 23:00.");
+  await volta("17:20");
+  assert.equal(await texto(pg, `${card} .tag.breve [aria-hidden]`), "Abre às 18:00 · em 40 min");
   await volta("20:00");
   assert.equal(await texto(pg, `${card} .tag.hoje [aria-hidden]`), "Agora · até 23:00");
   assert.equal(await texto(pg, `${card} .tag.hoje .sr-only`), "Vale agora, até as 23:00.");
@@ -359,6 +365,21 @@ test('"Voltar ao topo" aparece depois de duas telas, some com aviso na tela e le
   assert.equal(await visivel(), false, "no topo, o botão some");
 });
 
+test("320 px: números do topo numa linha e texto de exemplo da busca curto; em 360 px, o longo", async () => {
+  for (const [largura, exemplo] of [[320, "Lugar, prato ou bairro"], [360, "Busque lugar, prato ou bairro"], [390, "Busque lugar, prato ou bairro"]]) {
+    const pg = await abrir({ largura });
+    const m = await pg.evaluate(() => ({
+      linhas: new Set([...document.querySelectorAll(".stats .stat")].map((e) => Math.round(e.getBoundingClientRect().top))).size,
+      exemplo: document.getElementById("q").placeholder,
+      lado: document.documentElement.scrollWidth - innerWidth,
+    }));
+    assert.equal(m.linhas, 1, `${largura}px: números em ${m.linhas} linhas`);
+    assert.equal(m.exemplo, exemplo);
+    assert.equal(m.lado, 0);
+    await pg.context().close();
+  }
+});
+
 // bloco "Valendo agora" (topo da lista)
 const LUGARES_AGORA = { lugares: [{ id: "casa", nome: "Casa", lat: -30.0256, lng: -51.2085 }] };
 
@@ -366,7 +387,7 @@ test('"Valendo agora" mostra até 5 cupons que valem neste minuto e abre o escol
   const { abrir: abrir2, texto: texto2 } = require("./lib/pagina");
   const pg = await abrir2({ data: "2026-11-18T12:30:00" });
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), false);
-  const itens = await pg.$$eval("#agora .agora-item", (b) => b.length);
+  const itens = await pg.$$eval("#agora ol:not([aria-label]) .agora-item", (b) => b.length);
   assert.ok(itens > 0 && itens <= 5, `itens: ${itens}`);
   assert.match(await texto2(pg, "#agora-h"), /valendo agora/i);
   const id = await pg.$eval("#agora .agora-item", (b) => b.dataset.agora);
@@ -394,10 +415,33 @@ test('"Valendo agora" com ponto de partida lista do mais perto ao mais longe; so
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
 });
 
-test('"Valendo agora" fica escondido de madrugada, quando nada vale', async () => {
+test('"Valendo agora" fica escondido de madrugada, quando nada vale nem abre na próxima hora', async () => {
   const { abrir: abrir2 } = require("./lib/pagina");
-  const pg = await abrir2({ data: "2026-11-18T05:10:00" });
+  const pg = await abrir2({ data: "2026-11-18T04:30:00" });
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
+});
+
+test('"Daqui a pouco": o que abre na próxima hora, com o horário e quanto falta; sozinho quando nada vale ainda', async () => {
+  const { abrir: abrir2 } = require("./lib/pagina");
+  // 05:10: nada vale, mas há cupons que abrem às 06:00
+  let pg = await abrir2({ data: "2026-11-18T05:10:00" });
+  assert.equal(await pg.$eval("#agora", (e) => e.hidden), false);
+  assert.match(await texto(pg, "#agora-h"), /^Daqui a pouco \d+ cupons? na próxima hora$/);
+  assert.match(await texto(pg, "#agora .agora-item .abre [aria-hidden]"), /^abre às 06:00 · em 50 min$/);
+  assert.equal(await pg.$("#agora [data-agora-act=todos]"), null, "sem 'Ver todos que valem agora' quando nada vale");
+  await pg.context().close();
+  // 17:35: os que valem agora e, abaixo, os que abrem até 18:35
+  pg = await abrir2({ data: "2026-11-18T17:35:00" });
+  assert.match(await texto(pg, "#agora-h"), /valendo agora/i);
+  assert.match(await texto(pg, "#agora-breve-h"), /^Daqui a pouco/);
+  const quando = await textos(pg, "#agora ol[aria-label='Daqui a pouco'] .abre [aria-hidden]");
+  assert.ok(quando.length >= 1 && quando.length <= 3);
+  for (const q of quando) { const m = q.match(/em (\d+) min/); assert.ok(m && Number(m[1]) <= 60, q); }
+  // tocar abre só aquele cupom, como nos que valem agora
+  const id = await pg.$eval("#agora ol[aria-label='Daqui a pouco'] .agora-item", (b) => b.dataset.agora);
+  await pg.click("#agora ol[aria-label='Daqui a pouco'] .agora-item");
+  await espera(pg, 150);
+  assert.ok(await pg.$(`#grid .ticket[data-id="${id}"]`));
 });
 
 test("site: com página nova, recarrega sozinho quando a aba vai para segundo plano (e volta ao mesmo ponto)", async () => {
@@ -454,4 +498,49 @@ test("compacta: ✓ na linha marca como usado sem abrir; Desfazer devolve o foco
 test("lista completa: o ✓ rápido não aparece nem é lido", async () => {
   const pg = await abrir();
   assert.equal(await pg.$eval("#grid .ticket [data-act=usar]", (b) => getComputedStyle(b).display), "none");
+});
+
+test('site: sem banco, "Marcar na carteira ↗" abre o claude.ai em outra aba, nos cartões e no aviso', async () => {
+  const { cupons: todos } = require("./lib/pagina");
+  const snapshot = { geradoEm: "2026-11-18", cupons: todos() };
+  const pg = await abrir({ site: true, semBanco: true, snapshot });
+  const link = await pg.$eval("#grid .ticket a.carteira", (a) => ({ href: a.href, alvo: a.target, rotulo: a.getAttribute("aria-label"), txt: a.textContent.trim() }));
+  assert.equal(link.href, "https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc");
+  assert.equal(link.alvo, "_blank");
+  assert.match(link.rotulo, /^Marcar .+ na carteira do claude\.ai \(abre em outra aba\)$/);
+  assert.match(link.txt, /^Marcar na carteira/);
+  assert.equal(await pg.$("#grid .ticket [data-act=use]"), null, "sem o botão desativado");
+  assert.equal(await pg.$eval("#notice a", (a) => a.href), "https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc");
+  await pg.context().close();
+  // fora do site (cópia sem login do artifact), continua como antes
+  const pg2 = await abrir({ semBanco: true, snapshot });
+  assert.equal(await pg2.$("#grid .ticket a.carteira"), null);
+  assert.equal(await pg2.$("#notice a"), null);
+});
+
+test("site: mapa com os cupons da lista, você no centro e \"Ver cupom\" abre o cartão; no artifact não aparece", async () => {
+  const { cupons: todos } = require("./lib/pagina");
+  const snapshot = { geradoEm: "2026-11-18", cupons: todos() };
+  const pg = await abrir({ site: true, semBanco: true, snapshot, localizacao: { latitude: -30.0333, longitude: -51.2303 } });
+  await busca(pg, "spoleto");
+  await pg.click("#mapa-abrir");
+  await pg.waitForSelector("#mapa-area .leaflet-interactive", { timeout: 5000 });
+  const info = await texto(pg, "#mapa-info");
+  const n = numero(await texto(pg, "#result-count"));
+  assert.match(info, /^\d+ cupons? no mapa/);
+  assert.ok(numero(info) <= n && numero(info) > 0, `${info} / ${n} na lista`);
+  const pontos = await pg.$$eval("#mapa-area path.leaflet-interactive", (p) => p.length);
+  assert.ok(pontos >= numero(info), `${pontos} pontos (uma por unidade)`);
+  // tocar num ponto mostra o cupom e "Ver cupom" abre só ele na lista
+  await pg.$eval("#mapa-area path.leaflet-interactive", (p) => p.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  await pg.waitForSelector("#mapa-area .leaflet-popup [data-mapa-ver]");
+  const id = await pg.$eval("#mapa-area [data-mapa-ver]", (b) => b.dataset.mapaVer);
+  await pg.click("#mapa-area [data-mapa-ver]");
+  await espera(pg, 150);
+  assert.equal(await pg.$eval("#mapa", (e) => e.hidden), true, "o mapa fecha");
+  assert.ok(await pg.$(`#grid .ticket[data-id="${id}"]`));
+  await pg.context().close();
+  // no artifact (sem a marca do site), nem o botão aparece
+  const pg2 = await abrir();
+  assert.equal(await pg2.$eval("#mapa-abrir", (b) => b.hidden), true);
 });

@@ -26,6 +26,7 @@ npm test           # página (node:test + Playwright), geocodificador e sincroni
 - `aba(pg, "onde")` abre o painel Filtros na aba pedida;
 - `ajustar(docs)` muda os cupons antes de abrir, para simular um caso que os dados reais não têm;
 - `atrasoBanco` (ms), `semBanco` e `cache` (`{ em, cupons }` posto no localStorage antes de abrir) simulam banco lento, link aberto sem login e a lista guardada; `esperarCartoes: false` devolve a página logo depois de navegar;
+- o Leaflet do mapa vem de `tests/node_modules/leaflet` (no lugar do cdnjs) e os ladrilhos do OpenStreetMap são imagens vazias; `pg.__atrasoGeo` (ms) atrasa o `geo.json` a partir do próximo carregamento;
 - `geoJson` troca o conteúdo do `geo.json` (ex.: o compacto publicado);
 - `snapshot` e `regras` servem a cópia publicada e o `regras.json` (sem eles, 404); `site: true` põe a marca do site do Pages (a página registra `sw.js`, que dá 404);
 - lista completa por padrão (os testes leem botões que a compacta esconde); `compacta: true` abre com a compacta, o padrão da página;

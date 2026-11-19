@@ -270,6 +270,10 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .agora-item .km { font-family: var(--f-mono); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
 .agora-item .det2 { position: relative; grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .agora-item .det2 .ate { color: var(--ok); font-weight: 600; }
+.agora-item .det2 .abre { color: var(--accent); font-weight: 600; }
+.agora-sub { margin: 6px 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-family: var(--f-display); font-stretch: 78%; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: .01em; }
+.agora-sub .n { font-family: var(--f-mono); font-size: 12px; font-weight: 500; color: var(--muted); text-transform: none; }
+.tag.breve { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--accent); }
 .agora-pe { display: flex; flex-wrap: wrap; gap: 4px 16px; }
 .resultbar { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; padding-block: 16px 10px; }
 .resultbar p { margin: 0; color: var(--muted); font-size: 13.5px; font-variant-numeric: tabular-nums; }
@@ -372,6 +376,8 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 }
 .usebtn:hover:not(:disabled) { border-color: var(--ink); }
 .usebtn:disabled { cursor: default; opacity: .55; }
+a.usebtn { color: var(--accent); text-decoration: none; }
+.notice a { color: var(--accent); font-weight: 600; }
 .loc { margin: 0; font-size: 12.5px; color: var(--muted); }
 .tag.hoje { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); color: var(--ok); }
 .tag.off { border-style: dashed; }
@@ -395,6 +401,14 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .outros li .dif { color: var(--p-canoas); font-weight: 600; }
 .outros > summary .sug { display: block; margin: 3px 0 0 1em; font-weight: 500; color: var(--ok); }
 .resultbar .grupo-sair { white-space: nowrap; }
+/* mapa (só no site do Pages): Leaflet + OpenStreetMap, carregados ao abrir */
+.mapa { margin: 0 0 14px; border-radius: var(--r-ticket); overflow: hidden; background: var(--surface); box-shadow: var(--shadow); }
+.mapa-topo { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; padding: 8px 12px; }
+.mapa-topo p { margin: 0; font-size: 13px; color: var(--muted); }
+#mapa-area { height: min(62vh, 520px); background: var(--surface-2); }
+#mapa-area .leaflet-popup-content { font: 13px/1.4 var(--f-body); margin: 10px 12px; }
+#mapa-area .leaflet-popup-content b { font-size: 14px; }
+#mapa-area .leaflet-popup-content button { margin-top: 6px; }
 .mais { display: flex; justify-content: center; margin: -28px 0 48px; }
 .mais .usebtn { height: 44px; padding: 0 18px; font-size: 14px; }
 .perto-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -447,11 +461,11 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 .grid.compacto .ticket:not(.expandido) .stub, .grid.compacto .ticket:not(.expandido) .loc,
 .grid.compacto .ticket:not(.expandido) .det, .grid.compacto .ticket:not(.expandido) .tfoot,
 .grid.compacto .ticket:not(.expandido) .stamp,
-.grid.compacto .ticket:not(.expandido) .tags .tag:not(.hoje):not(.off) { display: none; }
+.grid.compacto .ticket:not(.expandido) .tags .tag:not(.hoje):not(.off):not(.breve) { display: none; }
 .grid.compacto .ticket:not(.expandido) .tbody { padding: 9px 12px 10px; gap: 3px; }
 .grid.compacto .ticket:not(.expandido) .tname { font-size: 18px; }
 .grid.compacto .ticket:not(.expandido) .offer { font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.grid.compacto .ticket:not(.expandido) .tags:not(:has(.hoje, .off)) { display: none; }
+.grid.compacto .ticket:not(.expandido) .tags:not(:has(.hoje, .off, .breve)) { display: none; }
 .ticket.is-used .stub { filter: grayscale(1); opacity: .7; }
 .ticket.is-used .tname, .ticket.is-used .offer, .ticket.is-used .offer strong { color: var(--muted); }
 .stamp {
@@ -534,6 +548,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   .controls > .chipbtn > span:not(.badge):not(.sr-only) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .controls > #fav-toggle { flex: 0 0 auto; }
   @media (max-width: 350px) {
+    /* números do topo numa linha só também em 320 px ("103 usados" descia sozinho); o número dos
+       favoritos fica em 19 px, o mínimo de "texto grande" para o contraste do vermelho */
+    .masthead .stats { gap: 4px 7px; flex-wrap: nowrap; }
+    .masthead .stat { gap: 2px; min-width: 0; }
+    /* com uma fonte do aparelho mais larga, o rótulo encurta ("disponív…") em vez de descer uma linha */
+    .masthead .stat span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .masthead .stat span { font-size: 11px; }
+    .masthead .stat:not(.fav) b { font-size: 18px; }
     .controls { gap: 5px; }
     .controls > .chipbtn { padding: 0 6px; gap: 4px; }
     .controls > #fav-toggle { padding: 0 8px; }
@@ -734,7 +756,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <p id="result-count" tabindex="-1">Carregando cupons…</p>
     <button type="button" class="linkbtn" id="result-clear" hidden>Limpar busca e filtros</button>
     <button type="button" class="linkbtn grupo-sair" id="grupo-sair" hidden>Voltar à lista</button>
+    <button type="button" class="linkbtn" id="mapa-abrir" hidden>Ver no mapa</button>
   </div>
+  <section class="mapa" id="mapa" aria-label="Mapa dos cupons" hidden>
+    <div class="mapa-topo"><p id="mapa-info" role="status"></p><button type="button" class="linkbtn" id="mapa-fechar">Fechar mapa</button></div>
+    <div id="mapa-area" aria-label="Mapa com os cupons da lista. A lista abaixo tem os mesmos cupons."></div>
+  </section>
   <div class="ativos" id="ativos" role="group" aria-label="Filtros ativos" hidden></div>
   <p class="notice" id="notice" role="status" hidden></p>
   <h2 class="sr-only" id="lista-h">Cupons</h2>
@@ -865,6 +892,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.tipos = new Set(p.tipos || []);
       state.comods = new Set(p.comods || []);
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
+      // última posição do GPS (só neste aparelho): a lista já abre do mais perto ao mais longe dela
+      else if (Array.isArray(p.pertoGps) && p.pertoGps.every(Number.isFinite)) state.perto = { lat: p.pertoGps[0], lng: p.pertoGps[1], rotulo: "você", tipo: "gps", salvo: true };
       if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
       state.planosAbertos = !!p.planosAbertos;
       // "lista" substituiu "compacto" na versão 45, quando a compacta virou o padrão: a escolha antiga
@@ -879,6 +908,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
         abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, lista: state.compacto ? "compacta" : "completa", pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        pertoGps: state.perto?.tipo === "gps" ? [Math.round(state.perto.lat * 1e4) / 1e4, Math.round(state.perto.lng * 1e4) / 1e4] : null,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -1197,6 +1227,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (!r) { r = faixas(h).map(([a, b]) => { const x = minutos(a); let y = minutos(b); if (y <= x) y += 1440; return [x, y]; }); _faixasMin.set(h, r); }
     return r;
   }
+  // "em 40 min" / "em 1 h 20" e, para o leitor de tela, "daqui a 40 minutos" / "daqui a 1 hora e 20 minutos"
+  const emQuanto = (m) => (m < 60 ? `${m} min` : `${Math.floor(m / 60)} h${m % 60 ? ` ${String(m % 60).padStart(2, "0")}` : ""}`);
+  const falaQuanto = (m) => { const h = Math.floor(m / 60), r = m % 60; const ph = h ? `${h} ${h === 1 ? "hora" : "horas"}` : "", pm = r ? `${r} ${r === 1 ? "minuto" : "minutos"}` : ""; return `daqui a ${[ph, pm].filter(Boolean).join(" e ")}`; };
+  const agoraMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+  const BREVE_CARTAO = 120, BREVE_AGORA = 60; // "abre em breve" no cartão até 2 h antes; "Daqui a pouco" no bloco, até 1 h
   const hhmm = (m) => { m = ((m % 1440) + 1440) % 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
   // estado do cupom hoje, pela hora atual: { tipo: "agora", fim } | { tipo: "depois", ini, fim } | { tipo: "encerrado" }
   function etiquetaHoje(c, h) {
@@ -1350,6 +1385,29 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (skip !== "comod" && state.comods.size) { const cs = comodSet(c); for (const t of state.comods) if (!cs.has(t)) return false; }
     return true;
   }
+  /* Primeira tela já em "Mais perto": a última ordem por distância fica guardada no aparelho com o ponto de
+     partida (ORDEM_KEY = { ponto, ids }). Enquanto geo.json, os lugares ou o banco não chegam, a lista usa
+     essa ordem se o ponto for o mesmo; quando as coordenadas chegam, a ordem é refeita de verdade. */
+  const ORDEM_KEY = "cupons-em-dobro:ordem-perto:v1";
+  let _ordemPerto = null, _ordemRank = null, _ordemGravada = "";
+  try { const o = JSON.parse(localStorage.getItem(ORDEM_KEY) || "null"); if (o && typeof o.ponto === "string" && Array.isArray(o.ids)) _ordemPerto = o; } catch (_) {}
+  const chavePonto = () => (state.perto ? (state.perto.tipo === "gps" ? `gps:${state.perto.lat.toFixed(3)},${state.perto.lng.toFixed(3)}` : state.perto.chave) : state.pertoPendente || null);
+  function ordemGuardada() {
+    if (state.geo || !_ordemPerto || _ordemPerto.ponto !== chavePonto()) return null;
+    if (!_ordemRank) _ordemRank = new Map(_ordemPerto.ids.map((id, i) => [id, i]));
+    return _ordemRank;
+  }
+  function guardaOrdemPerto() {
+    if (state.sort !== "perto" || !state.perto || !state.geo || !state.cupons.length || state.deCache) return;
+    const ponto = chavePonto(), marca = `${ponto}|${state.cupons.length}|${state.cupons[0]?.id}`;
+    if (marca === _ordemGravada) return;
+    _ordemGravada = marca;
+    ocioso(() => {
+      const ids = state.cupons.map((c) => [c.id, distDe(c)?.km ?? 1e9]).sort((a, b) => a[1] - b[1]).map((x) => x[0]);
+      _ordemPerto = { ponto, ids }; _ordemRank = null;
+      try { localStorage.setItem(ORDEM_KEY, JSON.stringify(_ordemPerto)); } catch (_) {}
+    });
+  }
   function visible() {
     const byApp = (a, b) => (PROG[a.programa]?.i ?? 9) - (PROG[b.programa]?.i ?? 9) || (a.ordem ?? 999) - (b.ordem ?? 999);
     // "Ver juntos": só o grupo, com usados, sem busca nem filtros
@@ -1364,7 +1422,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       programa: byApp,
       recentes: (a, b) => String(b.usadoEm || "").localeCompare(String(a.usadoEm || "")) || byApp(a, b),
       // sem endereço vai para o fim
-      perto: state.perto ? (a, b) => (distDe(a)?.km ?? 1e9) - (distDe(b)?.km ?? 1e9) || byApp(a, b) : byApp,
+      perto: state.perto && state.geo ? (a, b) => (distDe(a)?.km ?? 1e9) - (distDe(b)?.km ?? 1e9) || byApp(a, b)
+        : ordemGuardada() ? ((r) => (a, b) => (r.get(a.id) ?? 1e9) - (r.get(b.id) ?? 1e9) || byApp(a, b))(ordemGuardada()) : byApp,
     }[state.sort] || byApp;
     return list.sort(cmp);
   }
@@ -1409,7 +1468,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         tags.unshift(e.tipo === "agora"
           ? `<span class="tag hoje">${duplo(`Agora · até ${hhmm(e.fim)}`, `Vale agora, até as ${hhmm(e.fim)}.`)}</span>`
           : e.tipo === "depois"
-          ? `<span class="tag hoje">${duplo(`Hoje a partir das ${hhmm(e.ini)}`, `Vale hoje a partir das ${hhmm(e.ini)}, até as ${hhmm(e.fim)}.`)}</span>`
+          ? (e.ini - agoraMin() <= BREVE_CARTAO
+            ? `<span class="tag breve">${duplo(`Abre às ${hhmm(e.ini)} · em ${emQuanto(e.ini - agoraMin())}`, `Começa a valer hoje às ${hhmm(e.ini)}, ${falaQuanto(e.ini - agoraMin())}, até as ${hhmm(e.fim)}.`)}</span>`
+            : `<span class="tag hoje">${duplo(`Hoje a partir das ${hhmm(e.ini)}`, `Vale hoje a partir das ${hhmm(e.ini)}, até as ${hhmm(e.fim)}.`)}</span>`)
           : `<span class="tag off">${duplo("Encerrado hoje", `Hoje já encerrou. Valia ${falaFaixas(v.h)}.`)}</span>`);
       } else tags.unshift(`<span class="tag hoje">${duplo(`${rot} ${fmtFaixas(v.h)}`, `Vale ${fala}, ${falaFaixas(v.h)}.`)}</span>`);
     }
@@ -1466,7 +1527,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
-      ${c.usado ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(c.nome)}" title="Marcar como usado"${ro}></button>`}
+      ${c.usado || siteCopia() ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(c.nome)}" title="Marcar como usado"${ro}></button>`}
       <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}></button>
       <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"></button>
     </div>
@@ -1478,6 +1539,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <div class="tfoot">
       ${c.usado
         ? `<button type="button" class="usebtn" data-act="unuse" aria-label="Voltar para disponíveis: ${esc(c.nome)}"${ro}>Voltar para disponíveis</button>`
+        : siteCopia()
+        ? `<a class="usebtn carteira" href="${CARTEIRA}" target="_blank" rel="noopener" aria-label="Marcar ${esc(c.nome)} na carteira do claude.ai (abre em outra aba)">Marcar na carteira <span aria-hidden="true">↗</span></a>`
         : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}>Marcar como usado</button>`}
       <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" aria-label="Ver ${esc(c.nome)} no mapa (abre em outra aba)">Mapa <span aria-hidden="true">↗</span></a>
       ${c.usado && c.usadoEm ? `<span class="usedate">usado ${esc(fmtDate(c.usadoEm))}</span>` : ""}
@@ -1863,9 +1926,19 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     }
   }
 
+  // Site do GitHub Pages (docs/, com a marca "cupons-site"): só a cópia, sem banco. Marcar e favoritar
+  // ficam na carteira do claude.ai, que os cartões e o aviso do topo abrem em outra aba.
+  const NO_SITE = !!document.querySelector('meta[name="cupons-site"]');
+  const CARTEIRA = "https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc";
+  const siteCopia = () => NO_SITE && state.copiaDe !== null;
   function renderNotice() {
     const el = $("notice");
     let msg = "";
+    if (state.phase === "ready" && siteCopia()) {
+      setHidden(el, false);
+      htmlDe(el).innerHTML = `Cópia da carteira${state.copiaDe ? ` de ${esc(fmtDate(state.copiaDe))}` : ""}, só para consulta: favoritos e usados podem ter mudado depois. Para marcar um cupom, <a href="${CARTEIRA}" target="_blank" rel="noopener">abra a carteira no claude.ai<span aria-hidden="true"> ↗</span><span class="sr-only"> (abre em outra aba)</span></a>.`;
+      return;
+    }
     if (state.phase === "ready" && state.copiaDe !== null) msg = `Cópia da carteira${state.copiaDe ? ` de ${fmtDate(state.copiaDe)}` : ""}, só para consulta. Favoritos e cupons usados podem ter mudado depois. Quem tem acesso à carteira vê a versão atualizada entrando no claude.ai antes de abrir o link.`;
     else if (state.phase === "ready" && state.deCache && state.cacheLento) msg = `Lista guardada neste aparelho (${fmtDate(state.deCache)} ${hhmm(new Date(state.deCache).getHours() * 60 + new Date(state.deCache).getMinutes())}). Atualizando…`;
     else if (state.phase === "ready" && state.slow) msg = "Sem resposta do servidor há alguns segundos. A lista pode estar desatualizada.";
@@ -2128,36 +2201,126 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     const el = $("agora");
     const mostra = state.phase === "ready" && !state.grupo && state.status !== "usados" && !anyNarrowing();
     const cands = mostra ? state.cupons.filter((c) => !c.usado && valeAgora(c)) : [];
-    if (!cands.length) { setHidden(el, true); return; }
-    const fimDe = (c) => { const v = valeEm(c, today()); const e = etiquetaHoje(c, v?.ok ? v.h : ""); return e.tipo === "agora" ? e.fim : 9999; };
-    let itens, titulo;
-    if (state.perto && state.geo) {
-      itens = cands.map((c) => ({ c, d: distDe(c) })).filter((x) => x.d).sort((a, b) => a.d.km - b.d.km || (b.c.favorito ? 1 : 0) - (a.c.favorito ? 1 : 0)).slice(0, AGORA_MAX);
-      titulo = `Valendo agora perto de ${state.perto.rotulo}`;
-    } else {
-      const favs = cands.filter((c) => c.favorito);
-      // fim calculado uma vez por cupom (dentro do comparador eram milhares de chamadas a cada redesenho)
-      itens = (favs.length ? favs : cands).map((c) => ({ c, d: null, fim: fimDe(c) })).sort((a, b) => a.fim - b.fim || collator.compare(a.c.nome, b.c.nome)).slice(0, AGORA_MAX);
-      titulo = favs.length ? "Favoritos valendo agora" : "Valendo agora";
+    const etiqueta = (c) => { const v = valeEm(c, today()); return etiquetaHoje(c, v?.ok ? v.h : ""); };
+    const fimDe = (c) => { const e = etiqueta(c); return e.tipo === "agora" ? e.fim : 9999; };
+    // "Daqui a pouco": disponíveis que começam a valer hoje dentro de uma hora
+    const agora = agoraMin();
+    const breves = mostra ? state.cupons.filter((c) => !c.usado && temHorario(c) && !valeAgora(c))
+      .map((c) => ({ c, e: etiqueta(c) })).filter(({ e }) => e.tipo === "depois" && e.ini - agora <= BREVE_AGORA) : [];
+    if (!cands.length && !breves.length) { setHidden(el, true); return; }
+    const comPonto = !!(state.perto && state.geo);
+    const ordena = (xs) => (comPonto
+      ? xs.map((x) => ({ ...x, d: distDe(x.c) })).filter((x) => x.d).sort((a, b) => a.d.km - b.d.km || (b.c.favorito ? 1 : 0) - (a.c.favorito ? 1 : 0))
+      : xs.map((x) => ({ ...x, d: null })));
+    let itens = [], titulo = "";
+    if (cands.length) {
+      if (comPonto) {
+        itens = ordena(cands.map((c) => ({ c }))).slice(0, AGORA_MAX);
+        titulo = `Valendo agora perto de ${state.perto.rotulo}`;
+      } else {
+        const favs = cands.filter((c) => c.favorito);
+        // fim calculado uma vez por cupom (dentro do comparador eram milhares de chamadas a cada redesenho)
+        itens = (favs.length ? favs : cands).map((c) => ({ c, d: null, fim: fimDe(c) })).sort((a, b) => a.fim - b.fim || collator.compare(a.c.nome, b.c.nome)).slice(0, AGORA_MAX);
+        titulo = favs.length ? "Favoritos valendo agora" : "Valendo agora";
+      }
     }
-    if (!itens.length) { setHidden(el, true); return; }
-    const li = itens.map(({ c, d }) => {
-      const fim = fimDe(c), prog = PROG[c.programa];
-      const ate = fim < 9999 ? duplo(`até ${hhmm(fim)}`, `vale até as ${hhmm(fim)}`) : "";
+    // os que abrem primeiro; favoritos na frente; com ponto de partida, os mais perto
+    let embreve = comPonto ? ordena(breves) : breves.slice().sort((a, b) => a.e.ini - b.e.ini || (b.c.favorito ? 1 : 0) - (a.c.favorito ? 1 : 0) || collator.compare(a.c.nome, b.c.nome));
+    if (!comPonto && breves.some((x) => x.c.favorito)) embreve = embreve.filter((x) => x.c.favorito);
+    embreve = embreve.slice(0, 3);
+    if (!itens.length && !embreve.length) { setHidden(el, true); return; }
+    const sep = '<span aria-hidden="true"> · </span><span class="sr-only">, </span>';
+    const item = (c, d, quando) => {
+      const prog = PROG[c.programa];
       const km = d ? duplo(`${d.aprox ? "≈ " : ""}${fmtKm(d.km)} · ${tempoTxt(d.km)}`, `a ${d.aprox ? "cerca de " : ""}${falaKm(d.km)}, ${falaTempo(d.km)}`) : "";
       const oferta = c.item ? `${c.item}, ${GANHE_TXT[c.ganhe] || "outro igual"}` : "oferta não cadastrada";
       return `<li><button type="button" class="agora-item" data-agora="${esc(c.id)}">
         <span class="nm">${c.favorito ? '<span class="fv" aria-hidden="true">♥ </span>' : ""}${esc(c.nome)}${c.favorito ? '<span class="sr-only">, favorito</span>' : ""}</span>
         <span class="km">${km}</span>
-        <span class="det2">${ate}${ate ? '<span aria-hidden="true"> · </span><span class="sr-only">, </span>' : ""}${esc(prog?.curto || "")}<span aria-hidden="true"> · </span><span class="sr-only">, </span>${esc(oferta)}</span>
+        <span class="det2">${quando}${quando ? sep : ""}${esc(prog?.curto || "")}${sep}${esc(oferta)}</span>
       </button></li>`;
+    };
+    const li = itens.map(({ c, d }) => {
+      const fim = fimDe(c);
+      return item(c, d, fim < 9999 ? duplo(`até ${hhmm(fim)}`, `vale até as ${hhmm(fim)}`) : "");
     }).join("");
+    const liBreve = embreve.map(({ c, d, e }) => item(c, d, `<span class="abre">${duplo(`abre às ${hhmm(e.ini)} · em ${emQuanto(e.ini - agora)}`, `começa a valer às ${hhmm(e.ini)}, ${falaQuanto(e.ini - agora)}`)}</span>`)).join("");
     const semPonto = !state.perto
       ? `<button type="button" class="linkbtn" data-agora-act="perto">Ordenar pelos mais perto</button>` : "";
-    htmlDe(el).innerHTML = `<h2 class="agora-h" id="agora-h">${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
-      <ol>${li}</ol>
-      <div class="agora-pe"><button type="button" class="linkbtn" data-agora-act="todos">Ver todos que valem agora</button>${semPonto}</div>`;
+    const blocoBreve = liBreve
+      ? `<${itens.length ? "h3" : "h2"} class="${itens.length ? "agora-sub" : "agora-h"}" id="${itens.length ? "agora-breve-h" : "agora-h"}">Daqui a pouco <span class="n">${nCupons(breves.length)} na próxima hora</span></${itens.length ? "h3" : "h2"}>
+      <ol aria-label="Daqui a pouco">${liBreve}</ol>` : "";
+    htmlDe(el).innerHTML = (itens.length
+      ? `<h2 class="agora-h" id="agora-h">${esc(titulo)} <span class="n">${nCupons(cands.length)} no total</span></h2>
+      <ol>${li}</ol>${blocoBreve}
+      <div class="agora-pe"><button type="button" class="linkbtn" data-agora-act="todos">Ver todos que valem agora</button>${semPonto}</div>`
+      : `${blocoBreve}<div class="agora-pe">${semPonto}</div>`);
     setHidden(el, false);
+  }
+
+  /* ---------- mapa (só no site do Pages) ----------
+     Leaflet e os ladrilhos do OpenStreetMap vêm de fora e só são baixados ao abrir o mapa. No claude.ai o
+     botão não aparece (o visualizador costuma bloquear os ladrilhos). A lista continua sendo o caminho
+     acessível: o mapa mostra os mesmos cupons. */
+  const LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+  const LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+  let mapaAberto = false, _mapa = null, _mapaCamada = null, _mapaSig = null, _leaflet = null;
+  function carregaLeaflet() {
+    if (window.L) return Promise.resolve(window.L);
+    if (!_leaflet) _leaflet = new Promise((ok, falha) => {
+      const css = document.createElement("link"); css.rel = "stylesheet"; css.href = LEAFLET_CSS; document.head.appendChild(css);
+      const js = document.createElement("script"); js.src = LEAFLET_JS;
+      js.onload = () => ok(window.L); js.onerror = () => { _leaflet = null; falha(new Error("leaflet")); };
+      document.head.appendChild(js);
+    });
+    return _leaflet;
+  }
+  async function abreMapa() {
+    mapaAberto = true; _mapaSig = null;
+    htmlDe($("mapa-info")).textContent = "Carregando o mapa…";
+    render();
+    try { await Promise.all([carregaLeaflet(), garanteGeo()]); }
+    catch (_) { htmlDe($("mapa-info")).textContent = "O mapa precisa de internet. A lista abaixo continua com todos os cupons."; return; }
+    if (!state.geo) { htmlDe($("mapa-info")).textContent = "As coordenadas não carregaram. A lista abaixo continua com todos os cupons."; return; }
+    desenhaMapa(true);
+  }
+  function fechaMapa() { mapaAberto = false; render(); $("mapa-abrir").focus(); }
+  function desenhaMapa(enquadrar) {
+    const L = window.L; if (!L || !state.geo) return;
+    const lista = visible(), perto = state.perto;
+    const sig = `${lista.map((c) => `${c.id}${c.favorito ? "*" : ""}`).join(",")}|${perto ? `${perto.lat},${perto.lng}` : ""}`;
+    if (sig === _mapaSig && !enquadrar) return;
+    _mapaSig = sig;
+    if (!_mapa) {
+      _mapa = L.map("mapa-area", { zoomControl: true, attributionControl: true });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(_mapa);
+      _mapaCamada = L.layerGroup().addTo(_mapa);
+    }
+    _mapaCamada.clearLayers();
+    const cor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+    const cores = { "poa-em-dobro": cor("--p-poa"), "tour-grande-poa": cor("--p-tour"), "canoas-em-dobro": cor("--p-canoas") };
+    const pontos = [];
+    let semEndereco = 0;
+    for (const c of lista) {
+      const cs = coordsDe(c);
+      if (!cs.length) { semEndereco++; continue; }
+      const d = distDe(c);
+      const oferta = c.item ? `${c.item}, ${GANHE_TXT[c.ganhe] || "outro igual"}` : "oferta não cadastrada";
+      const html = `<b>${esc(c.nome)}</b><br>${esc(PROG[c.programa]?.curto || "")} · ${esc(oferta)}${d ? `<br>${d.aprox ? "≈ " : ""}${esc(fmtKm(d.km))} · ${esc(tempoTxt(d.km))}` : ""}<br><button type="button" class="linkbtn" data-mapa-ver="${esc(c.id)}">Ver cupom</button>`;
+      for (const g of cs) {
+        pontos.push([g.lat, g.lng]);
+        L.circleMarker([g.lat, g.lng], { radius: c.favorito ? 8 : 6, weight: c.favorito ? 2 : 1, color: "#fff", fillColor: cores[c.programa] || "#666", fillOpacity: .9 })
+          .bindPopup(html).addTo(_mapaCamada);
+      }
+    }
+    if (perto) L.circleMarker([perto.lat, perto.lng], { radius: 9, weight: 3, color: "#fff", fillColor: cor("--accent"), fillOpacity: 1 }).bindTooltip(perto.rotulo === "você" ? "Você" : perto.rotulo).addTo(_mapaCamada);
+    htmlDe($("mapa-info")).textContent = `${lista.length - semEndereco} ${lista.length - semEndereco === 1 ? "cupom" : "cupons"} no mapa${semEndereco ? ` (${semEndereco} sem endereço)` : ""}. Favoritos maiores; cores pelo programa.`;
+    if (enquadrar) {
+      if (perto) _mapa.setView([perto.lat, perto.lng], 14);
+      else if (pontos.length) _mapa.fitBounds(pontos, { padding: [24, 24], maxZoom: 15 });
+      else _mapa.setView([-30.03, -51.2], 11);
+    }
+    setTimeout(() => _mapa.invalidateSize(), 0);
   }
 
   function render() {
@@ -2168,11 +2331,15 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     renderNotice();
     renderAgora();
     renderGrid();
+    setHidden($("mapa-abrir"), !(NO_SITE && state.phase === "ready" && state.cupons.length && !mapaAberto));
+    setHidden($("mapa"), !mapaAberto);
+    if (mapaAberto && window.L && state.geo) desenhaMapa(false);
     restauraFoco(sels);
     focoPendente = null;
     if (rolarPara !== null) { const y = rolarPara; rolarPara = null; requestAnimationFrame(() => scrollTo(0, y)); }
     guardaPosicao();
     preparaEmSegundoPlano();
+    guardaOrdemPerto();
   }
 
   /* ---------- toast ---------- */
@@ -2693,6 +2860,17 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     render();
   });
   $("grupo-sair").addEventListener("click", () => { saiGrupo(true); render(); });
+  $("mapa-abrir").addEventListener("click", abreMapa);
+  $("mapa-fechar").addEventListener("click", fechaMapa);
+  $("mapa-area").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mapa-ver]"); if (!b) return;
+    // como no "Valendo agora": mostra só esse cupom (e o mesmo lugar nos outros programas)
+    mapaAberto = false;
+    state.grupo = b.dataset.mapaVer;
+    focoPendente = [`.ticket[data-id="${CSS.escape(state.grupo)}"] .tname`, "#result-count"];
+    render();
+    document.querySelector(".resultbar")?.scrollIntoView({ block: "start" });
+  });
   $("agora").addEventListener("click", (e) => {
     const it = e.target.closest("[data-agora]");
     if (it) {
@@ -2745,6 +2923,12 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   });
   mqCelular.addEventListener?.("change", acompanhaRolagem);
 
+  // texto de exemplo da busca que caiba inteiro: em telas de até 350 px, a versão curta
+  const mqEstreito = matchMedia("(max-width: 350px)");
+  const ajustaExemplo = () => { $("q").placeholder = mqEstreito.matches ? "Lugar, prato ou bairro" : "Busque lugar, prato ou bairro"; };
+  mqEstreito.addEventListener?.("change", ajustaExemplo);
+  ajustaExemplo();
+
   // a etiqueta "Agora · até 15:00" depende da hora: redesenha a cada minuto com a página visível
   // e ao voltar para a aba (o celular congela os timers de abas em segundo plano)
   const renovaHora = () => { if (!document.hidden && state.phase === "ready") render(); };
@@ -2775,8 +2959,20 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     } catch (_) {}
   }
 
+  // posição do GPS lembrada: se a permissão já foi dada, atualiza em silêncio e só reordena se mudou >150 m
+  if (state.perto?.salvo && navigator.permissions?.query && navigator.geolocation) {
+    navigator.permissions.query({ name: "geolocation" }).then((st) => {
+      if (st.state !== "granted") return;
+      navigator.geolocation.getCurrentPosition((pos) => {
+        if (state.perto?.tipo !== "gps") return;
+        const novo = { lat: pos.coords.latitude, lng: pos.coords.longitude, rotulo: "você", tipo: "gps" };
+        if (kmEntre(state.perto, novo) > 0.15) { state.perto = novo; savePrefs(); render(); } else state.perto.salvo = false;
+      }, () => {}, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
+    }).catch(() => {});
+  }
+
   render();
   boot();
-  if (state.pertoPendente || state.sort === "perto" || state.raio || (state.filtersOpen && state.abaFiltros === "onde")) garanteGeo();
+  if (state.perto || state.pertoPendente || state.sort === "perto" || state.raio || (state.filtersOpen && state.abaFiltros === "onde")) garanteGeo();
 })();
 </script>

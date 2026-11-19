@@ -103,10 +103,17 @@ async function abrir(o = {}) {
   const html = fs.readFileSync(o.arquivo || process.env.CUPONS_HTML || path.join(RAIZ, "cupons.html"), "utf8");
   await pg.route("https://fonts.googleapis.com/**", (r) => r.abort());
   await pg.route("https://fonts.gstatic.com/**", (r) => r.abort());
+  // mapa do site: Leaflet da pasta node_modules (o mesmo 1.9.4 do cdnjs) e ladrilhos vazios, sem internet
+  await pg.route("https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/**", (r) => {
+    const arq = r.request().url().endsWith(".css") ? "leaflet.css" : "leaflet.js";
+    return r.fulfill({ contentType: arq.endsWith(".css") ? "text/css" : "application/javascript", body: fs.readFileSync(path.join(__dirname, "..", "node_modules", "leaflet", "dist", arq), "utf8") });
+  });
+  await pg.route("https://tile.openstreetmap.org/**", (r) => r.fulfill({ contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64") }));
   await pg.route(ORIGEM, (r) => r.fulfill({ contentType: "text/html", body: documento(html, o.site) }));
   await pg.route(ORIGEM + "sw.js", (r) => r.fulfill({ status: 404, body: "" }));
   await pg.route(ORIGEM + "regras.json", (r) => (o.regras ? r.fulfill({ contentType: "application/json", body: JSON.stringify(o.regras) }) : r.fulfill({ status: 404, body: "" })));
-  await pg.route(ORIGEM + "geo.json", (r) => (o.geo === false
+  // pg.__atrasoGeo (ms): geo.json demora a chegar (o teste muda antes de recarregar)
+  await pg.route(ORIGEM + "geo.json", async (r) => (pg.__atrasoGeo && await new Promise((ok) => setTimeout(ok, pg.__atrasoGeo)), o.geo === false
     ? r.fulfill({ status: 404, body: "" })
     : r.fulfill({ contentType: "application/json", body: o.geoJson || fs.readFileSync(path.join(RAIZ, "data", "geo.json"), "utf8") })));
   await pg.route(ORIGEM + "snapshot.json", (r) => (o.snapshot ? r.fulfill({ contentType: "application/json", body: JSON.stringify(o.snapshot) }) : r.fulfill({ status: 404, body: "" })));
