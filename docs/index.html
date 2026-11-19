@@ -421,6 +421,8 @@ a.usebtn { color: var(--accent); text-decoration: none; }
 #mapa-area .leaflet-popup-content b { font-size: 14px; }
 #mapa-area .leaflet-popup-content button { margin-top: 6px; }
 .mais { display: flex; justify-content: center; margin: -28px 0 48px; }
+/* espaço no fim da página: "Voltar ao topo" (fixo no canto) não cobre "Mostrar mais" nem o último cartão */
+main.wrap { padding-bottom: 44px; }
 .mais .usebtn { height: 44px; padding: 0 18px; font-size: 14px; }
 .perto-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .perto-ctl select {
@@ -530,6 +532,10 @@ h1:focus { outline: none; }
 h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
 .toast button { border: 0; background: transparent; color: inherit; font-weight: 700; text-decoration: underline; padding: 4px 6px; white-space: nowrap; }
 
+@media (max-height: 500px) {
+  /* celular deitado: a barra se recolhe ao rolar para baixo, como em pé */
+  .toolbar.recolhida { translate: 0 calc(-100% - env(safe-area-inset-top, 0px) - 2px); }
+}
 @media (max-width: 560px) {
   .programs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); padding-right: 16px; }
   .programs::-webkit-scrollbar { display: none; }
@@ -585,7 +591,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   .masthead { padding-block: 14px 12px; gap: 10px; }
   .eyebrow { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .title-row { gap: 6px 12px; }
-  h1 { font-size: clamp(26px, 8vw, 34px); white-space: nowrap; }
+  /* numa linha nos tamanhos normais (o teste confere de 320 a 412 px); com texto ampliado no aparelho,
+     quebra em duas em vez de a página rolar de lado (white-space: nowrap rolava 70–140 px) */
+  h1 { font-size: clamp(26px, 8vw, 34px); }
   /* números numa linha só, abaixo do título: "577 disponíveis  12 favoritos  3 usados" */
   .stats { gap: 6px 14px; flex-wrap: wrap; }
   .stat { display: flex; align-items: baseline; gap: 4px; }
@@ -1467,8 +1475,23 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
+  // O mesmo restaurante em dois programas (Trigo Pizzaria no Poa e no Tour) dava dois botões "Favorito: Trigo
+  // Pizzaria": navegando só pelos botões, o leitor de tela não sabia qual era qual. Nome repetido ganha o
+  // programa; repetido no mesmo programa (Saúde no Copo: wrap, salada, açaí), também a oferta.
+  let _nomesDe = null, _nomesCont = null;
+  function quemE(c) {
+    if (_nomesDe !== state.cupons) {
+      _nomesDe = state.cupons; _nomesCont = new Map();
+      for (const x of state.cupons) { const k = norm(x.nome); _nomesCont.set(k, (_nomesCont.get(k) || 0) + 1); _nomesCont.set(`${x.programa}|${k}`, (_nomesCont.get(`${x.programa}|${k}`) || 0) + 1); }
+    }
+    const k = norm(c.nome);
+    if ((_nomesCont.get(k) || 0) < 2) return c.nome;
+    const prog = PROG[c.programa]?.nome || c.programa;
+    return (_nomesCont.get(`${c.programa}|${k}`) || 0) > 1 && c.item ? `${c.nome}, ${prog}, ${c.item}` : `${c.nome}, ${prog}`;
+  }
   function ticketHtml(c, hl = 3) {
     const prog = PROG[c.programa];
+    const quem = quemE(c); // nome nos botões; com o programa (e a oferta) quando outro cupom tem o mesmo nome
     const catCls = CAT_CLS[c.categoria] || "";
     const ro = state.readOnly ? " disabled" : "";
     const offer = c.item
@@ -1536,7 +1559,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       // o conteúdo só entra na página com o painel aberto (corta perto de metade dos nós de cada cartão)
       const aberto = state.abertos.has(c.id);
       det = `<details class="det"${aberto ? " open" : ""}>
-      <summary>Regras, horários e endereço<span class="sr-only"> de ${esc(c.nome)}</span></summary>
+      <summary>Regras, horários e endereço<span class="sr-only"> de ${esc(quem)}</span></summary>
       <div class="det-body">${!aberto ? "" : `
         ${c.regras ? `<div><h4${tituloAttr("Regras do estabelecimento")}>Regras do estabelecimento</h4>${regrasHtml(c.regras)}</div>` : ""}
         ${outras.length ? blocoUnidades : temH(c.horarios) ? `<div><h4${tituloAttr("Dias e horários")}>Dias e horários</h4>${tabela(c.horarios, "Dias e horários em que o cupom vale")}</div>` : ""}
@@ -1561,22 +1584,22 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
-      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}></button>
-      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"></button>
+      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(quem)}"${ro}></button>
+      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(quem)}"></button>
     </div>
     ${offer}
     ${loc}
     ${outrosHtml(c)}
     ${tags.length ? `<div class="tags">${tags.join("")}</div>` : ""}
-    ${c.usado || siteCopia() ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}></button>`}
+    ${c.usado || siteCopia() ? "" : `<button type="button" class="usar-rapido" data-act="usar" aria-label="Marcar como usado: ${esc(quem)}"${ro}></button>`}
     ${det}
     <div class="tfoot">
       ${c.usado
-        ? `<button type="button" class="usebtn" data-act="unuse" aria-label="Voltar para disponíveis: ${esc(c.nome)}"${ro}>Voltar para disponíveis</button>`
+        ? `<button type="button" class="usebtn" data-act="unuse" aria-label="Voltar para disponíveis: ${esc(quem)}"${ro}>Voltar para disponíveis</button>`
         : siteCopia()
-        ? `<a class="usebtn carteira" href="${CARTEIRA}" target="_blank" rel="noopener" aria-label="Marcar ${esc(c.nome)} na carteira do claude.ai (abre em outra aba)">Marcar na carteira <span aria-hidden="true">↗</span></a>`
-        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}>Marcar como usado</button>`}
-      <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" aria-label="Ver ${esc(c.nome)} no mapa (abre em outra aba)">Mapa <span aria-hidden="true">↗</span></a>
+        ? `<a class="usebtn carteira" href="${CARTEIRA}" target="_blank" rel="noopener" aria-label="Marcar ${esc(quem)} na carteira do claude.ai (abre em outra aba)">Marcar na carteira <span aria-hidden="true">↗</span></a>`
+        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(quem)}"${ro}>Marcar como usado</button>`}
+      <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" aria-label="Ver ${esc(quem)} no mapa (abre em outra aba)">Mapa <span aria-hidden="true">↗</span></a>
       ${c.usado && c.usadoEm ? `<span class="usedate">usado ${esc(fmtDate(c.usadoEm))}</span>` : ""}
     </div>
   </div>
@@ -1805,6 +1828,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   /* No celular, Filtros vira um diálogo em tela cheia: o resto da página fica inerte (foco preso no diálogo,
      leitor de tela também), a rolagem da página trava e Esc fecha. */
   const mqCelular = window.matchMedia("(max-width: 560px)");
+  // a barra fixa se recolhe ao rolar no celular em pé e também deitado (tela baixa: ela ocupava até 40% da altura)
+  const mqRecolhe = window.matchMedia("(max-width: 560px), (max-height: 500px)");
   let filtrosModal = false;
   function aplicaModoFiltros() {
     const modal = state.filtersOpen && mqCelular.matches;
@@ -2440,11 +2465,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   /* ---------- toast ---------- */
   let toastTimer = null, toastUndo = null;
   let avisoTimer = null;
+  // limpa e escreve logo depois: a mesma mensagem duas vezes seguidas também é anunciada
+  function falaAviso(msg) {
+    const sr = $("sr-aviso"); sr.textContent = ""; clearTimeout(avisoTimer);
+    avisoTimer = setTimeout(() => { sr.textContent = msg; }, 120);
+  }
   function toast(msg, undo) {
     $("toast-msg").textContent = msg;
-    // limpa e escreve logo depois: a mesma mensagem duas vezes seguidas também é anunciada
-    const sr = $("sr-aviso"); sr.textContent = ""; clearTimeout(avisoTimer);
-    avisoTimer = setTimeout(() => { sr.textContent = undo ? `${msg} Botão Desfazer no pé da tela.` : msg; }, 120);
+    falaAviso(undo ? `${msg} Botão Desfazer no pé da tela.` : msg);
     toastUndo = undo || null;
     $("toast-undo").hidden = !undo;
     $("toast").hidden = false;
@@ -2458,7 +2486,10 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   $("toast-undo").addEventListener("click", () => {
     const fn = toastUndo;
     $("toast").hidden = true; toastUndo = null; clearTimeout(toastTimer);
-    if (fn) fn();
+    // o foco volta ao cartão; o leitor ouve "Desfeito." em vez do total de cupons
+    silenciarAnuncio = true;
+    try { if (fn) fn(); } finally { silenciarAnuncio = false; }
+    if (fn) falaAviso("Desfeito.");
   });
 
   /* ---------- banco de dados ---------- */
@@ -2997,6 +3028,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   // rolar para baixo dela e ficar escondido. A altura muda com a largura da tela (até três linhas no celular).
   const barra = document.querySelector(".toolbar");
   const ajustaRolagem = () => { document.documentElement.style.scrollPaddingTop = `${Math.ceil(barra.getBoundingClientRect().height) + 8}px`; };
+  // embaixo, "Voltar ao topo" e o aviso (fixos no canto) cobriam o coração e o ✓ do último cartão da tela
+  document.documentElement.style.scrollPaddingBottom = "76px";
   if (window.ResizeObserver) new ResizeObserver(ajustaRolagem).observe(barra);
   ajustaRolagem();
 
@@ -3009,7 +3042,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     barraRaf = 0;
     const y = scrollY, dy = y - barraY;
     setHidden($("topo"), !(state.phase === "ready" && y > innerHeight * 2));
-    if (!mqCelular.matches || state.filtersOpen || barra.contains(document.activeElement) || y < 320) { recolheBarra(false); barraY = y; return; }
+    if (!mqRecolhe.matches || state.filtersOpen || barra.contains(document.activeElement) || y < 320) { recolheBarra(false); barraY = y; return; }
     if (Math.abs(dy) < 12) return; // tremidas do dedo não mexem na barra
     recolheBarra(dy > 0);
     barraY = y;
@@ -3023,7 +3056,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     h1.focus({ preventScroll: true });
     scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   });
-  mqCelular.addEventListener?.("change", acompanhaRolagem);
+  mqRecolhe.addEventListener?.("change", acompanhaRolagem);
 
   // texto de exemplo da busca que caiba inteiro: em telas de até 350 px, a versão curta
   const mqEstreito = matchMedia("(max-width: 350px)");
