@@ -10,8 +10,9 @@ const { execFileSync } = require("child_process");
 const { RAIZ, cupons } = require("./lib/pagina");
 
 const KB = 1024;
-// cupons.html: 200 → 210 KB em 19/11/2026, pelos textos falados para o TalkBack (datas, separadores, rótulos)
-const LIMITES = { "cupons.html": 210 * KB, "snapshot.json": 430 * KB, "regras.json": 125 * KB, "geo.json": 62 * KB };
+// cupons.html: 200 → 210 KB em 19/11/2026, pelos textos falados para o TalkBack (datas, separadores, rótulos);
+// 210 → 230 KB em 19/11/2026, a pedido do dono: as rodadas de acessibilidade somam ~1 KB cada (decidido não cortar os comentários)
+const LIMITES = { "cupons.html": 230 * KB, "snapshot.json": 430 * KB, "regras.json": 125 * KB, "geo.json": 62 * KB };
 
 // os arquivos publicados, gerados como na publicação, mas a partir de data/*.json em vez do banco
 function publicados() {
