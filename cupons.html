@@ -775,7 +775,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <button type="button" class="linkbtn" id="mapa-abrir" hidden>Ver no mapa</button>
   </div>
   <section class="mapa" id="mapa" aria-label="Mapa dos cupons" hidden>
-    <div class="mapa-topo"><p id="mapa-info" role="status" tabindex="-1"></p>
+    <div class="mapa-topo"><p id="mapa-info" tabindex="-1"></p>
       <div class="mapa-botoes">
         <button type="button" class="linkbtn" id="mapa-local">Minha localização</button>
         <button type="button" class="linkbtn" id="mapa-seguir" aria-pressed="false">Seguir</button>
@@ -2283,12 +2283,18 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   }
   // anuncia o total depois que a pessoa para de digitar ou tocar, e só quando ele muda
   let anuncioTimer = null, ultimoAnuncio = "", silenciarAnuncio = false;
+  // Sem fala repetida: o total não é anunciado quando a mesma ação já falou um aviso (toast: "Cupons em ordem
+  // do mais perto…") nem quando o foco foi para o próprio total (o leitor já o leu ao receber o foco).
+  let avisoEm = -1e9;
   function announce(msg) {
     clearTimeout(anuncioTimer);
-    if (silenciarAnuncio) { ultimoAnuncio = msg; return; }
+    if (silenciarAnuncio || performance.now() - avisoEm < 1000) { ultimoAnuncio = msg; return; }
     anuncioTimer = setTimeout(() => {
       if (msg === ultimoAnuncio) return;
       ultimoAnuncio = msg;
+      if (performance.now() - avisoEm < 1500) return;
+      const rc = $("result-count");
+      if (document.activeElement === rc && rc.textContent.replace(/\s+/g, " ").trim() === msg) return;
       $("sr-status").textContent = msg;
     }, 700);
   }
@@ -2384,14 +2390,16 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     });
     return _leaflet;
   }
+  // aviso do mapa: fala só nas ações do mapa; acompanhando a lista muda em silêncio (o total já é anunciado)
+  const infoMapa = (txt, falar = true) => { htmlDe($("mapa-info")).textContent = txt; if (falar) falaAviso(txt); };
   async function abreMapa() {
     mapaAberto = true; _mapaSig = null;
-    htmlDe($("mapa-info")).textContent = "Carregando o mapa…";
+    infoMapa("Carregando o mapa…", false); // o foco vai para ele
     focoPendente = ["#mapa-info"];
     render();
     try { await Promise.all([carregaLeaflet(), garanteGeo()]); }
-    catch (_) { htmlDe($("mapa-info")).textContent = "O mapa precisa de internet. A lista abaixo continua com todos os cupons."; return; }
-    if (!state.geo) { htmlDe($("mapa-info")).textContent = "As coordenadas não carregaram. A lista abaixo continua com todos os cupons."; return; }
+    catch (_) { infoMapa("O mapa precisa de internet. A lista abaixo continua com todos os cupons."); return; }
+    if (!state.geo) { infoMapa("As coordenadas não carregaram. A lista abaixo continua com todos os cupons."); return; }
     desenhaMapa(true);
   }
   function fechaMapa() { paraDeSeguir(); mapaAberto = false; render(); $("mapa-abrir").focus(); }
@@ -2413,10 +2421,10 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   }
   const SEM_GPS = "Não foi possível obter sua localização (o navegador pode ter negado a permissão).";
   function minhaLocalizacao() {
-    if (!navigator.geolocation) { htmlDe($("mapa-info")).textContent = "Este navegador não informa a localização."; return; }
-    htmlDe($("mapa-info")).textContent = "Buscando sua localização…";
-    navigator.geolocation.getCurrentPosition((pos) => { _mapaSig = null; novaPosicao(pos, true); desenhaMapa(false); },
-      () => { htmlDe($("mapa-info")).textContent = SEM_GPS; }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+    if (!navigator.geolocation) { infoMapa("Este navegador não informa a localização."); return; }
+    infoMapa("Buscando sua localização…");
+    navigator.geolocation.getCurrentPosition((pos) => { _mapaSig = null; novaPosicao(pos, true); desenhaMapa(false); falaAviso("Mapa centralizado na sua localização."); },
+      () => { infoMapa(SEM_GPS); }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
   }
   function paraDeSeguir() {
     if (_seguindo !== null) navigator.geolocation.clearWatch(_seguindo);
@@ -2425,10 +2433,10 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   }
   function alternaSeguir() {
     if (_seguindo !== null) { paraDeSeguir(); return; }
-    if (!navigator.geolocation) { htmlDe($("mapa-info")).textContent = "Este navegador não informa a localização."; return; }
+    if (!navigator.geolocation) { infoMapa("Este navegador não informa a localização."); return; }
     let primeira = true;
     _seguindo = navigator.geolocation.watchPosition((pos) => { novaPosicao(pos, primeira); primeira = false; },
-      () => { paraDeSeguir(); htmlDe($("mapa-info")).textContent = SEM_GPS; }, { enableHighAccuracy: true, maximumAge: 10000 });
+      () => { paraDeSeguir(); infoMapa(SEM_GPS); }, { enableHighAccuracy: true, maximumAge: 10000 });
     setAttr($("mapa-seguir"), "aria-pressed", "true");
   }
   function desenhaMapa(enquadrar) {
@@ -2470,7 +2478,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (_voce) { _voce.remove(); _voce = null; }
       if (perto) L.circleMarker([perto.lat, perto.lng], { radius: 9, weight: 3, color: "#fff", fillColor: cor("--accent"), fillOpacity: 1, className: "ponto-partida" }).bindTooltip(perto.rotulo).addTo(_mapaCamada);
     }
-    htmlDe($("mapa-info")).textContent = `${lista.length - semEndereco} ${lista.length - semEndereco === 1 ? "cupom" : "cupons"} no mapa${semEndereco ? ` (${semEndereco} sem endereço)` : ""}. Favoritos maiores; cores pelo programa.`;
+    infoMapa(`${lista.length - semEndereco} ${lista.length - semEndereco === 1 ? "cupom" : "cupons"} no mapa${semEndereco ? ` (${semEndereco} sem endereço)` : ""}. Favoritos maiores; cores pelo programa.`, enquadrar); // fala só ao abrir
     if (enquadrar) {
       if (perto) _mapa.setView([perto.lat, perto.lng], 14);
       else if (pontos.length) _mapa.fitBounds(pontos, { padding: [24, 24], maxZoom: 15 });
@@ -2509,6 +2517,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     avisoTimer = setTimeout(() => { sr.textContent = msg; }, 120);
   }
   function toast(msg, undo) {
+    avisoEm = performance.now();
     $("toast-msg").textContent = msg;
     falaAviso(undo ? `${msg} Botão Desfazer no pé da tela.` : msg);
     toastUndo = undo || null;
