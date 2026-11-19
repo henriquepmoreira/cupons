@@ -11,6 +11,7 @@ Gera:
                      invólucro sozinho; o Pages serve o arquivo como está)
   docs/geo.json      cópia de data/geo.json (distâncias e "Perto de")
   docs/snapshot.json cópia dos cupons, igual à cópia sem login do artifact
+  docs/regras.json   regras de cada cupom (a página busca em segundo plano)
   docs/.nojekyll     o Pages serve os arquivos sem processar
 
 Fora do claude.ai a página não tem banco: abre a cópia, só para consulta (favoritar e marcar
@@ -61,7 +62,7 @@ def main(banco: str) -> None:
     # service worker (offline e abertura na hora), manifesto e ícones do app na Tela de Início
     for nome in ("sw.js", "manifest.webmanifest", "apple-touch-icon.png", "icone-192.png", "icone-512.png"):
         shutil.copyfile(RAIZ / "scripts" / "site" / nome, DOCS / nome)
-    print(f"site em {DOCS}: index.html, geo.json, snapshot.json, sw.js, manifesto e ícones")
+    print(f"site em {DOCS}: index.html, geo.json, snapshot.json, regras.json, sw.js, manifesto e ícones")
 
 
 if __name__ == "__main__":

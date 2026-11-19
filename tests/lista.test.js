@@ -136,6 +136,19 @@ test("lista compacta: uma linha por cupom, expandir mostra o cartão completo, e
   assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), true, "lembrada depois de recarregar");
 });
 
+test("lista compacta é o padrão, também para quem tinha a escolha antiga gravada; a completa fica lembrada", async () => {
+  for (const prefs of [undefined, { compacto: false, sort: "app" }]) {
+    const pg = await abrir({ compacta: true, prefs });
+    assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), true, `compacta com ${JSON.stringify(prefs)}`);
+    await pg.context().close();
+  }
+  const pg = await abrir({ compacta: true });
+  await compacta(pg); // desliga
+  assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), false);
+  await pg.reload(); await pg.waitForSelector(".ticket"); await pg.waitForTimeout(300);
+  assert.equal(await pg.$eval("#grid", (g) => g.classList.contains("compacto")), false, "completa lembrada depois de recarregar");
+});
+
 test("nada encontrado: sugere qual filtro tirar e aplica com um toque", async () => {
   const pg = await abrir();
   await aba(pg, "onde");
@@ -297,6 +310,24 @@ test("lista nova: os primeiros cartões aparecem na hora e o resto do lote logo 
   assert.deepEqual(nomes, ordenados, "na ordem certa");
 });
 
+test("ordem por categoria também em duas etapas: contagem final já na primeira, lote inteiro logo depois", async () => {
+  const pg = await abrir();
+  await pg.click("#filters-toggle");
+  const imediato = await pg.evaluate(() => {
+    const s = document.getElementById("sort");
+    s.value = "categoria"; s.dispatchEvent(new Event("change", { bubbles: true }));
+    return { n: document.querySelectorAll("#grid .ticket").length,
+      contagens: [...document.querySelectorAll("#grid .group-title > span")].map((e) => e.textContent) };
+  });
+  assert.ok(imediato.n < 40, `primeira etapa com ${imediato.n} cartões`);
+  await espera(pg, 150);
+  const depois = await pg.evaluate(() => ({ n: document.querySelectorAll("#grid .ticket").length,
+    grupos: [...document.querySelectorAll("#grid section.group")].map((g) => [g.querySelector(".group-title > span").textContent, g.querySelectorAll(".ticket").length]) }));
+  assert.equal(depois.n, 40);
+  for (const [txt, n] of depois.grupos) assert.equal(parseInt(txt), n, `grupo diz ${txt} e tem ${n}`);
+  for (const t of imediato.contagens) assert.ok(depois.grupos.some(([txt]) => txt === t), `contagem ${t} da primeira etapa é a final`);
+});
+
 test("lista nova: um redesenho no meio (banco, favorito) monta a lista inteira na hora", async () => {
   const pg = await abrir();
   await pg.click("#filters-toggle");
@@ -367,4 +398,21 @@ test('"Valendo agora" fica escondido de madrugada, quando nada vale', async () =
   const { abrir: abrir2 } = require("./lib/pagina");
   const pg = await abrir2({ data: "2026-11-18T05:10:00" });
   assert.equal(await pg.$eval("#agora", (e) => e.hidden), true);
+});
+
+test("site: com página nova, recarrega sozinho quando a aba vai para segundo plano (e volta ao mesmo ponto)", async () => {
+  const pg = await abrir({ site: true });
+  await pg.evaluate(() => { window.__marca = 1; scrollTo(0, 600); });
+  await espera(pg, 400);
+  // o service worker avisa que guardou uma página nova
+  await pg.evaluate(() => navigator.serviceWorker.dispatchEvent(new MessageEvent("message", { data: { tipo: "pagina" } })));
+  await espera(pg, 100);
+  assert.equal(await pg.evaluate(() => window.__marca), 1, "com a aba visível, nada acontece");
+  assert.equal(await pg.$eval("#toast", (t) => t.hidden), true, "sem aviso pedindo para fechar e abrir");
+  const nav = pg.waitForEvent("framenavigated");
+  await pg.evaluate(() => { Object.defineProperty(document, "hidden", { configurable: true, get: () => true }); document.dispatchEvent(new Event("visibilitychange")); });
+  await nav;
+  await pg.waitForSelector(".ticket"); await espera(pg, 400);
+  assert.equal(await pg.evaluate(() => window.__marca), undefined, "recarregou");
+  assert.ok(Math.abs((await pg.evaluate(() => scrollY)) - 600) < 5, "voltou ao mesmo ponto da lista");
 });

@@ -4,8 +4,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- media="print" não bloqueia a primeira pintura; o script troca para "all" quando a folha chegar -->
-<link rel="stylesheet" id="fontes" media="print" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
-<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"></noscript>
+<!-- Archivo só nas larguras (62–100%) e pesos (700–900) que a página usa: o arquivo cai de 90 para 51 KB.
+     Figtree (400–700) e IBM Plex Mono (500 e 600) já vêm só com o que é usado. -->
+<link rel="stylesheet" id="fontes" media="print" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..100,700..900&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap"></noscript>
 <style>
 /* Layout: carteira de tickets 2×1 — canhoto colorido por categoria, picote, corpo com a oferta; barra de busca fixa no topo. */
 :root {
@@ -297,6 +299,9 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   position: relative; display: grid; grid-template-columns: 74px minmax(0, 1fr);
   background: var(--surface); border-radius: var(--r-ticket); box-shadow: var(--shadow);
   min-height: 168px;
+  /* o layout de dentro do cartão não mexe no resto da página: favoritar, abrir um painel ou expandir
+     recalcula só ele (sem paint: os furos do picote saem 8 px para fora do cartão) */
+  contain: layout style;
 }
 /* Sem content-visibility nos cartões: no Chrome, cartões fora da tela ficam vazios na árvore de
    acessibilidade (o TalkBack veria a lista acabar na tela atual). Conferido em 17/11/2026. */
@@ -349,10 +354,16 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
   flex: none; width: 40px; height: 40px; margin: -6px -6px 0 0; border-radius: 50%; border: 0; background: transparent;
   display: grid; place-items: center; color: var(--muted);
 }
-.heart svg { width: 24px; height: 24px; transition: transform .15s ease; }
-.heart[aria-pressed="true"] { color: var(--fav); }
-.heart[aria-pressed="true"] svg path { fill: currentColor; }
-.heart:hover svg { transform: scale(1.08); }
+/* Ícones do cartão como máscara num pseudo-elemento: um objeto de layout em vez de dois (svg + path),
+   em cada um dos 40 cartões do lote. A cor vem de currentColor, como antes. */
+.heart::before, .expandir::before, .usebtn[data-act="use"]::before {
+  content: ""; display: block; width: 24px; height: 24px; background: currentColor;
+  -webkit-mask: var(--ico) center / contain no-repeat; mask: var(--ico) center / contain no-repeat;
+  transition: transform .15s ease;
+}
+.heart { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7-4.3-9-8.7C1.6 8.3 3.6 5 6.9 5c2 0 3.3 1.1 5.1 3 1.8-1.9 3.1-3 5.1-3 3.3 0 5.3 3.3 3.9 6.6-2 4.4-9 8.7-9 8.7Z' fill='none' stroke='black' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.heart[aria-pressed="true"] { color: var(--fav); --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 20.3s-7-4.3-9-8.7C1.6 8.3 3.6 5 6.9 5c2 0 3.3 1.1 5.1 3 1.8-1.9 3.1-3 5.1-3 3.3 0 5.3 3.3 3.9 6.6-2 4.4-9 8.7-9 8.7Z' fill='black' stroke='black' stroke-width='1.9' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.heart:hover::before { transform: scale(1.08); }
 .heart:disabled { cursor: default; }
 
 .tfoot { margin-top: auto; padding-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -411,8 +422,13 @@ h1 .x { color: var(--accent); font-stretch: 100%; font-weight: 700; font-size: .
 
 /* lista compacta: uma linha por cupom; o botão de expandir mostra o cartão completo (regras, mapa, usar) */
 .expandir { display: none; flex: none; width: 40px; height: 40px; margin: -6px -6px 0 -4px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); place-items: center; }
-.expandir svg { transition: transform .15s ease; }
-.expandir[aria-expanded="true"] svg { transform: rotate(180deg); }
+.expandir { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.expandir::before { width: 18px; height: 18px; }
+.usebtn[data-act="use"] { --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.usebtn[data-act="use"]::before { width: 14px; height: 14px; }
+.expandir[aria-expanded="true"]::before { transform: rotate(180deg); }
+/* alto contraste do Windows: o fundo seria trocado pela cor da página e o ícone sumiria */
+@media (forced-colors: active) { .heart::before, .expandir::before, .usebtn[data-act="use"]::before { forced-color-adjust: none; background: ButtonText; } }
 .grid.compacto .expandir { display: grid; }
 .grid.compacto, .grid.compacto .group-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .grid.compacto .ticket:not(.expandido) { grid-template-columns: minmax(0, 1fr); min-height: 0; }
@@ -502,12 +518,16 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   .controls #fav-toggle { padding: 0 11px; }
   /* os quatro dividem a linha: cabem inteiros de 320 px para cima (antes o coração ficava cortado em 320 e 360 px) */
   .controls { gap: 6px; margin-right: 0; padding-right: 0; }
-  .controls > .chipbtn { flex: 1 0 auto; justify-content: center; padding: 0 9px; }
+  /* encolhem em vez de transbordar se a fonte do aparelho for mais larga (o rótulo cede primeiro) */
+  .controls > .chipbtn { flex: 1 1 auto; min-width: 0; justify-content: center; padding: 0 9px; }
+  .controls > .chipbtn > span:not(.badge):not(.sr-only) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .controls > #fav-toggle { flex: 0 0 auto; }
   @media (max-width: 350px) {
     .controls { gap: 5px; }
     .controls > .chipbtn { padding: 0 6px; gap: 4px; }
     .controls > #fav-toggle { padding: 0 8px; }
+    /* só o texto em Perto e Agora: sobra folga mesmo com uma fonte do sistema mais larga (sem as do Google) */
+    #perto-toggle svg, #agora-toggle svg { display: none; }
   }
   /* a barra fixa some ao rolar para baixo e volta ao rolar para cima (mais lista na tela);
      sem desfoque por trás, que custa um redesenho a cada quadro da rolagem nos celulares mais simples */
@@ -804,7 +824,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     raio: null, // distância máxima em km
     abaFiltros: "quando", // aba aberta no painel de filtros
     planosAbertos: false, // detalhe dos planos no topo
-    compacto: false, expandidos: new Set(), // lista compacta e cupons abertos nela
+    compacto: true, expandidos: new Set(), // lista compacta (padrão desde a versão 45) e cupons abertos nela
     limite: 40, // quantos cartões aparecem (lotes de LOTE); volta ao primeiro lote quando a lista muda
     grupo: null, // id de um cupom: mostra só ele e o mesmo lugar nos outros programas (não fica salvo)
     filtersOpen: false,
@@ -836,7 +856,9 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (typeof p.pertoBairro === "string") state.pertoPendente = p.pertoBairro;
       if (["quando", "oque", "onde"].includes(p.abaFiltros)) state.abaFiltros = p.abaFiltros;
       state.planosAbertos = !!p.planosAbertos;
-      state.compacto = !!p.compacto;
+      // "lista" substituiu "compacto" na versão 45, quando a compacta virou o padrão: a escolha antiga
+      // (que ficava gravada como false para todo mundo) não vale mais
+      state.compacto = p.lista !== "completa";
       if ([1, 2, 5, 10].includes(p.raio)) state.raio = p.raio;
     }
   } catch (_) {}
@@ -845,7 +867,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       localStorage.setItem(PREFS_KEY, JSON.stringify({
         status: state.status, fav: state.fav, sort: state.sort, programas: [...state.programas],
         categorias: [...state.categorias], ganhe: state.ganhe, regras: state.regras,
-        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, compacto: state.compacto, pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
+        abaFiltros: state.abaFiltros, planosAbertos: state.planosAbertos, lista: state.compacto ? "compacta" : "completa", pertoBairro: state.perto?.tipo === "bairro" ? state.perto.chave : (state.perto ? null : state.pertoPendente), raio: state.raio,
         quando: state.quando, data: state.data === today() ? "hoje" : state.data, aceita: [...state.aceita], turnos: [...state.turnos], shoppings: [...state.shoppings], cidades: [...state.cidades], tipos: [...state.tipos], comods: [...state.comods], dias: [...state.dias], bairros: [...state.bairros],
       }));
     } catch (_) {}
@@ -899,7 +921,6 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (use.length === 1) return use[0].slice(0, 2);
     return (use[0][0] + use[1][0]);
   }
-  const heartSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.3s-7-4.3-9-8.7C1.6 8.3 3.6 5 6.9 5c2 0 3.3 1.1 5.1 3 1.8-1.9 3.1-3 5.1-3 3.3 0 5.3 3.3 3.9 6.6-2 4.4-9 8.7-9 8.7Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>';
 
   const DIAS = ["dom", "seg", "ter", "qua", "qui", "sex", "sab"];
   const DIAS_NOME = { dom: "Domingo", seg: "Segunda", ter: "Terça", qua: "Quarta", qui: "Quinta", sex: "Sexta", sab: "Sábado" };
@@ -1368,8 +1389,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <h${hl} class="tname" id="${hid}" tabindex="-1">${esc(c.nome)}${c.usado ? '<span class="sr-only">, já usado</span>' : ""}</h${hl}>
         <div class="meta"><span class="prog" style="--pc: var(--${prog ? prog.cls.replace("prog-", "p-") : "muted"})">${esc(prog?.nome || c.programa)}</span><span class="sep" aria-hidden="true">·</span><span class="sr-only">, </span><span>${esc(c.categoria || "Sem categoria")}</span></div>
       </div>
-      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}>${heartSvg}</button>
-      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+      <button type="button" class="heart" data-act="fav" aria-pressed="${c.favorito ? "true" : "false"}" aria-label="Favorito: ${esc(c.nome)}"${ro}></button>
+      <button type="button" class="expandir" data-act="expandir" aria-expanded="${exp}" aria-label="Cartão completo: ${esc(c.nome)}"></button>
     </div>
     ${offer}
     ${loc}
@@ -1379,7 +1400,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     <div class="tfoot">
       ${c.usado
         ? `<button type="button" class="usebtn" data-act="unuse" aria-label="Voltar para disponíveis: ${esc(c.nome)}"${ro}>Voltar para disponíveis</button>`
-        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Marcar como usado</button>`}
+        : `<button type="button" class="usebtn" data-act="use" aria-label="Marcar como usado: ${esc(c.nome)}"${ro}>Marcar como usado</button>`}
       <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener" aria-label="Ver ${esc(c.nome)} no mapa (abre em outra aba)">Mapa <span aria-hidden="true">↗</span></a>
       ${c.usado && c.usadoEm ? `<span class="usedate">usado ${esc(fmtDate(c.usadoEm))}</span>` : ""}
     </div>
@@ -1789,12 +1810,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   let posicaoSalva = null, rolarPara = null;
   try { posicaoSalva = JSON.parse(sessionStorage.getItem(POS_KEY) || "null"); } catch (_) {}
   let _posTimer = null;
+  function guardaPosicaoJa() {
+    clearTimeout(_posTimer);
+    if (state.phase !== "ready" || state.grupo || state.filtersOpen) return;
+    try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY) })); } catch (_) {}
+  }
   function guardaPosicao() {
     clearTimeout(_posTimer);
-    _posTimer = setTimeout(() => {
-      if (state.phase !== "ready" || state.grupo || state.filtersOpen) return;
-      try { sessionStorage.setItem(POS_KEY, JSON.stringify({ sig: assinaturaLista, limite: state.limite, y: Math.round(scrollY) })); } catch (_) {}
-    }, 300);
+    _posTimer = setTimeout(guardaPosicaoJa, 300);
   }
   addEventListener("scroll", guardaPosicao, { passive: true });
   function assinatura() { // o que define a lista; marcar como usado ou favoritar não muda o lote
@@ -1836,6 +1859,13 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   const PRIMEIROS = 12;
   let _restoGrade = 0; // muda a cada redesenho: o resto agendado por um redesenho antigo desiste
   const cancelaResto = () => { _restoGrade++; };
+  // em duas etapas só numa lista nova, sem rolagem a restaurar e sem foco a devolver dentro da grade
+  const podeEtapas = (listaNova, n, grid) => listaNova && !state.grupo && n > PRIMEIROS && rolarPara === null && !focoPendente && !grid.contains(document.activeElement);
+  function agendaResto(fn) {
+    // um quadro para pintar os primeiros; o resto entra na tarefa seguinte, antes de a pessoa rolar até ele
+    const vez = _restoGrade;
+    requestAnimationFrame(() => setTimeout(() => { if (vez === _restoGrade) fn(); }, 0));
+  }
   function renderGrid() {
     cancelaResto();
     const grid = $("grid");
@@ -1919,39 +1949,46 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       if (!gridDeCartoes) grid.innerHTML = "";
       // seções reaproveitadas pelo nome do grupo; os cartões, pelo id
       const secoes = new Map([...grid.querySelectorAll(":scope > section.group")].map((sec) => [sec.dataset.grupo, sec]));
-      reconcilia(grid, [...groups].map(([k, items]) => {
+      // em duas etapas, como na lista simples: a contagem de cada grupo já é a final; os cartões novos
+      // depois dos primeiros entram logo depois da primeira pintura (grupos que ficam vazios também)
+      const noDom = new Set(grid.querySelectorAll(".ticket")); // seções novas ainda não estão no DOM
+      const naGrade = (c) => noDom.has(_cartoes.get(`4:${c.id}`)?.el);
+      let primeira = null;
+      if (podeEtapas(listaNova, shown.length, grid)) {
+        const parte = new Set(shown.filter((c, i) => i < PRIMEIROS || naGrade(c)));
+        if (shown.length - parte.size >= 8) primeira = parte;
+      }
+      const monta = (filtro) => reconcilia(grid, [...groups].flatMap(([k, items]) => {
+        const vis = filtro ? items.filter((c) => filtro.has(c)) : items;
+        if (!vis.length) return [];
         let sec = secoes.get(k);
         if (!sec) {
           _tpl.innerHTML = `<section class="group" aria-label="${esc(k)}"><h3 class="group-title">${esc(k)} <span></span></h3><div class="group-grid"></div></section>`;
           sec = _tpl.content.firstElementChild;
           sec.dataset.grupo = k;
+          secoes.set(k, sec);
         }
         sec.querySelector(".group-title span").innerHTML = nCupons(items.length);
-        reconcilia(sec.querySelector(".group-grid"), items.map((c) => cartaoEl(c, 4)));
-        return sec;
+        reconcilia(sec.querySelector(".group-grid"), vis.map((c) => cartaoEl(c, 4)));
+        return [sec];
       }));
+      monta(primeira);
+      if (primeira) agendaResto(() => monta(null));
     } else {
       const cls = `grid${state.compacto ? " compacto" : ""}`;
       if (grid.className !== cls) grid.className = cls;
       if (!gridDeCartoes) grid.innerHTML = "";
-      // em duas etapas só numa lista nova, sem rolagem a restaurar e sem foco a devolver dentro da grade
       // Cartões que já estão na grade ficam (tirar e devolver custaria mais); só os novos depois dos
       // primeiros esperam. Se forem poucos, monta tudo de uma vez.
       let agora = shown;
-      if (listaNova && !state.grupo && shown.length > PRIMEIROS && rolarPara === null && !focoPendente && !grid.contains(document.activeElement)) {
+      if (podeEtapas(listaNova, shown.length, grid)) {
         const naGrade = (c) => _cartoes.get(`3:${c.id}`)?.el.parentNode === grid;
         const parte = shown.filter((c, i) => i < PRIMEIROS || naGrade(c));
         if (shown.length - parte.length >= 8) agora = parte;
       }
       const emEtapas = agora !== shown;
       reconcilia(grid, agora.map((c) => cartaoEl(c)));
-      if (emEtapas) {
-        // um quadro para pintar os primeiros; o resto entra na tarefa seguinte, antes de a pessoa rolar até ele
-        const vez = _restoGrade;
-        requestAnimationFrame(() => setTimeout(() => {
-          if (vez === _restoGrade) reconcilia(grid, shown.map((c) => cartaoEl(c)));
-        }, 0));
-      }
+      if (emEtapas) agendaResto(() => reconcilia(grid, shown.map((c) => cartaoEl(c))));
     }
     gridDeCartoes = true;
   }
@@ -2125,12 +2162,38 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       return c && Array.isArray(c.cupons) && c.cupons.length && typeof c.em === "string" ? c : null;
     } catch (_) { return null; }
   }
+  // Lista guardada no aparelho (e a cópia publicada, gerada do mesmo jeito por scripts/gerar-snapshot.py):
+  // sem valores vazios (null, listas vazias, false onde faltar quer dizer o mesmo) e sem as regras,
+  // que só o painel aberto e a busca usam. ~517 -> ~367 KB para ler na abertura.
+  // feriados/datasComemorativas: false quer dizer "não vale" e ficam.
+  const FALSO_OPCIONAL = new Set(["favorito", "usado", "maisUnidades", "verRegras"]);
+  function enxuto(c) {
+    const o = {};
+    for (const k in c) {
+      const v = c[k];
+      if (k === "regras" || v == null || (Array.isArray(v) && !v.length) || (v === false && FALSO_OPCIONAL.has(k))) continue;
+      o[k] = v;
+    }
+    return o;
+  }
+  // cópia publicada sem regras: elas vêm de regras.json ({ id: texto }) em segundo plano
+  async function carregaRegras(arquivo) {
+    try {
+      const r = await fetch(arquivo, { cache: "no-cache" });
+      if (!r.ok) return;
+      const regras = await r.json();
+      if (state.copiaDe === null) return; // o banco chegou antes: ele já traz as regras
+      // objetos novos: o texto de busca e os demais caches de cada cupom são refeitos
+      state.cupons = state.cupons.map((c) => (regras[c.id] && !c.regras ? { ...c, regras: regras[c.id] } : c));
+      render();
+    } catch (_) {}
+  }
   let _cacheTimer = null;
   function guardaCache() {
     clearTimeout(_cacheTimer);
     // ~500 KB de JSON: grava quando o navegador estiver ocioso, para não atrasar o próximo toque
     _cacheTimer = setTimeout(() => ocioso(() => {
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons })); }
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ em: new Date().toISOString(), cupons: state.cupons.map(enxuto) })); }
       catch (_) { try { localStorage.removeItem(CACHE_KEY); } catch (_) {} } // sem espaço: melhor nenhuma cópia que uma velha
     }), 1500);
   }
@@ -2205,6 +2268,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.copiaDe = data.geradoEm || "";
       state.readOnly = true;
       state.phase = "ready";
+      if (typeof data.regras === "string") ocioso(() => carregaRegras(data.regras));
     } catch (_) {
       // sem cópia publicada: se há a lista guardada neste aparelho, ela fica, só para consulta
       if (state.deCache) { state.copiaDe = state.deCache; state.readOnly = true; }
@@ -2561,13 +2625,23 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
 
   // Site do GitHub Pages (docs/, gerado por scripts/gerar-site.py com a marca "cupons-site"): o service worker
   // guarda a página e os dados no aparelho (abre na hora, até sem sinal). No artifact a marca não existe.
+  // Site do Pages: com página nova guardada pelo service worker, recarrega sozinho na próxima vez que a
+  // aba for para segundo plano (ninguém vê a troca; a posição na lista volta pelo sessionStorage).
+  // Já em segundo plano, recarrega na hora. Antes, um aviso pedia para fechar e abrir de novo.
+  let _versaoNova = false;
+  function versaoNova() {
+    if (_versaoNova) return;
+    _versaoNova = true;
+    if (document.hidden) { guardaPosicaoJa(); location.reload(); return; }
+    document.addEventListener("visibilitychange", () => { if (document.hidden) { guardaPosicaoJa(); location.reload(); } });
+  }
   if (document.querySelector('meta[name="cupons-site"]') && "serviceWorker" in navigator) {
     try {
       navigator.serviceWorker.register("sw.js").catch(() => {});
       navigator.serviceWorker.addEventListener("message", (e) => {
         const tipo = e.data && e.data.tipo;
         if (tipo === "snapshot" && state.copiaDe !== null) carregaCopia("nodb"); // cópia nova: troca a lista na hora
-        else if (tipo === "pagina") toast("Há uma versão nova do site. Feche e abra de novo para ver.");
+        else if (tipo === "pagina") versaoNova();
       });
       navigator.serviceWorker.startMessages(); // com addEventListener, as mensagens só chegam depois disto
     } catch (_) {}

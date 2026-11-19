@@ -74,3 +74,47 @@ test("lista guardada estragada é ignorada", async () => {
   assert.ok((await pg.$$eval("#grid .ticket", (t) => t.length)) > 0);
   assert.deepEqual(pg.erros, []);
 });
+
+// lista guardada e cópia publicada enxutas: sem regras e sem valores vazios
+test("a lista guardada vai enxuta: sem regras nem vazios, com feriados false mantido", async () => {
+  const pg = await abrir();
+  await pg.waitForTimeout(1700);
+  const c = await lerCache(pg);
+  const todos = c.cupons;
+  assert.ok(todos.every((x) => !("regras" in x)), "sem regras");
+  assert.ok(todos.every((x) => Object.values(x).every((v) => v !== null && !(Array.isArray(v) && !v.length))), "sem null nem listas vazias");
+  assert.ok(todos.every((x) => x.favorito !== false && x.usado !== false), "favorito/usado false não são guardados");
+  assert.ok(todos.some((x) => x.feriados === false), "feriados: false continua (quer dizer que não vale)");
+  const bruto = JSON.stringify(cupons()).length, guardado = JSON.stringify(todos).length;
+  assert.ok(guardado < bruto * 0.8, `${Math.round(guardado / 1024)} KB x ${Math.round(bruto / 1024)} KB`);
+});
+
+// cópia publicada como scripts/gerar-snapshot.py gera
+function copiaPublicada() {
+  const FALSO = new Set(["favorito", "usado", "maisUnidades", "verRegras"]);
+  const cs = cupons();
+  const regras = Object.fromEntries(cs.filter((c) => c.regras).map((c) => [c.id, c.regras]));
+  const enx = cs.map((c) => Object.fromEntries(Object.entries(c).filter(([k, v]) => k !== "regras" && v != null && !(Array.isArray(v) && !v.length) && !(v === false && FALSO.has(k)))));
+  return { snapshot: { geradoEm: "2026-11-18", regras: "regras.json", cupons: enx }, regras, cs };
+}
+
+test("sem login: a cópia publicada vem sem regras e elas chegam depois (painel e busca)", async () => {
+  const { snapshot, regras, cs } = copiaPublicada();
+  // palavra que só aparece nas regras de algum cupom
+  const norm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const fora = norm(cs.map((c) => JSON.stringify({ ...c, regras: "" })).join(" "));
+  let palavra = null, dono = null;
+  for (const c of cs.filter((x) => x.regras && !x.usado)) {
+    palavra = norm(c.regras).split(/[^a-z]+/).find((w) => w.length >= 8 && !fora.includes(w));
+    if (palavra) { dono = c; break; }
+  }
+  assert.ok(palavra, "achou uma palavra só das regras");
+  const pg = await abrir({ semBanco: true, snapshot, regras });
+  await pg.waitForFunction((id) => document.querySelector(`.ticket[data-id="${id}"]`) || true, dono.id);
+  await pg.fill("#q", palavra);
+  await pg.waitForFunction((id) => !!document.querySelector(`#grid .ticket[data-id="${CSS.escape(id)}"]`), dono.id, { timeout: 4000 });
+  await pg.click(`#grid .ticket[data-id="${dono.id}"] .det:not(.outros) summary`);
+  await pg.waitForTimeout(100);
+  const txt = await pg.$eval(`#grid .ticket[data-id="${dono.id}"] .det-body`, (e) => e.textContent);
+  assert.ok(txt.includes("Regras do estabelecimento"), "o painel mostra as regras");
+});

@@ -95,3 +95,11 @@ for (const tema of ["light", "dark"]) {
     assert.deepEqual(await violacoes(pg), [], "cartão com os dois painéis abertos");
   });
 }
+
+test("axe sem violações na lista compacta (o padrão), com um cartão expandido", { skip: !axe && "rode npm install em tests/" }, async () => {
+  const pg = await abrir({ compacta: true, largura: 412, data: "2026-11-19T20:00:00" });
+  assert.deepEqual(await violacoes(pg), [], "lista compacta");
+  await pg.click("#grid .ticket [data-act=expandir]");
+  await espera(pg, 150);
+  assert.deepEqual(await violacoes(pg), [], "cartão expandido");
+});

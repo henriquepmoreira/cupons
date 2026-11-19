@@ -3,9 +3,9 @@
 // Guarda a página, a cópia dos cupons, as coordenadas, os ícones e as fontes no aparelho:
 // o site abre na hora (mesmo sem sinal) com o que está guardado e, em paralelo, busca a versão
 // nova na rede. Se a cópia dos cupons mudou, avisa a página, que recarrega a lista sozinha;
-// se a página mudou, avisa para fechar e abrir de novo.
+// se a página mudou, avisa também, e ela se recarrega na próxima vez que a aba for para segundo plano.
 const CACHE = "cupons-site-v1";
-const ESSENCIAIS = ["index.html", "snapshot.json", "geo.json", "manifest.webmanifest", "icone-192.png", "icone-512.png", "apple-touch-icon.png"];
+const ESSENCIAIS = ["index.html", "snapshot.json", "regras.json", "geo.json", "manifest.webmanifest", "icone-192.png", "icone-512.png", "apple-touch-icon.png"];
 const FONTES = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {
