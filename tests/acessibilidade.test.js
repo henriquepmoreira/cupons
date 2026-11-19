@@ -512,7 +512,7 @@ test("com o Filtros em tela cheia, o total e os avisos continuam chegando ao lei
 });
 
 // Teste de estresse de 19/11/2026 (décima rodada)
-test("Filtros aberto deitado e o celular gira: o foco entra no diálogo (não cai no começo da página)", async () => {
+test("Filtros aberto e o celular gira (deitado ↔ em pé): o foco fica no painel (não cai no começo da página)", async () => {
   const pg = await abrir({ largura: 844, altura: 412 });
   await pg.click("#filters-toggle");
   await espera(pg, 200);
@@ -523,6 +523,14 @@ test("Filtros aberto deitado e o celular gira: o foco entra no diálogo (não ca
   await pg.setViewportSize({ width: 844, height: 412 });
   await espera(pg, 400);
   assert.deepEqual(await pg.evaluate(() => [document.querySelector("main").inert, history.state?.cupons || null]), [false, null], "girando de volta, nada fica inerte nem sobra no histórico");
+  // décima sexta rodada (fuzz): o título "Filtros" só existe em tela cheia; o foco nele caía no começo da página
+  assert.deepEqual(await pg.evaluate(() => [document.activeElement.getAttribute("role"), document.activeElement.getAttribute("aria-selected")]), ["tab", "true"], "foco na aba aberta");
+  await pg.setViewportSize({ width: 412, height: 844 });
+  await espera(pg, 300);
+  await pg.focus("#filters-close");
+  await pg.setViewportSize({ width: 844, height: 412 });
+  await espera(pg, 400);
+  assert.equal(await pg.evaluate(() => document.activeElement.getAttribute("role")), "tab", "também com o foco no ×");
 });
 
 // Teste de estresse de 19/11/2026 (décima primeira rodada): gravação recusada pelo banco
