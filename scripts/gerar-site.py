@@ -9,7 +9,7 @@ Uso:
 Gera:
   docs/index.html    cupons.html dentro de um documento completo (o artifact põe esse
                      invólucro sozinho; o Pages serve o arquivo como está)
-  docs/geo.json      cópia de data/geo.json (distâncias e "Perto de")
+  docs/geo.json      data/geo.json compacto (distâncias e "Perto de"), pelo gerar-snapshot.py
   docs/snapshot.json cópia dos cupons, igual à cópia sem login do artifact
   docs/regras.json   regras de cada cupom (a página busca em segundo plano)
   docs/.nojekyll     o Pages serve os arquivos sem processar
@@ -56,7 +56,6 @@ def main(banco: str) -> None:
     DOCS.mkdir(exist_ok=True)
     pagina = (RAIZ / "cupons.html").read_text(encoding="utf-8")
     (DOCS / "index.html").write_text(CABECA + pagina + RODAPE, encoding="utf-8")
-    shutil.copyfile(RAIZ / "data" / "geo.json", DOCS / "geo.json")
     subprocess.run([sys.executable, str(RAIZ / "scripts" / "gerar-snapshot.py"), banco, str(DOCS / "snapshot.json")], check=True)
     (DOCS / ".nojekyll").write_text("", encoding="utf-8")
     # service worker (offline e abertura na hora), manifesto e ícones do app na Tela de Início

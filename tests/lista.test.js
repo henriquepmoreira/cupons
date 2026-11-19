@@ -416,3 +416,42 @@ test("site: com página nova, recarrega sozinho quando a aba vai para segundo pl
   assert.equal(await pg.evaluate(() => window.__marca), undefined, "recarregou");
   assert.ok(Math.abs((await pg.evaluate(() => scrollY)) - 600) < 5, "voltou ao mesmo ponto da lista");
 });
+
+test("compacta: tocar na linha abre o cartão; tocar no coração não abre", async () => {
+  const pg = await abrir({ compacta: true });
+  const card = pg.locator("#grid .ticket").first();
+  await card.locator(".heart").click();
+  await espera(pg);
+  assert.equal(await card.evaluate((t) => t.classList.contains("expandido")), false, "o coração só favorita");
+  await card.locator(".offer").click();
+  await espera(pg);
+  assert.equal(await card.evaluate((t) => t.classList.contains("expandido")), true, "tocar no texto abre");
+  assert.equal(await card.locator('[data-act="expandir"]').getAttribute("aria-expanded"), "true");
+  await card.locator(".offer").click(); // aberto, tocar no texto não fecha (a seta fecha)
+  await espera(pg);
+  assert.equal(await card.evaluate((t) => t.classList.contains("expandido")), true);
+});
+
+test("compacta: ✓ na linha marca como usado sem abrir; Desfazer devolve o foco ao ✓", async () => {
+  const pg = await abrir({ compacta: true });
+  const { id, nome } = await pg.$eval("#grid .ticket", (t) => ({ id: t.dataset.id, nome: t.querySelector(".tname").textContent }));
+  const rapido = pg.locator(`.ticket[data-id="${id}"] [data-act="usar"]`);
+  assert.equal(await rapido.getAttribute("aria-label"), `Marcar como usado: ${nome}`);
+  await rapido.focus();
+  await pg.keyboard.press("Enter");
+  await espera(pg, 150);
+  assert.equal(await pg.$(`#grid .ticket[data-id="${id}"]`), null, "saiu dos disponíveis");
+  assert.ok((await pg.evaluate(() => window.__escritas.at(-1))).patch.usado);
+  const f = await focado(pg);
+  assert.match(f.cls, /tname/, "foco no nome do cupom vizinho");
+  await pg.click("#toast-undo");
+  await espera(pg, 150);
+  const g = await focado(pg);
+  assert.equal(g.card, id);
+  assert.equal(await pg.evaluate(() => document.activeElement.dataset.act), "usar", "foco de volta no ✓ (visível na linha)");
+});
+
+test("lista completa: o ✓ rápido não aparece nem é lido", async () => {
+  const pg = await abrir();
+  assert.equal(await pg.$eval("#grid .ticket [data-act=usar]", (b) => getComputedStyle(b).display), "none");
+});

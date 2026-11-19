@@ -1,6 +1,6 @@
 // Service worker do site do GitHub Pages (docs/). Copiado por scripts/gerar-site.py.
 //
-// Guarda a página, a cópia dos cupons, as coordenadas, os ícones e as fontes no aparelho:
+// Guarda a página, a cópia dos cupons, as coordenadas, os ícones e as fontes (já na instalação) no aparelho:
 // o site abre na hora (mesmo sem sinal) com o que está guardado e, em paralelo, busca a versão
 // nova na rede. Se a cópia dos cupons mudou, avisa a página, que recarrega a lista sozinha;
 // se a página mudou, avisa também, e ela se recarrega na próxima vez que a aba for para segundo plano.
@@ -9,8 +9,30 @@ const ESSENCIAIS = ["index.html", "snapshot.json", "regras.json", "geo.json", "m
 const FONTES = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ESSENCIAIS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ESSENCIAIS).then(() => guardaFontes(c))).then(() => self.skipWaiting()));
 });
+
+// Fontes já na instalação: sem isto, a primeira abertura sem sinal saía com a fonte do sistema.
+// O endereço vem da própria página guardada (o <link id="fontes">), para não ficar duplicado aqui;
+// só o subconjunto latino, o único que a página usa. Uma falha aqui não impede a instalação.
+async function guardaFontes(c) {
+  try {
+    const pagina = await (await c.match(chave(new URL("index.html", self.location.href).href))).text();
+    const m = pagina.match(/href="(https:\/\/fonts\.googleapis\.com\/css2[^"]+)"/);
+    if (!m) return;
+    const css = new URL(m[1].replace(/&amp;/g, "&")).href;
+    const r = await fetch(css, { mode: "cors" });
+    if (!r.ok) return;
+    const texto = await r.clone().text();
+    await c.put(css, r);
+    const latinos = texto.split("/* ").filter((b) => b.startsWith("latin */"));
+    const arquivos = [...new Set(latinos.flatMap((b) => b.match(/https:\/\/fonts\.gstatic\.com\/[^)'"\s]+/g) || []))];
+    await Promise.all(arquivos.map(async (u) => {
+      const f = await fetch(u, { mode: "cors" });
+      if (f.ok) await c.put(u, f);
+    }));
+  } catch (_) {}
+}
 
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys()

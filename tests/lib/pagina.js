@@ -66,6 +66,7 @@ async function abrirNavegador() {
  * @param {"light"|"dark"} [o.tema]
  * @param {{latitude:number, longitude:number}} [o.localizacao]  com permissão concedida
  * @param {boolean} [o.geo]        serve data/geo.json (padrão true)
+ * @param {string} [o.geoJson]     outro conteúdo para geo.json (ex.: o compacto publicado)
  * @param {string} [o.arquivo]     outra versão da página (padrão cupons.html)
  * @param {(docs: object[]) => object[]|void} [o.ajustar]  muda os cupons antes de abrir
  * @param {number} [o.atrasoBanco] ms até o banco responder
@@ -107,7 +108,7 @@ async function abrir(o = {}) {
   await pg.route(ORIGEM + "regras.json", (r) => (o.regras ? r.fulfill({ contentType: "application/json", body: JSON.stringify(o.regras) }) : r.fulfill({ status: 404, body: "" })));
   await pg.route(ORIGEM + "geo.json", (r) => (o.geo === false
     ? r.fulfill({ status: 404, body: "" })
-    : r.fulfill({ contentType: "application/json", body: fs.readFileSync(path.join(RAIZ, "data", "geo.json"), "utf8") })));
+    : r.fulfill({ contentType: "application/json", body: o.geoJson || fs.readFileSync(path.join(RAIZ, "data", "geo.json"), "utf8") })));
   await pg.route(ORIGEM + "snapshot.json", (r) => (o.snapshot ? r.fulfill({ contentType: "application/json", body: JSON.stringify(o.snapshot) }) : r.fulfill({ status: 404, body: "" })));
   await pg.goto(ORIGEM);
   if (o.esperarCartoes === false) return pg;

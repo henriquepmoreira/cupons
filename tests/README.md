@@ -26,6 +26,7 @@ npm test           # página (node:test + Playwright), geocodificador e sincroni
 - `aba(pg, "onde")` abre o painel Filtros na aba pedida;
 - `ajustar(docs)` muda os cupons antes de abrir, para simular um caso que os dados reais não têm;
 - `atrasoBanco` (ms), `semBanco` e `cache` (`{ em, cupons }` posto no localStorage antes de abrir) simulam banco lento, link aberto sem login e a lista guardada; `esperarCartoes: false` devolve a página logo depois de navegar;
+- `geoJson` troca o conteúdo do `geo.json` (ex.: o compacto publicado);
 - `snapshot` e `regras` servem a cópia publicada e o `regras.json` (sem eles, 404); `site: true` põe a marca do site do Pages (a página registra `sw.js`, que dá 404);
 - lista completa por padrão (os testes leem botões que a compacta esconde); `compacta: true` abre com a compacta, o padrão da página;
 - data e hora fixas (`abrir({ data: "2026-11-20T12:30:00" })`), localização simulada (`localizacao`), tema, largura e preferências salvas.
@@ -45,6 +46,8 @@ As verificações conferem relações ("o chip do feriado tem menos cupons que o
 | `acessibilidade.test.js` | árvore de acessibilidade do Chrome (todo cartão completo; menos de 5 mil nós), poucos nós trocados por favorito, foco nunca sob a barra fixa, axe-core nos temas claro e escuro |
 | `desempenho.test.js` | com a CPU 4× mais lenta, favoritar, atualizar o banco, digitar, abrir o painel Filtros e tocar num chip ficam abaixo de 400 ms |
 | `test_sincronizar.py` | sincronização banco ↔ arquivos: sem diferença, diferença nas duas direções, cupom novo e cupom só no banco |
+| `tamanhos.test.js` | limites de tamanho da página e dos arquivos publicados (gerados de `data/*.json`), cópia enxuta e endereço das fontes |
+| `sw.test.js` | service worker do site no Node: fontes guardadas na instalação (só o subconjunto latino), instalação sem rede para as fontes |
 | `test_gerar_snapshot.py` | cópia enxuta (o que sai e o que fica) e `regras.json` à parte |
 | `test_geocodificar.py` | leitura de rua e número, comparação de bairro, distância, todo endereço dos dados com coordenada |
 

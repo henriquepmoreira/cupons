@@ -8,7 +8,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 
 ## O que a página faz
 
-- Busca por estabelecimento, prato, categoria ou programa (ignora acentos)
+- Busca por estabelecimento, prato, categoria ou programa (ignora acentos), tolerante: sinônimos do assunto (hambúrguer/burger, sorvete/gelato, japonês/sushi, churrasco/parrilla…), plural pelo singular e, quando a palavra não existe em cupom nenhum, as parecidas (erro de digitação), com o aviso "Busca aproximada: “spoletto” como spoleto"
 - Filtros: programa, situação (disponíveis / usados / todos), favoritos, categoria, categoria no app, tipo de benefício (outro igual × igual ou de menor valor), cupons que pedem para ver regras, quando usar (vale agora, aceita em feriados), data (hoje e os próximos 6 dias), dias da semana, comodidades e diferenciais, cidade e bairro
 - Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps, e atalhos "Pet" e "Kids" (os mesmos chips de comodidades)
 - Botão "Agora, perto": liga "Vale agora" e ordena do mais perto ao mais longe num toque; sem localização, usa o bairro escolhido ou abre a aba Onde
@@ -25,7 +25,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Etiqueta de hoje diz o momento: "Agora · até 15:00" (vale agora), "Hoje a partir das 18:00" (ainda vai valer hoje) ou "Encerrado hoje"; acompanha a hora a cada minuto e ao voltar para a aba
 - Primeira tela na hora: a última lista que veio do banco fica guardada no navegador e aparece antes de o banco responder; quando ele chega, a lista é trocada (favoritos e usados valem o banco). Favoritar nesse intervalo funciona e vai ao banco quando ele responder. Se o banco demorar mais de 1,5 s, um aviso discreto diz que a lista é a guardada
 - No celular, o topo é compacto: título numa linha e os números (disponíveis, favoritos, usados) numa linha abaixo, menores; a busca fica a ~190 px do topo (antes 343)
-- Lista compacta, o padrão desde a versão 45: uma linha por cupom, com o cartão completo ao expandir (a seta ao lado do coração). A lista completa fica em Filtros → Lista → "Compacta" e é lembrada
+- Lista compacta, o padrão desde a versão 45: uma linha por cupom, com o cartão completo ao expandir (a seta ao lado do coração, ou um toque em qualquer ponto da linha). O ✓ ao lado do coração marca como usado sem abrir o cartão. A lista completa fica em Filtros → Lista → "Compacta" e é lembrada
 - Quando nada combina, a página sugere qual filtro tirar ("Sem Noite: 12 cupons") e aplica com um toque
 - Ao recarregar a aba, a lista volta ao mesmo ponto (mesmo lote e rolagem), se os filtros forem os mesmos
 - Painel de filtros em três abas (no celular, em tela cheia com "Ver N cupons") (Quando, O quê, Onde) e, acima da lista, a linha "Filtros ativos" com um × para remover cada um

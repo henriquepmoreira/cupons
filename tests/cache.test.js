@@ -118,3 +118,26 @@ test("sem login: a cópia publicada vem sem regras e elas chegam depois (painel 
   const txt = await pg.$eval(`#grid .ticket[data-id="${dono.id}"] .det-body`, (e) => e.textContent);
   assert.ok(txt.includes("Regras do estabelecimento"), "o painel mostra as regras");
 });
+
+test("favoritar regrava só as marcas; ao reabrir com o banco lento, a marca vem delas", async () => {
+  const pg = await abrir();
+  await pg.waitForTimeout(1800);
+  const bruta = () => pg.evaluate(() => localStorage.getItem("cupons-em-dobro:cache:v1"));
+  const antes = await bruta();
+  assert.ok(antes && JSON.parse(antes).h, "lista guardada com hash dos dados");
+  const { id, fav } = await pg.evaluate(() => {
+    const t = document.querySelector("#grid .ticket"); const b = t.querySelector(".heart");
+    b.click(); return { id: t.dataset.id, fav: b.getAttribute("aria-pressed") === "true" };
+  });
+  await pg.waitForTimeout(1800);
+  assert.equal(await bruta(), antes, "a lista inteira não foi regravada");
+  const m = await pg.evaluate(() => JSON.parse(localStorage.getItem("cupons-em-dobro:marcas:v1")));
+  assert.equal(!!m.marcas[id]?.f, fav, "a marca nova está nas marcas");
+  // reabre com o banco demorando: a primeira tela é a lista guardada + marcas
+  await pg.addInitScript("window.__atrasoBanco = 4000");
+  await pg.reload();
+  await pg.waitForSelector(".ticket", { timeout: 1500 });
+  const agora = await pg.$eval(`.ticket[data-id="${id}"] .heart`, (b) => b.getAttribute("aria-pressed") === "true");
+  assert.equal(agora, fav, "a marca aparece antes de o banco responder");
+  assert.match(await pg.$eval("#result-count", (e) => e.textContent), /cupons/);
+});
