@@ -328,10 +328,10 @@ test("gesto de voltar do Android fecha o Filtros em tela cheia, sem sair da pág
   await aba(pg, "onde");
   await fecharFiltros(pg);
   await espera(pg, 300);
-  assert.equal(await pg.evaluate(() => history.state?.cuponsFiltros || null), null, "fechar pelo × tira a entrada do histórico");
+  assert.equal(await pg.evaluate(() => history.state?.cupons || null), null, "fechar pelo × tira a entrada do histórico");
   const pc = await abrir({ largura: 1280 });
   await aba(pc, "quando");
-  assert.equal(await pc.evaluate(() => history.state?.cuponsFiltros || null), null, "no computador (painel, não diálogo) não há entrada");
+  assert.equal(await pc.evaluate(() => history.state?.cupons || null), null, "no computador (painel, não diálogo) não há entrada");
 });
 
 // Teste de estresse de 19/11/2026 (quinta rodada): uma fala por ação
@@ -522,7 +522,7 @@ test("Filtros aberto deitado e o celular gira: o foco entra no diálogo (não ca
   assert.deepEqual(await pg.evaluate(() => [document.getElementById("filters").getAttribute("role"), document.querySelector(".toolbar").inert, document.activeElement.id]), ["dialog", true, "filters-titulo"]);
   await pg.setViewportSize({ width: 844, height: 412 });
   await espera(pg, 400);
-  assert.deepEqual(await pg.evaluate(() => [document.querySelector("main").inert, history.state?.cuponsFiltros || null]), [false, null], "girando de volta, nada fica inerte nem sobra no histórico");
+  assert.deepEqual(await pg.evaluate(() => [document.querySelector("main").inert, history.state?.cupons || null]), [false, null], "girando de volta, nada fica inerte nem sobra no histórico");
 });
 
 // Teste de estresse de 19/11/2026 (décima primeira rodada): gravação recusada pelo banco
@@ -659,5 +659,52 @@ test("site: com \"Perto de mim\" pela localização, o mapa abre com os pontos e
   await pg.click("#mapa-abrir");
   await pg.waitForSelector("#mapa-area path.voce", { timeout: 5000 });
   assert.ok(await pg.$$eval("#mapa-area path.leaflet-interactive", (p) => p.length) > 100);
+  assert.deepEqual(pg.erros, []);
+});
+
+// Teste de estresse de 19/11/2026 (décima quinta rodada): gesto de voltar do Android em todas as camadas
+test("gesto de voltar no \"Ver juntos\": volta à lista com o foco de onde saiu, sem sair da página", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T17:20:00" });
+  const voltar = async () => { await pg.evaluate(() => history.back()).catch(() => {}); await espera(pg, 400); };
+  const emGrupo = () => pg.$eval("#grupo-sair", (b) => !b.hidden);
+  // pelo cartão
+  await pg.click("#grid details[data-outros] > summary");
+  await espera(pg, 200);
+  const id = await pg.$eval("#grid [data-act=grupo]", (b) => b.closest(".ticket").dataset.id);
+  await pg.click("#grid [data-act=grupo]");
+  await espera(pg, 300);
+  assert.equal(await emGrupo(), true);
+  await voltar();
+  assert.ok(await pg.$("#grid .ticket"), "antes, voltar saía da página");
+  assert.equal(await emGrupo(), false);
+  assert.deepEqual(await pg.evaluate(() => [document.activeElement.dataset.act, document.activeElement.closest(".ticket")?.dataset.id]), ["grupo", id]);
+  // pelo "Valendo agora": o foco volta ao item, mesmo com o cupom fora do lote
+  const item = await pg.$eval("#agora [data-agora]", (b) => b.dataset.agora);
+  await pg.click("#agora [data-agora]");
+  await espera(pg, 300);
+  await voltar();
+  assert.equal(await pg.evaluate(() => document.activeElement.dataset.agora), item);
+  // "Ver juntos" → Filtros troca a entrada: um voltar fecha o Filtros e o seguinte não tem nada a fechar
+  await pg.click("#agora [data-agora]");
+  await espera(pg, 300);
+  const len = await pg.evaluate(() => history.length);
+  await pg.click("#filters-toggle");
+  await espera(pg, 300);
+  assert.deepEqual(await pg.evaluate(() => [history.length, history.state?.cupons]), [len, "filtros"], "sem empilhar uma entrada a mais");
+  await voltar();
+  assert.deepEqual(await pg.evaluate(() => [document.getElementById("filters").hidden, history.state?.cupons || null]), [true, null]);
+  // sair pelo botão tira a entrada
+  await pg.click("#agora [data-agora]");
+  await espera(pg, 300);
+  await pg.click("#grupo-sair");
+  await espera(pg, 400);
+  assert.equal(await pg.evaluate(() => history.state?.cupons || null), null);
+  // aba recarregada com o "Ver juntos" aberto: a entrada que sobrou sai (o primeiro voltar não ficaria sem efeito)
+  await pg.click("#agora [data-agora]");
+  await espera(pg, 300);
+  await pg.reload();
+  await pg.waitForSelector("#grid .ticket");
+  await espera(pg, 500);
+  assert.equal(await pg.evaluate(() => history.state?.cupons || null), null);
   assert.deepEqual(pg.erros, []);
 });
