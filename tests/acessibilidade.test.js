@@ -405,3 +405,57 @@ test("sem as coordenadas dos cupons, Perto de mim não diz que ordenou por dist�
   await espera(pg, 1500);
   assert.match(await texto(pg, "#toast-msg"), /coordenadas dos cupons não carregaram/);
 });
+
+// Teste de estresse de 19/11/2026 (sétima rodada): paradas do TalkBack no Chrome do Android
+// Modelo (como BrowserAccessibilityAndroid::IsLeaf): um nó só com filhos de texto vira uma parada; em bloco flex,
+// cada pedaço de texto vira um nó próprio e uma parada própria ("Poa em Dobro", "vírgula", "Restaurante").
+async function paradasDoCartao(pg, sel) {
+  const ax = await arvoreAcessibilidade(pg);
+  const porId = new Map(ax.map((n) => [n.nodeId, n]));
+  const TEXTO = new Set(["StaticText", "InlineTextBox", "LineBreak"]);
+  const ACAO = new Set(["button", "link", "DisclosureTriangle", "heading"]);
+  const vivos = (n) => (n.childIds || []).flatMap((c) => { const x = porId.get(c); return !x ? [] : x.ignored ? vivos(x) : [x]; });
+  const textoDe = (n) => (n.role?.value === "StaticText" ? n.name?.value || "" : n.role?.value === "InlineTextBox" ? "" : vivos(n).map(textoDe).join(" "));
+  const nome = await pg.$eval(`${sel} .tname`, (h) => h.textContent);
+  const art = ax.find((x) => !x.ignored && x.role?.value === "article" && x.name?.value === nome);
+  const out = [];
+  const v = (n) => {
+    const r = n.role?.value, fs = vivos(n);
+    if (ACAO.has(r)) { out.push(n.name?.value || ""); return; }
+    if (r === "StaticText") { out.push(n.name?.value || ""); return; }
+    if (fs.length && fs.every((f) => TEXTO.has(f.role?.value))) { out.push(textoDe(n).replace(/\s+/g, " ").trim()); return; }
+    fs.forEach(v);
+  };
+  vivos(art).forEach(v);
+  return out.filter((t) => t.trim());
+}
+test("cartão: oferta e programa numa parada cada, sem parada só de vírgula", async () => {
+  const pg = await abrir({ largura: 412, compacta: true });
+  const ps = await paradasDoCartao(pg, "#grid .ticket:first-child");
+  assert.deepEqual(ps.filter((t) => /^[\s,.;:·]*$/.test(t)), [], "parada só com pontuação");
+  assert.ok(ps.some((t) => /^Na compra de .+ ganhe .+\.$/.test(t)), `oferta inteira numa parada: ${JSON.stringify(ps)}`);
+  assert.ok(ps.some((t) => /^(Poa em Dobro|Tour Grande Poa|Canoas em Dobro), .+/.test(t)), "programa e categoria juntos");
+  assert.ok(ps.length <= 8, `${ps.length} paradas no cartão compacto`);
+  const topo = await pg.$eval("#st-fala", (p) => p.textContent);
+  assert.match(topo, /^\d+ disponíveis, \d+ favoritos, \d+ usados$/, "números do topo numa frase");
+  assert.equal(await pg.$eval("#stats", (s) => s.getAttribute("aria-hidden")), "true");
+});
+
+test("áreas de toque dos botões só de texto com 44 px (exploração por toque)", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T20:00:00" });
+  await busca(pg, "spoleto");
+  await pg.click("#grid .ticket .outros summary");
+  await espera(pg, 150);
+  const alturas = await pg.$$eval("#agora .linkbtn, #result-clear, #grid .det > summary, #grid .maplink, #grid [data-act=grupo], #q-clear", (es) => es.filter((e) => e.getClientRects().length).map((e) => [e.id || e.className || e.tagName, Math.round(e.getBoundingClientRect().height)]));
+  assert.ok(alturas.length >= 4);
+  assert.deepEqual(alturas.filter(([, h]) => h < 43), []);
+});
+
+test("toque duplo no texto da linha compacta abre o cartão e avisa", async () => {
+  const pg = await abrir({ largura: 412, compacta: true });
+  const nome = await pg.$eval("#grid .ticket .tname", (h) => h.textContent);
+  await pg.click("#grid .ticket .offer");
+  await espera(pg, 300);
+  assert.equal(await pg.$eval("#grid .ticket", (t) => t.classList.contains("expandido")), true);
+  assert.equal(await texto(pg, "#sr-aviso"), `${nome}: cartão completo aberto.`);
+});
