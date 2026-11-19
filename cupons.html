@@ -986,8 +986,11 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
           const v = velhos[i], n = novos[j];
           for (const a of new Set([...v.getAttributeNames(), ...n.getAttributeNames()])) { if (n.hasAttribute(a)) setAttr(v, a, n.getAttribute(a)); else v.removeAttribute(a); }
           if (/^(BUTTON|H2|H3)$/.test(v.tagName)) {
+            // pula o conteúdo, já trocado. Contado antes da troca: velhos é a lista antiga, e o item que ganha ou perde
+            // o ♥ muda de tamanho (contado depois, o resto do bloco desalinhava e o render parava com erro)
+            const pula = v.querySelectorAll("*").length;
             if (v.innerHTML !== n.innerHTML && !morfaFilhos(v, n)) v.innerHTML = n.innerHTML;
-            i += v.querySelectorAll("*").length; j += n.querySelectorAll("*").length; // pula o conteúdo, já trocado
+            i += pula; j += n.querySelectorAll("*").length;
           }
         }
         el.__h = html;

@@ -716,3 +716,21 @@ test("gesto de voltar no \"Ver juntos\": volta à lista com o foco de onde saiu,
   assert.equal(await pg.evaluate(() => history.state?.cupons || null), null);
   assert.deepEqual(pg.erros, []);
 });
+
+// Teste de estresse de 19/11/2026 (décima sétima rodada, fuzz em 7 configurações)
+test("\"Valendo agora\" perto de você: o item que ganha ou perde o ♥ muda no lugar (o render parava com erro)", async () => {
+  const pg = await abrir({ largura: 412, data: "2026-11-19T17:20:00", localizacao: { latitude: -30.0333, longitude: -51.2303 } });
+  await pg.click("#perto-toggle");
+  await espera(pg, 1200);
+  const id = await pg.$eval("#agora [data-agora]", (b) => b.dataset.agora);
+  await pg.focus(`#agora [data-agora="${id}"]`);
+  await pg.evaluate(() => { window.__item = document.activeElement; });
+  const alterna = async () => { await pg.evaluate((id) => { const d = window.__docs.find((x) => x.id === id); d.favorito = !d.favorito; window.__snap(); }, id); await espera(pg, 400); };
+  const estado = () => pg.evaluate((id) => { const b = document.querySelector(`#agora [data-agora="${id}"]`); return { mesmo: b === window.__item, foco: document.activeElement === b, fav: !!b?.querySelector(".fv") }; }, id);
+  const antes = (await estado()).fav;
+  for (const fav of [!antes, antes]) {
+    await alterna(); // outro aparelho
+    assert.deepEqual(pg.erros, []);
+    assert.deepEqual(await estado(), { mesmo: true, foco: true, fav }, "mesmo botão, com o foco, e o ♥ certo");
+  }
+});
