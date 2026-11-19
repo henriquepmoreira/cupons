@@ -8,8 +8,11 @@ Uso:
      query {"limit": 1000}, out_dir <pasta>. Isso cria <pasta>/cupons/<id>.json.
   2. python3 scripts/gerar-snapshot.py <pasta>/cupons <saida>/snapshot.json
   3. Publique a página com files {"snapshot.json": "<saida>/snapshot.json",
-     "regras.json": "<saida>/regras.json"}. Republicar só o cupons.html mantém a cópia
-     anterior no artifact.
+     "regras.json": "<saida>/regras.json", "geo.json": "<saida>/geo.json"}. Republicar só
+     o cupons.html mantém a cópia anterior no artifact.
+
+Também grava, na mesma pasta, geo.json compacto a partir de data/geo.json
+("chave": [lat, lng, "e"|"r"|"b"|"c"], 5 casas decimais ≈ 1 m): 74 -> 52 KB.
 
 A cópia é enxuta, como a lista que a página guarda no aparelho (enxuto() no cupons.html):
 sem valores vazios (null, listas vazias e false em favorito, usado, maisUnidades e
@@ -35,6 +38,14 @@ def enxuto(c: dict) -> dict:
             if k != "regras" and v is not None and v != [] and not (v is False and k in FALSO_OPCIONAL)}
 
 
+RAIZ = pathlib.Path(__file__).resolve().parent.parent
+PRECISAO = {"endereco": "e", "rua": "r", "bairro": "b", "cidade": "c"}
+
+
+def geo_compacto(geo: dict) -> dict:
+    return {k: [round(v["lat"], 5), round(v["lng"], 5), PRECISAO.get(v.get("precisao"), v.get("precisao"))] for k, v in geo.items()}
+
+
 def compacto(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
@@ -53,8 +64,11 @@ def main(src: str, out: str) -> None:
     data = {"geradoEm": datetime.date.today().isoformat(), "regras": "regras.json", "cupons": [enxuto(c) for c in cupons]}
     saida.write_text(compacto(data), encoding="utf-8")
     (saida.parent / "regras.json").write_text(compacto(regras), encoding="utf-8")
+    geo = json.loads((RAIZ / "data" / "geo.json").read_text(encoding="utf-8"))
+    (saida.parent / "geo.json").write_text(compacto(geo_compacto(geo)), encoding="utf-8")
     print(f"{len(cupons)} cupons em {saida} ({saida.stat().st_size // 1024} KB) e {len(regras)} regras em "
-          f"{saida.parent / 'regras.json'} ({(saida.parent / 'regras.json').stat().st_size // 1024} KB)")
+          f"{saida.parent / 'regras.json'} ({(saida.parent / 'regras.json').stat().st_size // 1024} KB); "
+          f"geo.json com {len(geo)} endereços ({(saida.parent / 'geo.json').stat().st_size // 1024} KB)")
 
 
 if __name__ == "__main__":

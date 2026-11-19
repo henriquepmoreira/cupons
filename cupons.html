@@ -2389,15 +2389,19 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     state.raio = state.raio === r ? null : r;
     savePrefs(); render();
   });
-  // geo.json (76 KB) só quando algo usa distância ou bairro de partida: "Mais perto", "Agora, perto", aba Onde,
-  // ou um bairro/ordem salvos da visita anterior
+  // geo.json só quando algo usa distância ou bairro de partida: "Mais perto", "Agora, perto", aba Onde,
+  // ou um bairro/ordem salvos da visita anterior. O publicado é compacto ("chave": [lat, lng, "e"|"r"|"b"|"c"],
+  // 52 KB, gerado por scripts/gerar-snapshot.py); data/geo.json, o de origem, usa { lat, lng, precisao }.
+  const PRECISAO = { e: "endereco", r: "rua", b: "bairro", c: "cidade" };
   let _geo = null;
   function garanteGeo() { if (!_geo) _geo = carregaGeo(); return _geo; }
   async function carregaGeo() {
     try {
       const r = await fetch("geo.json", { cache: "no-cache" });
       if (!r.ok) throw new Error(String(r.status));
-      state.geo = await r.json();
+      const bruto = await r.json(), geo = {};
+      for (const k in bruto) { const v = bruto[k]; geo[k] = Array.isArray(v) ? { lat: v[0], lng: v[1], precisao: PRECISAO[v[2]] || v[2] } : v; }
+      state.geo = geo;
     } catch (_) { state.geoFalhou = true; }
     render();
   }

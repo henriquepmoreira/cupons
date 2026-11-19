@@ -39,6 +39,11 @@ class Arquivos(unittest.TestCase):
             self.assertEqual([c["id"] for c in snap["cupons"]], ["poa-em-dobro--b", "poa-em-dobro--a"])
             self.assertTrue(all("regras" not in c and "favorito" not in c for c in snap["cupons"]))
             self.assertEqual(regras, {"poa-em-dobro--a": "Só no almoço"})
+            geo = json.loads((saida / "geo.json").read_text(encoding="utf-8"))
+            origem = json.loads((RAIZ / "data" / "geo.json").read_text(encoding="utf-8"))
+            self.assertEqual(set(geo), set(origem))
+            k = next(iter(origem))
+            self.assertEqual(geo[k], [round(origem[k]["lat"], 5), round(origem[k]["lng"], 5), origem[k]["precisao"][0]])
 
 
 if __name__ == "__main__":

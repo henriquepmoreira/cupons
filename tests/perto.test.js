@@ -172,3 +172,22 @@ test('"Perto de mim": limpa busca e filtros, ordena todos (abertos ou fechados) 
   assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "false");
   assert.deepEqual(pg.erros, []);
 });
+
+test("geo.json compacto (o publicado) dá a mesma ordem e as mesmas distâncias do original", async () => {
+  const fs = require("fs"), path = require("path");
+  const { RAIZ } = require("./lib/pagina");
+  const P = { endereco: "e", rua: "r", bairro: "b", cidade: "c" };
+  const orig = JSON.parse(fs.readFileSync(path.join(RAIZ, "data", "geo.json"), "utf8"));
+  const geoJson = JSON.stringify(Object.fromEntries(Object.entries(orig).map(([k, v]) => [k, [Math.round(v.lat * 1e5) / 1e5, Math.round(v.lng * 1e5) / 1e5, P[v.precisao]]])));
+  const lista = async (o) => {
+    const pg = await abrir({ localizacao: PRACA_DA_MATRIZ, ...o });
+    await ordenar(pg, "perto");
+    await pg.waitForTimeout(1500);
+    const r = await pg.$$eval("#grid .ticket", (ts) => ts.map((t) => `${t.dataset.id} ${t.querySelector(".loc .dist [aria-hidden]")?.textContent || ""}`));
+    await pg.context().close();
+    return r;
+  };
+  const [a, b] = [await lista({}), await lista({ geoJson })];
+  assert.ok(a.length >= 20);
+  assert.deepEqual(b, a);
+});
