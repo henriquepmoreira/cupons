@@ -200,3 +200,60 @@ test("mapa do site em português e sem os pontos sem nome na árvore", async () 
   assert.ok(ax.some((x) => x.role?.value === "group" && /lista abaixo tem os mesmos cupons/.test(x.name?.value || "")), "a área do mapa tem nome");
   assert.equal(ax.filter((x) => x.role?.value === "image" && !x.name?.value).length, 0, "imagem sem nome");
 });
+
+// Teste de estresse de 19/11/2026 (segunda rodada)
+test("botões de cupons com o mesmo nome dizem de qual programa (e oferta) são", async () => {
+  const pg = await abrir({ largura: 412, prefs: { status: "todos", lista: "completa" } });
+  for (let i = 0; i < 20 && (await pg.$("#mais-btn:visible")); i++) { await pg.click("#mais-btn"); await espera(pg, 120); }
+  const ax = (await arvoreAcessibilidade(pg)).filter((x) => !x.ignored && x.role?.value === "button");
+  const cont = {};
+  for (const x of ax) { const n = x.name?.value || ""; if (/^(Favorito|Marcar como usado|Voltar para disponíveis): /.test(n)) cont[n] = (cont[n] || 0) + 1; }
+  assert.deepEqual(Object.entries(cont).filter(([, k]) => k > 1).map(([n]) => n), []);
+  assert.ok(cont["Favorito: Trigo Pizzaria, Poa em Dobro"] && cont["Favorito: Trigo Pizzaria, Tour Grande Poa"], "o mesmo nome em dois programas");
+  assert.ok(Object.keys(cont).some((n) => /^Favorito: Saúde no Copo, Tour Grande Poa, /.test(n)), "o mesmo nome no mesmo programa leva a oferta");
+  assert.ok(cont["Favorito: Sabor de Luna"], "nome único fica como está");
+});
+
+test("o foco não para atrás de \"Voltar ao topo\" no pé da tela", async () => {
+  // como na varredura que achou o problema: Tab pela lista; o botão aparece depois de duas telas de rolagem
+  const pg = await abrir({ largura: 412, compacta: true });
+  await pg.focus("#grid .ticket .heart");
+  let cobertos = 0;
+  for (let i = 0; i < 200; i++) {
+    await pg.keyboard.press("Tab");
+    cobertos += await pg.evaluate(() => {
+      const t = document.getElementById("topo"), a = document.activeElement;
+      const r = a.getBoundingClientRect(), q = t.getBoundingClientRect();
+      if (t.hidden || t === a || r.height > innerHeight) return 0;
+      return r.bottom > q.top && r.top < q.bottom && r.right > q.left && r.left < q.right ? 1 : 0;
+    });
+  }
+  assert.equal(cobertos, 0);
+});
+
+test("com texto ampliado o título quebra em vez de a página rolar de lado", async () => {
+  const pg = await abrir({ largura: 412, compacta: true });
+  for (const z of [1.3, 1.5]) {
+    const lateral = await pg.evaluate((z) => { document.documentElement.style.zoom = z; return document.documentElement.scrollWidth - document.documentElement.clientWidth; }, z);
+    assert.equal(lateral, 0, `zoom ${z}`);
+  }
+});
+
+test("celular deitado: a barra fixa se recolhe ao rolar para baixo", async () => {
+  const pg = await abrir({ largura: 844, altura: 390 });
+  await pg.mouse.wheel(0, 900); await espera(pg, 300); await pg.mouse.wheel(0, 400); await espera(pg, 300);
+  assert.equal(await pg.$eval(".toolbar", (t) => t.classList.contains("recolhida")), true);
+  await pg.mouse.wheel(0, -200); await espera(pg, 300);
+  assert.equal(await pg.$eval(".toolbar", (t) => t.classList.contains("recolhida")), false);
+});
+
+test("Desfazer confirma em voz alta e não repete o total", async () => {
+  const pg = await abrir({ largura: 412 });
+  await pg.click("#grid .ticket [data-act=use]");
+  await espera(pg, 1000);
+  const total = await texto(pg, "#sr-status");
+  await pg.click("#toast-undo");
+  await espera(pg, 1000);
+  assert.equal(await texto(pg, "#sr-aviso"), "Desfeito.");
+  assert.equal(await texto(pg, "#sr-status"), total, "o total não é anunciado de novo");
+});
