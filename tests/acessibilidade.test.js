@@ -524,3 +524,18 @@ test("Filtros aberto deitado e o celular gira: o foco entra no diálogo (não ca
   await espera(pg, 400);
   assert.deepEqual(await pg.evaluate(() => [document.querySelector("main").inert, history.state?.cuponsFiltros || null]), [false, null], "girando de volta, nada fica inerte nem sobra no histórico");
 });
+
+// Teste de estresse de 19/11/2026 (décima primeira rodada): gravação recusada pelo banco
+test("gravação recusada: a tela volta ao estado real e o aviso diz qual cupom ficou como estava", async () => {
+  const pg = await abrir({ largura: 412 });
+  await pg.evaluate(() => { window.__falhaEscrita = "quota_exceeded"; });
+  const [id, nome, antes] = await pg.$eval("#grid .ticket", (t) => [t.dataset.id, t.querySelector(".tname").textContent, t.querySelector(".heart").getAttribute("aria-pressed")]);
+  await pg.click("#grid .ticket .heart");
+  await espera(pg, 600);
+  assert.equal(await pg.$eval(`.ticket[data-id="${id}"] .heart`, (b) => b.getAttribute("aria-pressed")), antes, "favorito não gravado não fica marcado");
+  assert.match(await texto(pg, "#sr-aviso"), new RegExp(`não foi salva\\. ${nome.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} ficou como estava\\.$`));
+  await pg.click(`.ticket[data-id="${id}"] [data-act=use]`);
+  await espera(pg, 600);
+  assert.ok(await pg.$(`.ticket[data-id="${id}"]`), "cupom não marcado como usado volta à lista");
+  assert.equal(await pg.evaluate(() => window.__escritas.length), 0);
+});

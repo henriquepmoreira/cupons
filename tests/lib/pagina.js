@@ -4,6 +4,7 @@
 // - window.__snap() reenvia o snapshot (simula uma atualização do banco, com objetos novos).
 // - window.__escritas guarda cada update() que a página manda ao banco: [{ id, patch }].
 // - window.__atrasoBanco (ms) atrasa a resposta de claude.use("db") (simula banco lento).
+// - window.__falhaEscrita = código de erro: os update() falham com esse código ("not_granted", "quota_exceeded"…).
 // - A página é servida em https (a localização do navegador só funciona em contexto seguro).
 // - Para conferir acessibilidade, use a árvore do Chrome (arvoreAcessibilidade) e textContent;
 //   innerText e ariaSnapshot leem o DOM e podem esconder problemas que o TalkBack veria.
@@ -47,6 +48,8 @@ const bancoFalso = `
         setTimeout(window.__snap, 10);
       },
       doc: (id) => ({ update: async (patch) => {
+        // window.__falhaEscrita = "not_granted" | "quota_exceeded" | "unavailable" | "outro": a gravação falha
+        if (window.__falhaEscrita) { await new Promise((r) => setTimeout(r, 50)); throw Object.assign(new Error("falha simulada"), { code: window.__falhaEscrita }); }
         window.__escritas.push({ id, patch });
         const d = window.__docs.find((x) => x.id === id); if (d) Object.assign(d, patch);
       } }),
