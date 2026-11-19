@@ -1895,12 +1895,18 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (modal && !f.contains(document.activeElement)) $("filters-titulo").focus();
     // o contrário (aberto em pé e girou): o título "Filtros" e o × só existem em tela cheia; com o foco neles,
     // ele caía no começo da página. Vai para a aba aberta
-    else if (!modal && state.filtersOpen && f.contains(document.activeElement) && !document.activeElement.getClientRects().length) f.querySelector('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
+    // (às vezes o Chrome já tirou o foco do elemento escondido e ele está no body: vale o último focado no painel)
+    else if (!modal && state.filtersOpen) {
+      const a = document.activeElement;
+      if ((f.contains(a) && !a.getClientRects().length) || (a === document.body && f.contains(_focoFiltros) && !_focoFiltros.getClientRects().length)) f.querySelector('[role="tab"][aria-selected="true"]')?.focus({ preventScroll: true });
+    }
   }
   // Gesto/botão de voltar do Android fecha a camada de cima em vez de sair da página: o Filtros em tela cheia
   // e o "Ver juntos" (que troca a lista inteira; abre também pelo "Valendo agora" e pelo mapa). Uma entrada no
   // histórico por camada aberta, conferida no fim de cada render: fechada de outro jeito, a entrada sai; uma
   // camada que abre no lugar de outra ("Ver juntos" → Filtros) troca a entrada. Tudo em try (iframe do claude.ai).
+  let _focoFiltros = null; // último elemento focado no painel Filtros (para o giro do celular)
+  $("filters").addEventListener("focusin", (e) => { _focoFiltros = e.target; });
   let noHistorico = [], _voltando = 0;
   function sincronizaHistorico() {
     if (_voltando) return; // um history.go nosso ainda não chegou: confere de novo no popstate dele
