@@ -375,3 +375,33 @@ test("mapa aberto: filtrar anuncia só o total; o aviso do mapa fala só nas aç
   assert.deepEqual(await pg.evaluate(() => window.__fala), ["sr-status"]);
   assert.match(await texto(pg, "#mapa-info"), /cupons no mapa/, "o texto do mapa acompanha a lista, em silêncio");
 });
+
+// Teste de estresse de 19/11/2026 (sexta rodada)
+test("espaçamento de texto ampliado (WCAG 1.4.12) não faz a página rolar de lado em 320 px", async () => {
+  for (const compacta of [true, false]) {
+    const pg = await abrir({ largura: 320, compacta, prefs: compacta ? undefined : { lista: "completa" } });
+    const normal = await pg.evaluate(() => ({ h1: document.querySelector("h1").getBoundingClientRect().height, linhas: new Set([...document.querySelectorAll(".stat")].map((s) => Math.round(s.getBoundingClientRect().top))).size }));
+    assert.ok(normal.h1 < 40 && normal.linhas === 1, "sem o espaçamento, título e números continuam numa linha");
+    await pg.addStyleTag({ content: "*{letter-spacing:.12em!important;word-spacing:.16em!important;line-height:1.5!important} p{margin-bottom:2em!important}" });
+    await espera(pg, 200);
+    assert.equal(await pg.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), 0, compacta ? "compacta" : "completa");
+  }
+});
+
+test("tecla buscar do teclado: aplica a busca e leva o foco ao total", async () => {
+  const pg = await abrir({ largura: 412 });
+  assert.equal(await pg.$eval("#q", (i) => i.getAttribute("enterkeyhint")), "search");
+  await pg.focus("#q");
+  await pg.keyboard.type("sushi");
+  await pg.keyboard.press("Enter");
+  await espera(pg, 200);
+  assert.equal(await pg.evaluate(() => document.activeElement.id), "result-count");
+  assert.match(await texto(pg, "#result-count"), /^\d+ de \d+ cupons disponíveis/);
+});
+
+test("sem as coordenadas dos cupons, Perto de mim não diz que ordenou por distância", async () => {
+  const pg = await abrir({ largura: 412, geo: false, localizacao: { latitude: -30.027, longitude: -51.2 } });
+  await pg.click("#perto-toggle");
+  await espera(pg, 1500);
+  assert.match(await texto(pg, "#toast-msg"), /coordenadas dos cupons não carregaram/);
+});
