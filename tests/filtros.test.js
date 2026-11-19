@@ -221,3 +221,24 @@ test("no computador, Filtros continua no meio da página (sem diálogo)", async 
   assert.equal(await pg.$eval("#filters", (f) => f.hasAttribute("role")), false);
   assert.equal(await pg.evaluate(() => document.querySelector("main").inert), false);
 });
+
+// busca tolerante: sinônimos, plural e palavras parecidas
+test("busca tolerante: sinônimos e plural acham o mesmo; erro de digitação acha o parecido e avisa", async () => {
+  const { abrir: ab, busca: bu, texto: tx, numero: nu } = require("./lib/pagina");
+  const pg = await ab();
+  const n = async (q) => { await bu(pg, q); return nu(await tx(pg, "#result-count")); };
+  const burger = await n("burger");
+  assert.ok(burger > 10);
+  assert.equal(await n("hamburguer"), burger, "hambúrguer = burger");
+  assert.equal(await n("hamburgueria"), burger);
+  assert.equal(await n("pizzas"), await n("pizza"), "plural acha o singular");
+  assert.ok(await n("japones") >= await n("sushi"), "japonês acha os de sushi");
+  // erro de digitação: "spoletto" não existe em cupom nenhum
+  const spoleto = await n("spoleto");
+  assert.ok(await n("spoletto") >= spoleto && spoleto > 0);
+  assert.match(await tx(pg, "#result-count"), /Busca aproximada: “spoletto” como .*spoleto/);
+  // palavra que existe não vira aproximada, e lixo continua sem resultado
+  await bu(pg, "spoleto");
+  assert.doesNotMatch(await tx(pg, "#result-count"), /aproximada/);
+  assert.equal(await n("xyzwq"), 0);
+});
