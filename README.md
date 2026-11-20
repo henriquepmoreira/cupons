@@ -13,6 +13,7 @@ Uma carteira pessoal com os cupons 2 por 1 que ainda não usei do **Poa em Dobro
 - Botão "Vale agora" na barra, ao lado de Filtros, como o "Aberto agora" dos apps, e atalhos "Pet" e "Kids" (os mesmos chips de comodidades)
 - Botão "Agora, perto": liga "Vale agora" e ordena do mais perto ao mais longe num toque; sem localização, usa o bairro escolhido ou abre a aba Onde
 - Comodidades que só um programa informa aparecem marcadas no chip (ex.: "Opções veganas · só Tour"): o Poa e o Canoas só informam Aceita Pet e Espaço Kids
+- Os cupons da categoria **"To Go"** do Poa em Dobro (categoria do app, para retirar e levar) contam como **"Aceita Take Away"**, a comodidade do Tour: entram no mesmo chip (que mostra "· só Poa e Tour"), na busca e na lista de comodidades do cartão. A regra fica na página (`comodidadesDe`); nos dados, o cupom só tem `categoriasApp: ["To Go"]`
 - Ordenação: padrão (como no app), nome, favoritos primeiro, por categoria (agrupado), por programa (agrupado), usados por último
 - A lista aparece em lotes de 40 cartões, com o botão "Mostrar mais" no fim (com os 577 de uma vez, o TalkBack no Chrome travava). Ao buscar, filtrar ou trocar a ordem, os 12 primeiros aparecem na hora e o resto do lote logo em seguida
 - "Abre em breve": até 2 horas antes, o cartão diz "Abre às 18:00 · em 40 min"; o bloco "Valendo agora" lista também o que abre na próxima hora ("Daqui a pouco")
