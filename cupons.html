@@ -861,8 +861,14 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   const COMOD_ORDEM = ["Acessibilidade", "Estacionamento conveniado", "Estacionamento gratuito", "Opções veganas", "Opções vegetarianas",
     "Opções sem glúten", "Consumo no local", "Pet Friendly / Aceita Pet", "Aceita Take Away", "Exclusivo Takeaway", "Espaço Kids"];
   const comodKey = (t) => (t === "Pet Friendly" || t === "Aceita Pet" ? "Pet Friendly / Aceita Pet" : t);
+  // A categoria "To Go" do Poa em Dobro (retirar e levar) conta como "Aceita Take Away", a comodidade do Tour
+  const TO_GO = "Aceita Take Away";
+  const comodidadesDe = (c) => {
+    const xs = c.comodidades || [];
+    return (c.categoriasApp || []).includes("To Go") && !xs.includes(TO_GO) ? [...xs, TO_GO] : xs;
+  };
   // comodidades do cupom e, quando o app mostra por unidade, as de cada unidade (vale se alguma unidade tem)
-  const comodSet = (c) => new Set([...(c.comodidades || []), ...(c.outrasUnidades || []).flatMap((u) => u.comodidades || [])].map(comodKey));
+  const comodSet = (c) => new Set([...comodidadesDe(c), ...(c.outrasUnidades || []).flatMap((u) => u.comodidades || [])].map(comodKey));
   const comodPorUnidade = (c) => (c.outrasUnidades || []).some((u) => Array.isArray(u.comodidades));
   const GANHE_TXT = { igual_ou_menor: "outro igual ou de menor valor", igual: "outro igual" };
   const PREFS_KEY = "cupons-em-dobro:prefs:v1";
@@ -1354,7 +1360,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     if (hay === undefined) {
       const us = unidadesDe(c).flatMap((u) => [u.bairro, u.cidade, u.endereco]);
       hay = norm([c.nome, c.item, c.categoria, PROG[c.programa]?.nome, c.ganhe ? GANHE_TXT[c.ganhe] : "",
-        ...us, c.regras, (c.comodidades || []).join(" "), (c.categoriasApp || []).join(" "), shoppingsDe(c).join(" ")].join(" "));
+        ...us, c.regras, comodidadesDe(c).join(" "), (c.categoriasApp || []).join(" "), shoppingsDe(c).join(" ")].join(" "));
       _hay.set(c, hay);
     }
     return hay;
@@ -1616,7 +1622,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         ${typeof c.feriados === "boolean" ? `<div class="flags"><span class="v" aria-hidden="true">${flag(c.feriados, "Feriados")}${flag(c.datasComemorativas, "Datas comemorativas")}</span><span class="sr-only">${[flagFala(c.feriados, "feriados"), flagFala(c.datasComemorativas, "datas comemorativas")].filter(Boolean).join(" ")}</span></div>` : ""}
         ${!outras.length && u && u.endereco ? `<div><${hd}${tituloAttr(`Unidade${c.maisUnidades ? " mostrada no app" : ""}`)}>Unidade${c.maisUnidades ? " mostrada no app" : ""}</${hd}><p>${endFala(u.endereco)}${u.bairro || u.cidade ? `<br>${esc([u.bairro, u.cidade].filter(Boolean).join(" – "))}` : ""}</p></div>` : ""}
         ${(c.categoriasApp || []).length ? `<div><${hd}${tituloAttr("Categoria no app")}>Categoria no app</${hd}><p>${comSep(c.categoriasApp)}</p></div>` : ""}
-        ${(c.comodidades || []).length && !porUnidade ? `<div><${hd} class="sr-only">Comodidades</${hd}><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${c.comodidades.map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
+        ${comodidadesDe(c).length && !porUnidade ? `<div><${hd} class="sr-only">Comodidades</${hd}><ul class="tags" role="list" style="list-style:none;margin:0;padding:0">${comodidadesDe(c).map((t) => `<li class="tag">${esc(t)}</li>`).join("")}</ul></div>` : ""}
       `}</div>
     </details>`;
     }
