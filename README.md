@@ -170,7 +170,7 @@ Dentro do claude.ai a página não recebe a localização do aparelho. A pasta `
 
 ## Atalho "Perto de mim"
 
-Botão na barra de cima: limpa busca, filtros, Favoritos e programas (não liga "Vale agora") e ordena todos os cupons disponíveis do mais perto ao mais longe, abertos ou fechados. Usa o GPS; sem ele, o ponto já escolhido, o primeiro de "Meus lugares" ou a aba Onde. Fica marcado enquanto a lista é só essa ordem; outro toque volta à ordem padrão.
+Botão na barra de cima: ordena a lista que já está na tela do mais perto ao mais longe, **mantendo** busca, filtros, Favoritos, programas e situação (ex.: "Aceita em feriados" e depois "Perto" = os que aceitam em feriados, do mais perto ao mais longe). Sem nada escolhido, são todos os disponíveis, abertos ou fechados; não liga "Vale agora". Usa o GPS; sem ele, o ponto já escolhido, o primeiro de "Meus lugares" ou a aba Onde. Fica marcado enquanto a ordem é "Mais perto"; outro toque volta à ordem padrão ("Usados por último" na situação Usados) e os filtros ficam.
 
 ## Valendo agora (topo da lista)
 

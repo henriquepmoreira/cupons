@@ -1,7 +1,7 @@
 // "Perto de mim": localização do navegador, bairro como ponto de partida, raio e preferência salva.
 const { test, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { abrir, fechar, aba, texto, textos, numero, espera, focado, ordenar } = require("./lib/pagina");
+const { abrir, fechar, aba, fecharFiltros, texto, textos, numero, espera, focado, ordenar } = require("./lib/pagina");
 
 after(fechar);
 const PRACA_DA_MATRIZ = { latitude: -30.0333, longitude: -51.2303 };
@@ -69,7 +69,7 @@ test('"Perto de mim" + "Vale agora": só os que valem agora, do mais perto ao ma
   await pg.click("#agora-toggle");
   await espera(pg, 200);
   assert.equal(await pg.$eval("#agora-toggle", (b) => b.getAttribute("aria-pressed")), "true");
-  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "false", "com filtro, deixa de ser o Perto de mim puro");
+  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "true", "continua ligado com o filtro");
   assert.equal(await pg.$eval("#sort", (s) => s.value), "perto");
   assert.match(await texto(pg, "#result-count"), /do mais perto ao mais longe de você$/);
   assert.ok(numero(await texto(pg, "#result-count")) < total, "só os que valem agora");
@@ -151,25 +151,49 @@ test('"Perto de mim" sem localização e sem bairro usa o primeiro lugar salvo',
   assert.equal(await pg.$eval("#filters", (e) => e.hidden), true, "não abre o painel");
 });
 
-test('"Perto de mim": limpa busca e filtros, ordena todos (abertos ou fechados) por distância; outro toque volta', async () => {
+test('"Perto de mim" combina com o que já está escolhido: Aceita em feriados e depois Perto', async () => {
   const pg = await abrir({ localizacao: PRACA_DA_MATRIZ, data: "2026-11-18T05:10:00" });
-  await pg.click("#agora-toggle"); // um filtro ligado antes
-  await pg.fill("#q", "pizza"); await espera(pg, 200);
+  await aba(pg, "quando");
+  await pg.click('[data-aceita="feriados"]');
+  await fecharFiltros(pg);
+  await espera(pg, 200);
+  const antes = numero(await texto(pg, "#result-count"));
   await pg.click("#perto-toggle");
   await pg.waitForTimeout(1200);
   assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "true");
-  assert.equal(await pg.$eval("#agora-toggle", (b) => b.getAttribute("aria-pressed")), "false", "não liga Vale agora");
-  assert.equal(await pg.$eval("#q", (i) => i.value), "");
   assert.equal(await pg.$eval("#sort", (s) => s.value), "perto");
-  assert.match(await texto(pg, "#result-count"), /^\d+ cupons disponíveis, do mais perto ao mais longe de você$/);
-  const total = numero(await texto(pg, "#result-count"));
-  assert.ok(total > 500, `todos os disponíveis, mesmo de madrugada: ${total}`);
+  assert.match(await texto(pg, "#ativos"), /feriados/i, "o filtro continua ativo");
+  assert.equal(numero(await texto(pg, "#result-count")), antes, "os mesmos cupons, só em outra ordem");
+  assert.match(await texto(pg, "#result-count"), /do mais perto ao mais longe de você$/);
+  assert.match(await texto(pg, "#toast-msg"), /^Com a busca e os filtros que já estavam/);
+  const ids = await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id));
+  assert.ok(await pg.evaluate((ids) => ids.every((id) => window.__docs.find((d) => d.id === id).feriados === true), ids), "só os que aceitam em feriados");
   const d = (await textos(pg, "#grid .ticket .loc .dist > span[aria-hidden]")).map(km);
   assert.deepEqual(d.slice(0, 10), [...d.slice(0, 10)].sort((a, b) => a - b));
+  // outro toque: volta à ordem padrão e o filtro fica
   await pg.click("#perto-toggle");
   await espera(pg, 200);
   assert.equal(await pg.$eval("#sort", (s) => s.value), "app");
-  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "false");
+  assert.equal(numero(await texto(pg, "#result-count")), antes);
+  assert.match(await texto(pg, "#ativos"), /feriados/i);
+  assert.deepEqual(pg.erros, []);
+});
+
+test('"Perto de mim" mantém busca e Favoritos; sem nada escolhido, ordena todos (abertos ou fechados)', async () => {
+  const pg = await abrir({ localizacao: PRACA_DA_MATRIZ, data: "2026-11-18T05:10:00" });
+  await pg.click("#perto-toggle");
+  await pg.waitForTimeout(1200);
+  assert.match(await texto(pg, "#result-count"), /^\d+ cupons disponíveis, do mais perto ao mais longe de você$/);
+  assert.ok(numero(await texto(pg, "#result-count")) > 500, "todos os disponíveis, mesmo de madrugada");
+  assert.equal(await pg.$eval("#agora-toggle", (b) => b.getAttribute("aria-pressed")), "false", "não liga Vale agora");
+  await pg.click("#fav-toggle");
+  await pg.fill("#q", "pizza"); await espera(pg, 300);
+  assert.equal(await pg.$eval("#perto-toggle", (b) => b.getAttribute("aria-pressed")), "true", "busca e Favoritos não desligam o Perto");
+  assert.equal(await pg.$eval("#q", (i) => i.value), "pizza");
+  assert.equal(await pg.$eval("#fav-toggle", (b) => b.getAttribute("aria-pressed")), "true");
+  const d = (await textos(pg, "#grid .ticket .loc .dist > span[aria-hidden]")).map(km);
+  assert.ok(d.length > 1);
+  assert.deepEqual(d, [...d].sort((a, b) => a - b));
   assert.deepEqual(pg.erros, []);
 });
 

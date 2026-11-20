@@ -637,7 +637,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
         Filtros <span class="badge" id="filters-badge" hidden></span>
       </button>
-      <button type="button" class="chipbtn" id="perto-toggle" aria-label="Perto de mim" aria-pressed="false" title="Todos os cupons disponíveis, do mais perto ao mais longe, abertos ou fechados">
+      <button type="button" class="chipbtn" id="perto-toggle" aria-label="Perto de mim" aria-pressed="false" title="A lista do mais perto ao mais longe, com a busca e os filtros escolhidos">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
         <span class="longo">Perto de mim</span><span class="curto">Perto</span>
       </button>
@@ -1519,8 +1519,8 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     return list.sort(cmp);
   }
   const activeFilterCount = () => state.categorias.size + (state.ganhe ? 1 : 0) + (state.regras ? 1 : 0) + (state.quando ? 1 : 0) + (state.data ? 1 : 0) + (state.raio && state.perto ? 1 : 0) + state.aceita.size + state.turnos.size + state.shoppings.size + state.cidades.size + state.tipos.size + state.comods.size + state.dias.size + state.bairros.size;
-  // "Perto de mim": só a ordem por distância, sem busca nem filtros, abertos ou fechados
-  const pertoPuro = () => state.sort === "perto" && state.status === "disponiveis" && !anyNarrowing();
+  // "Perto de mim": a lista que já está na tela (busca, filtros, Favoritos, programas), do mais perto ao mais longe
+  const pertoLigado = () => state.sort === "perto";
   const anyNarrowing = () => !!state.q.trim() || state.fav || state.programas.size > 0 || activeFilterCount() > 0;
 
   /* ---------- renderização ---------- */
@@ -1946,7 +1946,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
     setAttr($("fav-toggle"), "aria-pressed", String(state.fav));
     setAttr($("agora-toggle"), "aria-pressed", String(state.quando === "agora"));
     setAttr($("compacto-toggle"), "aria-pressed", String(state.compacto));
-    setAttr($("perto-toggle"), "aria-pressed", String(pertoPuro()));
+    setAttr($("perto-toggle"), "aria-pressed", String(pertoLigado()));
     $("sort").value = state.sort;
     setHidden($("filters"), !state.filtersOpen);
     aplicaModoFiltros();
@@ -2942,7 +2942,7 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
       state.pertoPendente = null;
       state.sort = "perto";
       savePrefs(); render();
-      garanteGeo().then(() => toast(state.geo ? "Cupons em ordem do mais perto para o mais longe de você."
+      garanteGeo().then(() => toast(state.geo ? `${anyNarrowing() ? "Com a busca e os filtros que já estavam, em" : "Cupons em"} ordem do mais perto para o mais longe de você.`
         : "Sua localização chegou, mas as coordenadas dos cupons não carregaram: a lista não pode ser ordenada por distância agora."));
     }, (err) => {
       semLocalizacao(err && err.code === 1 ? "A localização foi negada ou não é permitida nesta visualização." : "Não foi possível obter sua localização.", aproveita);
@@ -3066,10 +3066,10 @@ h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border
   });
   // "Agora, perto": liga Vale agora e a ordem por distância num toque; tocar de novo desliga os dois
   $("compacto-toggle").addEventListener("click", () => { state.compacto = !state.compacto; savePrefs(); render(); });
+  // Combina com o que já está escolhido: ex. "Aceita em feriados" e depois "Perto" = os que aceitam em feriados, do
+  // mais perto ao mais longe. Só troca a ordem; outro toque volta à ordem padrão e os filtros ficam.
   $("perto-toggle").addEventListener("click", () => {
-    if (pertoPuro()) { state.sort = "app"; savePrefs(); render(); return; }
-    // limpa busca, filtros, favoritos e programas; não liga "Vale agora"
-    clearFilters(); state.programas.clear(); state.fav = false; state.q = ""; $("q").value = ""; state.status = "disponiveis";
+    if (pertoLigado()) { state.sort = state.status === "usados" ? "recentes" : "app"; savePrefs(); render(); return; }
     state.sort = "perto";
     savePrefs(); render();
     pedeLocalizacao(true); // GPS; sem ele, o ponto já escolhido, o primeiro lugar salvo ou a aba Onde
