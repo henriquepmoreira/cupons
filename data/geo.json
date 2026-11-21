@@ -254,14 +254,9 @@
 "lng": -51.161262,
 "precisao": "rua"
 },
-"Avenida Boqueirão, Nº 2221, Stop Food Park|Estância Velha|Canoas": {
+"Avenida Boqueirão, Nº 2221, Stop Food Park|Guajuviras|Canoas": {
 "lat": -29.906203,
 "lng": -51.13475,
-"precisao": "rua"
-},
-"Avenida Boqueirão, Nº 2221, Stop Food Park|Guajuviras|Canoas": {
-"lat": -29.905594,
-"lng": -51.143981,
 "precisao": "rua"
 },
 "Avenida Borges de Medeiros Nº 1037|Centro Histórico|Porto Alegre": {
@@ -449,7 +444,7 @@
 "lng": -51.158061,
 "precisao": "endereco"
 },
-"Avenida Doutor Nilo Peçanha, Nº 3228, loja 20/21|Chácara das Pedras|Porto Alegre": {
+"Avenida Doutor Nilo Peçanha, Nº 3228, loja 20/21|Jardim Europa|Porto Alegre": {
 "lat": -30.028295,
 "lng": -51.158061,
 "precisao": "endereco"
@@ -719,6 +714,11 @@
 "lng": -51.185727,
 "precisao": "endereco"
 },
+"Avenida Ildo Meneghetti Nº 730, Sala 7|15 de Novembro|Igrejinha": {
+"lat": -29.596811,
+"lng": -50.807967,
+"precisao": "rua"
+},
 "Avenida Inconfidência Nº 1232, Sobre loja|Marechal Rondon|Canoas": {
 "lat": -29.920714,
 "lng": -51.163076,
@@ -734,7 +734,7 @@
 "lng": -51.175471,
 "precisao": "rua"
 },
-"Avenida Independência Nº 1142|Moinhos de Vento|Porto Alegre": {
+"Avenida Independência Nº 1142|Independência|Porto Alegre": {
 "lat": -30.029327,
 "lng": -51.216351,
 "precisao": "rua"
@@ -764,7 +764,7 @@
 "lng": -51.211741,
 "precisao": "endereco"
 },
-"Avenida Ipiranga Nº 5200 (Bourbon Shopping)|Petrópolis|Porto Alegre": {
+"Avenida Ipiranga Nº 5200 (Bourbon Shopping)|Jardim Botânico|Porto Alegre": {
 "lat": -30.05531,
 "lng": -51.186954,
 "precisao": "endereco"
@@ -819,32 +819,27 @@
 "lng": -51.162257,
 "precisao": "endereco"
 },
-"Avenida João Wallig Nº 1800|Passo da Areia|Porto Alegre": {
+"Avenida João Wallig, Nº 1800, Iguatemi Gartens|Jardim Europa|Porto Alegre": {
 "lat": -30.02479,
 "lng": -51.162257,
 "precisao": "endereco"
 },
-"Avenida João Wallig, Nº 1800, Iguatemi Gartens|Passo da Areia|Porto Alegre": {
+"Avenida João Wallig, Nº 1800, Iguatemi Shopping|Jardim Europa|Porto Alegre": {
 "lat": -30.02479,
 "lng": -51.162257,
 "precisao": "endereco"
 },
-"Avenida João Wallig, Nº 1800, Iguatemi Shopping|Passo da Areia|Porto Alegre": {
+"Avenida João Wallig, Nº 1800, Iguatemi|Jardim Europa|Porto Alegre": {
 "lat": -30.02479,
 "lng": -51.162257,
 "precisao": "endereco"
 },
-"Avenida João Wallig, Nº 1800, Iguatemi|Passo da Areia|Porto Alegre": {
+"Avenida João Wallig, Nº 1800, Loja 2283|Jardim Europa|Porto Alegre": {
 "lat": -30.02479,
 "lng": -51.162257,
 "precisao": "endereco"
 },
-"Avenida João Wallig, Nº 1800, Loja 2283|Passo da Areia|Porto Alegre": {
-"lat": -30.02479,
-"lng": -51.162257,
-"precisao": "endereco"
-},
-"Avenida João Wallig, Nº 1800, Shopping Iguatemi|Passo da Areia|Porto Alegre": {
+"Avenida João Wallig, Nº 1800, Shopping Iguatemi|Jardim Europa|Porto Alegre": {
 "lat": -30.02479,
 "lng": -51.162257,
 "precisao": "endereco"
@@ -974,7 +969,7 @@
 "lng": -51.245392,
 "precisao": "endereco"
 },
-"Avenida Padre Cacique, Nº 2893, Pontal Shopping|Praia de Belas|Porto Alegre": {
+"Avenida Padre Cacique, Nº 2893, Pontal Shopping|Cristal|Porto Alegre": {
 "lat": -30.080666,
 "lng": -51.247625,
 "precisao": "endereco"
@@ -985,11 +980,6 @@
 "precisao": "endereco"
 },
 "Avenida Padre Cacique, Nº 2893|Cristal|Porto Alegre": {
-"lat": -30.080666,
-"lng": -51.247625,
-"precisao": "endereco"
-},
-"Avenida Padre Cacique, Nº 2893|Praia de Belas|Porto Alegre": {
 "lat": -30.080666,
 "lng": -51.247625,
 "precisao": "endereco"
@@ -1259,7 +1249,7 @@
 "lng": -51.181254,
 "precisao": "rua"
 },
-"Avenida Wenceslau Escobar Nº 1823|Tristeza|Porto Alegre": {
+"Avenida Wenceslau Escobar Nº 1823|Cristal|Porto Alegre": {
 "lat": -30.104828,
 "lng": -51.254413,
 "precisao": "endereco"
@@ -1299,12 +1289,12 @@
 "lng": -51.227298,
 "precisao": "rua"
 },
-"Avenida das Nações Unidas Nº 201, Loja 2054||Novo Hamburgo": {
-"lat": -29.703668,
-"lng": -51.134921,
-"precisao": "rua"
+"Avenida das Nações Unidas Nº 2001, Loja 2054|Centro|Novo Hamburgo": {
+"lat": -29.686387,
+"lng": -51.133767,
+"precisao": "endereco"
 },
-"Avenida do Forte Nº 1088|Cristo Redentor|Porto Alegre": {
+"Avenida do Forte Nº 1088|Vila Ipiranga|Porto Alegre": {
 "lat": -30.014698,
 "lng": -51.152739,
 "precisao": "rua"
@@ -1334,11 +1324,6 @@
 "lng": -51.152739,
 "precisao": "rua"
 },
-"Avenida dos Estados, Nº 111|Anchieta|Porto Alegre": {
-"lat": -29.996074,
-"lng": -51.187382,
-"precisao": "endereco"
-},
 "Avenida dos Estados, Nº 111|São João|Porto Alegre": {
 "lat": -29.996074,
 "lng": -51.187382,
@@ -1354,7 +1339,7 @@
 "lng": -51.250255,
 "precisao": "endereco"
 },
-"Edvaldo Pereira Paiva Nº 63, Loja 2|Cidade Baixa|Porto Alegre": {
+"Edvaldo Pereira Paiva Nº 63, Loja 2|Praia de Belas|Porto Alegre": {
 "lat": -30.042782,
 "lng": -51.231405,
 "precisao": "rua"
@@ -1455,9 +1440,14 @@
 "precisao": "rua"
 },
 "Praça da Alfândega Nº 1, Loja 6|Centro Histórico|Porto Alegre": {
-"lat": -30.029593,
-"lng": -51.231015,
-"precisao": "rua"
+"lat": -30.029896,
+"lng": -51.231807,
+"precisao": "endereco"
+},
+"Praça da Alfândega, Nº 1, Loja 6|Centro Histórico|Porto Alegre": {
+"lat": -30.029896,
+"lng": -51.231807,
+"precisao": "endereco"
 },
 "Praça da Bandeira, Nº 417|Centro|Novo Hamburgo": {
 "lat": -29.680228,
@@ -2134,7 +2124,7 @@
 "lng": -51.223074,
 "precisao": "rua"
 },
-"Rua General Lima e Silva, Nº 1035|Centro Histórico|Porto Alegre": {
+"Rua General Lima e Silva, Nº 1035|Cidade Baixa|Porto Alegre": {
 "lat": -30.035407,
 "lng": -51.22522,
 "precisao": "rua"
@@ -2217,11 +2207,6 @@
 "Rua Humaitá, Nº 1431|Nossa Senhora das Graças|Canoas": {
 "lat": -29.927103,
 "lng": -51.177133,
-"precisao": "rua"
-},
-"Rua Ildo Menegueti Nº 730, Sala 7||Igrejinha": {
-"lat": -29.596811,
-"lng": -50.807967,
 "precisao": "rua"
 },
 "Rua Independência Nº 1241, Bar|Centro|São Leopoldo": {
@@ -2459,15 +2444,15 @@
 "lng": -51.20132,
 "precisao": "endereco"
 },
+"Rua Olavo Barreto Viana Nº 36|Moinhos de Vento|Porto Alegre": {
+"lat": -30.023138,
+"lng": -51.20108,
+"precisao": "endereco"
+},
 "Rua Olavo Barreto Viana, Nº 36, Moinhos Shopping|Moinhos de Vento|Porto Alegre": {
 "lat": -30.023356,
 "lng": -51.20132,
 "precisao": "endereco"
-},
-"Rua Olavo Barreto Viana|Moinhos de Vento|Porto Alegre": {
-"lat": -30.024136,
-"lng": -51.20126,
-"precisao": "rua"
 },
 "Rua Olinda, Nº 370|São Geraldo|Porto Alegre": {
 "lat": -30.015578,
@@ -2549,7 +2534,7 @@
 "lng": -51.170629,
 "precisao": "rua"
 },
-"Rua Porto Alegre Nº 399||Portão": {
+"Rua Porto Alegre Nº 399|Boa Vista|Portão": {
 "lat": -29.700923,
 "lng": -51.235997,
 "precisao": "endereco"
@@ -2690,11 +2675,6 @@
 "precisao": "rua"
 },
 "Rua Silva Jardim Nº 140|Auxiliadora|Porto Alegre": {
-"lat": -30.02377,
-"lng": -51.190401,
-"precisao": "rua"
-},
-"Rua Silva Jardim Nº 140|Bela Vista|Porto Alegre": {
 "lat": -30.031818,
 "lng": -51.189616,
 "precisao": "rua"
@@ -2819,7 +2799,7 @@
 "lng": -51.17434,
 "precisao": "rua"
 },
-"Rua Venâncio Aires Nº 3400, Esquina|Niterói|Canoas": {
+"Rua Venâncio Aires Nº 3400, Esquina|Nossa Senhora das Graças|Canoas": {
 "lat": -29.951187,
 "lng": -51.17434,
 "precisao": "rua"
@@ -2889,7 +2869,7 @@
 "lng": -51.194598,
 "precisao": "endereco"
 },
-"Rua Vinte e Quatro de Outubro, Nº 1454, Pátio 24|Moinhos de Vento|Porto Alegre": {
+"Rua Vinte e Quatro de Outubro, Nº 1454, Pátio 24|Auxiliadora|Porto Alegre": {
 "lat": -30.02206,
 "lng": -51.194831,
 "precisao": "endereco"
@@ -2990,11 +2970,6 @@
 "precisao": "endereco"
 },
 "Rua dos Andradas, Nº 798|Centro Histórico|Porto Alegre": {
-"lat": -30.029673,
-"lng": -51.223956,
-"precisao": "rua"
-},
-"Rua dos Andradas|Centro Histórico|Porto Alegre": {
 "lat": -30.029673,
 "lng": -51.223956,
 "precisao": "rua"
