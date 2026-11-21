@@ -79,10 +79,10 @@
 "lng": -51.151835,
 "precisao": "endereco"
 },
-"Av. Plínio Brasil Milão, Nº 1609|Higienópolis|Porto Alegre": {
-"lat": -30.013821,
-"lng": -51.18227,
-"precisao": "bairro"
+"Av. Plínio Brasil Milano, Nº 1609|Boa Vista|Porto Alegre": {
+"lat": -30.01859,
+"lng": -51.175668,
+"precisao": "endereco"
 },
 "Av. Praia de Belas, Nº 418|Praia de Belas|Porto Alegre": {
 "lat": -30.047289,
@@ -90,9 +90,9 @@
 "precisao": "rua"
 },
 "Av. Presidente Lucena Nº 5760|Nova Vila|Ivoti": {
-"lat": -29.544112,
-"lng": -51.182811,
-"precisao": "bairro"
+"lat": -29.572772,
+"lng": -51.169087,
+"precisao": "endereco"
 },
 "Av. Protásio Alves, Nº 1538|Petrópolis|Porto Alegre": {
 "lat": -30.040293,
@@ -119,10 +119,10 @@
 "lng": -51.248269,
 "precisao": "rua"
 },
-"Avenida Arlindo Pasquali, Nº 135|Jardim Isabel|Porto Alegre": {
-"lat": -30.125326,
-"lng": -51.234763,
-"precisao": "bairro"
+"Avenida Arlindo Pasqualini, Nº 135|Ipanema|Porto Alegre": {
+"lat": -30.127972,
+"lng": -51.238551,
+"precisao": "endereco"
 },
 "Avenida Armando Fajardo Nº 1330|Igara|Canoas": {
 "lat": -29.89433,
@@ -680,9 +680,9 @@
 "precisao": "rua"
 },
 "Avenida Getúlio Vargas, Nº 1877|Centro|Guaíba": {
-"lat": -30.109847,
-"lng": -51.315722,
-"precisao": "bairro"
+"lat": -30.115455,
+"lng": -51.314597,
+"precisao": "endereco"
 },
 "Avenida Getúlio Vargas, Nº 5555|Marechal Rondon|Canoas": {
 "lat": -29.916988,
@@ -1065,9 +1065,9 @@
 "precisao": "endereco"
 },
 "Avenida Presidente Lucena, Nº 5760|Nova Vila|Ivoti": {
-"lat": -29.544112,
-"lng": -51.182811,
-"precisao": "bairro"
+"lat": -29.572772,
+"lng": -51.169087,
+"precisao": "endereco"
 },
 "Avenida Protásio Alves Nº 525|Santa Cecília|Porto Alegre": {
 "lat": -30.038486,
@@ -1359,10 +1359,10 @@
 "lng": -51.231405,
 "precisao": "rua"
 },
-"Estr. Emilia José da Silva Nº 1501|Morro Ferrabraz|Sapiranga": {
-"lat": -29.602865,
-"lng": -50.967859,
-"precisao": "bairro"
+"Estr. Emilia José da Silva Nº 1501|Picada São Jacob|Sapiranga": {
+"lat": -29.610448,
+"lng": -50.975448,
+"precisao": "endereco"
 },
 "Galeria Mercado Público Nº 0, 2º andar, salas 6 e 8|Centro Histórico|Porto Alegre": {
 "lat": -30.027472,
@@ -1630,9 +1630,9 @@
 "precisao": "rua"
 },
 "Rua Buttenbender Nº 330|Fátima|Canoas": {
-"lat": -29.944842,
-"lng": -51.186784,
-"precisao": "bairro"
+"lat": -29.94404,
+"lng": -51.180689,
+"precisao": "endereco"
 },
 "Rua Cabral, Nº 281|Rio Branco|Porto Alegre": {
 "lat": -30.033959,
@@ -1973,11 +1973,6 @@
 "lat": -30.024213,
 "lng": -51.190437,
 "precisao": "rua"
-},
-"Rua Expedicionário, Nº 3400|Nossa Senhora das Graças|Canoas": {
-"lat": -29.930443,
-"lng": -51.170959,
-"precisao": "bairro"
 },
 "Rua Felipe Camarão - lado par, Nº 675|Rio Branco|Porto Alegre": {
 "lat": -30.035457,
@@ -2624,10 +2619,10 @@
 "lng": -51.163616,
 "precisao": "rua"
 },
-"Rua Roque Callage, Nº 767|Passo da Areia|Porto Alegre": {
-"lat": -30.014915,
-"lng": -51.167236,
-"precisao": "bairro"
+"Rua Roque Calage, Nº 767|Passo da Areia|Porto Alegre": {
+"lat": -30.018392,
+"lng": -51.163211,
+"precisao": "endereco"
 },
 "Rua Santa Terezinha Nº 29|Farroupilha|Porto Alegre": {
 "lat": -30.03747,
@@ -2750,9 +2745,9 @@
 "precisao": "endereco"
 },
 "Rua São Jacó Nº 94|Centro|Novo Hamburgo": {
-"lat": -29.685114,
-"lng": -51.125658,
-"precisao": "bairro"
+"lat": -29.687208,
+"lng": -51.124476,
+"precisao": "endereco"
 },
 "Rua São Luís, Nº 368|Santana|Porto Alegre": {
 "lat": -30.044415,
@@ -2760,19 +2755,19 @@
 "precisao": "rua"
 },
 "Rua Tenente Coronel Fabricio Pillar, Nº 198|Mont'Serrat|Porto Alegre": {
-"lat": -30.028687,
-"lng": -51.190591,
-"precisao": "bairro"
+"lat": -30.025666,
+"lng": -51.195447,
+"precisao": "endereco"
 },
 "Rua Tenente Coronel Fabricio Pillar, Nº 206|Mont'Serrat|Porto Alegre": {
-"lat": -30.028687,
-"lng": -51.190591,
-"precisao": "bairro"
+"lat": -30.02568,
+"lng": -51.19532,
+"precisao": "endereco"
 },
 "Rua Tenente Coronel Fabricio Pillar, Nº 822|Mont'Serrat|Porto Alegre": {
-"lat": -30.028687,
-"lng": -51.190591,
-"precisao": "bairro"
+"lat": -30.025012,
+"lng": -51.189086,
+"precisao": "endereco"
 },
 "Rua Tobias da Silva, Nº 266|Moinhos de Vento|Porto Alegre": {
 "lat": -30.022664,
@@ -2789,10 +2784,10 @@
 "lng": -51.1739,
 "precisao": "rua"
 },
-"Rua Upamoroti Nº 196|Vila Monte Carlo|Cachoeirinha": {
-"lat": -29.934091,
-"lng": -51.084669,
-"precisao": "bairro"
+"Rua Upamarati Nº 196|Vila Monte Carlo|Cachoeirinha": {
+"lat": -29.936825,
+"lng": -51.082602,
+"precisao": "endereco"
 },
 "Rua Valparaíso, Nº 285|Jardim Botânico|Porto Alegre": {
 "lat": -30.052442,
@@ -2843,6 +2838,11 @@
 "lat": -29.951187,
 "lng": -51.17434,
 "precisao": "rua"
+},
+"Rua Venâncio Aires, Nº 3400|Nossa Senhora das Graças|Canoas": {
+"lat": -29.93102,
+"lng": -51.175368,
+"precisao": "endereco"
 },
 "Rua Vicente da Fontoura Nº 101|Boa Vista|Novo Hamburgo": {
 "lat": -29.690306,

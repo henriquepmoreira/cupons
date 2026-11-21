@@ -28,6 +28,29 @@ test('comodidade que só o Tour informa aparece como "só Tour"', async () => {
   assert.doesNotMatch(pet, /só /, "Pet aparece nos três programas");
 });
 
+test('categoria "To Go" do Poa entra em "Aceita Take Away" (filtro, chip e cartão)', async () => {
+  const pg = await abrir();
+  await aba(pg, "oque");
+  const chip = '#f-comod button[data-comod="Aceita Take Away"]';
+  assert.match(await texto(pg, chip), /· só Poa e Tour/);
+  await pg.click(chip);
+  await fecharFiltros(pg);
+  await espera(pg, 300);
+  const togo = await pg.evaluate(() => window.__docs.filter((d) => d.programa === "poa-em-dobro" && !d.usado && (d.categoriasApp || []).includes("To Go")).map((d) => d.id));
+  assert.ok(togo.length >= 11, `cupons To Go do Poa: ${togo.length}`);
+  // todos os To Go disponíveis passam no filtro (a lista inteira, não só o lote)
+  while (await pg.$eval("#mais", (m) => !m.hidden)) { await pg.click("#mais-btn"); await espera(pg, 150); }
+  const ids = await pg.$$eval("#grid .ticket", (t) => t.map((x) => x.dataset.id));
+  for (const id of togo) assert.ok(ids.includes(id), `${id} com Aceita Take Away`);
+  assert.ok(ids.some((id) => id.startsWith("tour-grande-poa--")), "os do Tour continuam");
+  assert.ok(!ids.some((id) => id.startsWith("canoas-em-dobro--")), "nenhum do Canoas");
+  // o cartão mostra a comodidade no painel de detalhes
+  const sel = `.ticket[data-id="${togo[0]}"]`;
+  await pg.click(`${sel} details.det:not([data-outros]) > summary`);
+  await espera(pg, 200);
+  assert.match(await texto(pg, `${sel} .det-body`), /Aceita Take Away/);
+});
+
 test("sem rolagem lateral no celular, com e sem Filtros aberto", async () => {
   const pg = await abrir({ largura: 360 });
   const lateral = () => pg.evaluate(() => document.documentElement.scrollWidth > innerWidth);
