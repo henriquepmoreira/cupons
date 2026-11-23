@@ -8,7 +8,7 @@ Situação em 19/11/2026, no fim da sessão anterior. Leia este arquivo inteiro 
 |---|---|
 | Repositório | `henriquepmoreira/cupons` |
 | Branch com todo o trabalho | **`claude/clever-edison-q4u03f`**, que é o **branch padrão** do repositório (não existe `main`). Desde 18/11/2026 o trabalho das sessões entra nele por pull request; o site do GitHub Pages publica a pasta `/docs` dele. Numa sessão nova: `git fetch origin claude/clever-edison-q4u03f` e crie o branch da sessão a partir dele; antes, confira se há PR aberto de outra sessão ainda não juntado. |
-| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 70, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
+| Página publicada | https://claude.ai/artifact/6YpmFkzyRmo1QhkfRksYGc ("Cupons em Dobro", versão 71, ícone `ticket`, compartilhada como "qualquer pessoa com o link") |
 | Código da página | `cupons.html` (arquivo único, sem build) |
 | Dados de origem | `data/poa-em-dobro.json`, `data/tour-grande-poa.json`, `data/canoas-em-dobro.json` |
 | Gerador de documentos para o banco | `scripts/gerar-seed.py` |
@@ -287,8 +287,8 @@ Os campos básicos de todos os programas estão na tabela do `README.md`. Detalh
 
 | programa | cupons | favoritos | usados | pendências |
 |---|---|---|---|---|
-| Poa em Dobro | 310 | 198 | 31 (Di Toni, Joe Hamburgueria em 16/11 e 29 vistos nos prints de 17/11) | detalhes de todos os cupons disponíveis até a Ferradura; Céu Zona Sul entrou como cupom novo (223); lista completa (o que vem depois do Di Toni são os usados); 2 nomes cortados nos usados |
-| Tour Grande Poa | 237 | 150 | 37 (Don Carlone 11/11, Manos Fast Food 16/11, Chiquinho Havan e 34 vistos nos prints de 17/11, entre eles o Woking Thai Food - Canoas e o Cachorro do Bigode; o Cachorro do Bigode - Cristo Redentor continua disponível) | detalhes completos dos 203 disponíveis da captura; os usados novos não têm detalhes |
+| Poa em Dobro | 310 | 198 | 34 (Di Toni, Joe Hamburgueria em 16/11, Rádio Agulha em 18/11, Komka em 19/11, Cachorro Bravo em 22/11 e 29 vistos nos prints de 17/11) | detalhes de todos os cupons disponíveis até a Ferradura; Céu Zona Sul entrou como cupom novo (223); lista completa (o que vem depois do Di Toni são os usados); 2 nomes cortados nos usados |
+| Tour Grande Poa | 237 | 153 | 38 (Don Carlone 11/11, Manos Fast Food 16/11, Capim Burger 21/11, Chiquinho Havan e 34 vistos nos prints de 17/11, entre eles o Woking Thai Food - Canoas e o Cachorro do Bigode; o Cachorro do Bigode - Cristo Redentor continua disponível) | detalhes completos dos 203 disponíveis da captura; os usados novos não têm detalhes |
 | Canoas em Dobro | 132 | 94 | 35 (Paradouro, Guido, The West Burger e 32 vistos nos prints de 17/11) | lista completa; Família Kabana, Guacamole Taqueria e Grano Forneria (saíram do programa) e segundo Urban 1736 (erro do app) apagados; detalhes de todos os disponíveis (1–98) |
 
 ## 6. O que falta fazer (por prioridade)
@@ -450,4 +450,5 @@ Use `scripts/video/README.md`. Os scripts que estavam na pasta temporária da se
 84. (PR #25) atalho "Perto" mantém busca e filtros e só troca a ordem (pedido do dono); Komka usado na página em 19/11 levado para o arquivo (`--marcas-para-arquivos`); 141 testes da página e 13 dos scripts; versão 67 publicada e `docs/` regenerado.
 85. (PR #26) categoria "To Go" do Poa conta como "Aceita Take Away" (pedido do dono); La Bella Donna e Doca do Xis com `categoriasApp: ["To Go"]` (arquivo e banco); favoritos do Mr. Pretzels e dos dois Mark (página) levados para o arquivo; 142 testes da página e 13 dos scripts; versão 68 publicada e `docs/` regenerado.
 86. (PR #26) coordenadas exatas dos 13 endereços que estavam no centro do bairro (planilha preenchida pelo dono) e 6 endereços corrigidos pelo Google, nos arquivos e no banco (`update` de `unidade`); versão 69 publicada e `docs/` regenerado.
-87. (este commit) pendências de cupons (pedido do dono): avisos vencidos fora das regras de 9 cupons do Tour, um bairro só por endereço (14 endereços), Mr. Pretzels sem feriados e datas comemorativas, Doca do Xis "um xis selecionado", endereços de Vila Finamor, Menu Poke - Moinhos, Nonna Ludovina, Mochileiros e Chiquinho Novo Hamburgo; 39 `update` no banco; versão 70 publicada e `docs/` regenerado.
+87. (PR #27) pendências de cupons (pedido do dono): avisos vencidos fora das regras de 9 cupons do Tour, um bairro só por endereço (14 endereços), Mr. Pretzels sem feriados e datas comemorativas, Doca do Xis "um xis selecionado", endereços de Vila Finamor, Menu Poke - Moinhos, Nonna Ludovina, Mochileiros e Chiquinho Novo Hamburgo; 39 `update` no banco; versão 70 publicada e `docs/` regenerado.
+88. (este commit) publicação no site (pedido do dono, 23/11/2026): Cachorro Bravo (usado em 22/11) e Capim Burger (usado em 21/11), marcados na página, levados para os arquivos (`--marcas-para-arquivos`); 142 testes da página e 13 dos scripts; versão 71 publicada (só a cópia sem login mudou) e `docs/` regenerado.
